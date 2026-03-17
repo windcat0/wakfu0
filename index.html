@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪汪队出击 - Wakfu Combat Logs Analysis</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -527,7 +528,7 @@
 
                         <div class="chart-container">
                             <h4>玩家伤害排行</h4>
-                            <canvas id="playerDamageChart"></canvas>
+                            <div id="playerDamageChart" style="width: 100%; height: 300px;"></div>
                         </div>
                     </div>
                 </div>
@@ -1377,143 +1378,148 @@
             document.getElementById('playerTotalHeal').textContent = formatNumber(playerTotalHeal);
             document.getElementById('npcTotalDamage').textContent = formatNumber(npcTotalDmg);
 
-            // 玩家伤害排行图表 - 降序排列、显示职业名字、百分比显示在柱状图右侧
+            // 玩家伤害排行图表 - 使用 ECharts
             // 将对象转换为数组并排序（降序）
             const playerDamageArray = Object.entries(stats.playerDamage)
                 .sort((a, b) => {
-                    // 降序排列：伤害高的在前
                     if (b[1] !== a[1]) {
                         return b[1] - a[1];
                     }
-                    // 伤害相同时，按玩家名称字母顺序排列
                     return a[0].localeCompare(b[0]);
                 });
 
-            // 收集玩家名称和 breedId
             const playerNames = playerDamageArray.map(item => item[0]);
-            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
-
-            // 预加载所有图标
-            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
-
-            // 构建标签（只显示玩家名称，职业用图标显示）
-            const sortedLabels = playerDamageArray.map(item => {
-                const playerName = item[0];
-                return playerName;
-            });
-
             const sortedData = playerDamageArray.map(item => item[1]);
-
-            // 创建渐变色
-            const canvas = document.getElementById('playerDamageChart');
-            const ctx = canvas.getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width || 400, 0);
-            gradient.addColorStop(0, '#667eea');
-            gradient.addColorStop(1, '#764ba2');
-
-            // 保存 playerTotalDmg 供动画完成后使用
             const totalDmg = playerTotalDmg;
 
-            updateChart('playerDamageChart', 'bar', {
-                labels: sortedLabels,
-                datasets: [{
-                    label: '伤害',
-                    data: sortedData,
-                    backgroundColor: gradient,
-                    borderRadius: 6
-                }]
-            }, {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.raw;
-                                const percentage = ((value / totalDmg) * 100).toFixed(1);
-                                return `伤害: ${formatNumber(value)} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
-                            drawBorder: false
-                        }
-                    },
-                    y: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                },
-                animation: {
-                    duration: 800,
-                    easing: 'easeOutQuart',
-                    onComplete: function() {
-                        const chart = this;
-                        const ctx = chart.ctx;
-                        ctx.save();
-                        
-                        // 只处理第一个 dataset
-                        const dataset = chart.data.datasets[0];
-                        const meta = chart.getDatasetMeta(0);
-                        
-                        meta.data.forEach((bar, index) => {
-                            const value = dataset.data[index];
-                            const percentage = ((value / totalDmg) * 100).toFixed(1) + '%';
-                            
-                            // 绘制百分比
-                            ctx.fillStyle = '#666';
-                            ctx.font = 'bold 11px sans-serif';
-                            ctx.textAlign = 'left';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText(percentage, bar.x + 8, bar.y);
+            // 预加载所有图标
+            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
+            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
 
-                            // 绘制职业图标（紧挨着玩家名称后面）
-                            const playerName = playerNames[index];
-                            const breedId = combat.playersBreed[playerName] || '0';
-                            const iconPath = getBreedIconPath(breedId);
-                            const img = iconCache[iconPath] || iconCache['asset/breed/0.png'];
-                            
-                            if (img && img.complete) {
-                                const yAxis = chart.scales.y;
-                                const y = yAxis.getPixelForValue(index);
-                                
-                                // 计算柱状条高度，图标高度与柱状条高度一致
-                                const barHeight = bar.height;
-                                const iconHeight = Math.max(barHeight - 2, 16); // 最小16px
-                                const iconWidth = iconHeight; // 保持正方形
-                                
-                                // 计算玩家名称文字宽度
-                                ctx.font = '12px sans-serif'; // Y轴标签默认字体
-                                const labelWidth = ctx.measureText(playerName).width;
-                                
-                                // 图标位置：紧挨着柱状条左侧
-                                const iconX = bar.x - iconWidth - 2; // 柱状条左侧，留2px间距
-                                const iconY = y - iconHeight / 2;
-                                
-                                // 边界检查：图标不能覆盖玩家名称（Y轴标签）
-                                if (iconX < yAxis.left + 2) {
-                                    // 空间不足，不绘制图标
-                                    return;
-                                }
-                                
-                                // 绘制圆角图标
-                                ctx.save();
-                                ctx.beginPath();
-                                ctx.roundRect(iconX, iconY, iconWidth, iconHeight, 2);
-                                ctx.clip();
-                                ctx.drawImage(img, iconX, iconY, iconWidth, iconHeight);
-                                ctx.restore();
-                            }
-                        });
-                        ctx.restore();
+            // 初始化或更新 ECharts
+            const chartDom = document.getElementById('playerDamageChart');
+            if (!chartDom) return;
+
+            if (charts['playerDamageChart']) {
+                charts['playerDamageChart'].dispose();
+            }
+
+            const echart = echarts.init(chartDom);
+            charts['playerDamageChart'] = echart;
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        const value = params[0].value;
+                        const percentage = ((value / totalDmg) * 100).toFixed(1);
+                        return `${params[0].name}<br/>伤害: ${formatNumber(value)} (${percentage}%)`;
                     }
-                }
+                },
+                grid: {
+                    left: '3%',
+                    right: '15%',
+                    bottom: '3%',
+                    top: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    splitLine: {
+                        lineStyle: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    axisLine: { show: false }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: playerNames,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: '#333',
+                        fontSize: 12
+                    }
+                },
+                series: [{
+                    type: 'bar',
+                    data: sortedData,
+                    barWidth: '60%',
+                    itemStyle: {
+                        borderRadius: [0, 6, 6, 0],
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#667eea' },
+                            { offset: 1, color: '#764ba2' }
+                        ])
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: function(params) {
+                            const percentage = ((params.value / totalDmg) * 100).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#666',
+                        fontWeight: 'bold',
+                        fontSize: 11
+                    }
+                }]
+            };
+
+            echart.setOption(option);
+
+            // 渲染完成后绘制职业图标
+            echart.on('finished', function() {
+                const chartModel = echart.getModel();
+                const seriesModel = chartModel.getSeriesByIndex(0);
+                const view = echart.getViewOfSeriesModel(seriesModel);
+                const group = view.group;
+
+                // 获取图表实例的 canvas 上下文
+                const zr = echart.getZr();
+                const width = zr.getWidth();
+                const height = zr.getHeight();
+
+                // 创建自定义图形层来绘制图标
+                playerNames.forEach((playerName, index) => {
+                    const breedId = combat.playersBreed[playerName] || '0';
+                    const iconPath = getBreedIconPath(breedId);
+                    const img = iconCache[iconPath] || iconCache['asset/breed/0.png'];
+
+                    if (img && img.complete) {
+                        // 获取柱状条的位置信息
+                        const coordSys = seriesModel.coordinateSystem;
+                        const barLayout = coordSys.getRect();
+                        const categoryAxis = coordSys.getAxis('y');
+                        const valueAxis = coordSys.getAxis('x');
+
+                        const bandWidth = categoryAxis.getBandWidth();
+                        const y = categoryAxis.toGlobalCoord(categoryAxis.dataToCoord(index));
+                        const x = valueAxis.toGlobalCoord(valueAxis.dataToCoord(sortedData[index]));
+
+                        // 计算图标大小（与柱状条高度一致）
+                        const iconSize = Math.max(bandWidth - 4, 16);
+
+                        // 图标位置：紧挨着柱状条左侧
+                        const iconX = x - iconSize - 4;
+                        const iconY = y - iconSize / 2;
+
+                        // 检查是否有足够空间
+                        if (iconX > barLayout.x + 30) {
+                            const iconGraphic = new echarts.graphic.Image({
+                                style: {
+                                    image: img.src,
+                                    x: iconX,
+                                    y: iconY,
+                                    width: iconSize,
+                                    height: iconSize,
+                                    borderRadius: 2
+                                }
+                            });
+                            zr.add(iconGraphic);
+                        }
+                    }
+                });
             });
         }
 
