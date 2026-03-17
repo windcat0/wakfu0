@@ -1460,12 +1460,12 @@
                         rich: yAxisData.reduce((acc, item, index) => {
                             const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
                             acc[`icon${index}`] = {
-                                height: 16,
-                                width: 16,
+                                height: 24,
+                                width: 24,
                                 backgroundColor: {
                                     image: img && img.complete ? img.src : ''
                                 },
-                                borderRadius: 2
+                                borderRadius: 4
                             };
                             return acc;
                         }, { name: { color: '#333', fontSize: 12 } })
