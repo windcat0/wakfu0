@@ -1755,13 +1755,32 @@
                 series: [{
                     type: 'bar',
                     data: sortedData,
-                    barWidth: '60%',
+                    barWidth: '55%',
+                    barMinHeight: 8,
                     itemStyle: {
-                        borderRadius: [0, 6, 6, 0],
+                        borderRadius: [4, 8, 8, 4],
                         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                             { offset: 0, color: '#667eea' },
-                            { offset: 1, color: '#764ba2' }
-                        ])
+                            { offset: 0.5, color: '#764ba2' },
+                            { offset: 1, color: '#f093fb' }
+                        ]),
+                        shadowColor: 'rgba(102, 126, 234, 0.3)',
+                        shadowBlur: 8,
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#7c8ff8' },
+                                { offset: 0.5, color: '#8b5dc7' },
+                                { offset: 1, color: '#f5a9fc' }
+                            ]),
+                            shadowColor: 'rgba(102, 126, 234, 0.5)',
+                            shadowBlur: 15,
+                            shadowOffsetX: 3,
+                            shadowOffsetY: 3
+                        }
                     },
                     label: {
                         show: true,
@@ -1770,9 +1789,10 @@
                             const percentage = ((params.value / totalDmg) * 100).toFixed(1);
                             return percentage + '%';
                         },
-                        color: '#666',
+                        color: '#64748b',
                         fontWeight: 'bold',
-                        fontSize: 11
+                        fontSize: 12,
+                        distance: 8
                     }
                 }]
             };
