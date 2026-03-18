@@ -1423,10 +1423,17 @@
                                 let damageElement = 'Neutral';
                                 let isBlock = false;
 
-                                for (const elem of ['FIRE', 'WATER', 'EARTH', 'AIR']) {
-                                    const elemName = getElementName(elem);
-                                    if (modifiers.some(m => m.includes(elem) || m.includes(elemName))) {
-                                        damageElement = elemName;
+                                // 元素名称映射（包含中文）
+                                const elementMap = {
+                                    'FIRE': ['FIRE', 'Fire', '火', '火系'],
+                                    'WATER': ['WATER', 'Water', '水', '水系'],
+                                    'EARTH': ['EARTH', 'Earth', '土', '土系'],
+                                    'AIR': ['AIR', 'Air', '风', '风系']
+                                };
+
+                                for (const [key, values] of Object.entries(elementMap)) {
+                                    if (modifiers.some(m => values.some(value => m.includes(value)))) {
+                                        damageElement = getElementName(key);
                                         break;
                                     }
                                 }
@@ -1444,7 +1451,11 @@
                                     !m.includes('FIRE') && !m.includes('WATER') && 
                                     !m.includes('EARTH') && !m.includes('AIR') &&
                                     !m.includes('Fire') && !m.includes('Water') && 
-                                    !m.includes('Earth') && !m.includes('Air')
+                                    !m.includes('Earth') && !m.includes('Air') &&
+                                    !m.includes('火') && !m.includes('水') && 
+                                    !m.includes('土') && !m.includes('风') &&
+                                    !m.includes('火系') && !m.includes('水系') && 
+                                    !m.includes('土系') && !m.includes('风系')
                                 );
 
                                 // 确定伤害来源和描述
