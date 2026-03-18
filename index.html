@@ -933,14 +933,14 @@
             '8': '夸夸(Iop)',
             '9': '弓箭(Cra)',
             '10': '植物(Sadida)',
-            '11': '狂战(Kuang)',
-            '12': '熊猫(Panda)',
-            '13': '盗贼(Daozei)',
-            '14': '萨满(Saman)',
-            '15': '狗子(Wangwang)',
-            '16': '蒸汽(Fogg)',
-            '17': '雨果(Elio)',
-            '19': '光法(Guangfa)'
+            '11': '狂战(Sacrier)',
+            '12': '熊猫(Pandawa)',
+            '13': '盗贼(Rogue)',
+            '14': '萨满(Masqueraiders)',
+            '15': '狗子(Ouginak)',
+            '16': '蒸汽(Foggernaut)',
+            '17': '雨果(Eliotrope)',
+            '19': '光法(Huppermage)'
         };
 
         // 元素颜色
@@ -1150,6 +1150,35 @@
                 }
 
                 return detail;
+            }
+
+            // 获取血量最高的NPC
+            getHighestHealthNPC() {
+                const npcHealth = {};
+                
+                // 计算每个NPC受到的总伤害（即总血量）
+                for (const entry of this.data) {
+                    const target = this.getSummoner(entry.target);
+                    if (this.mobs.includes(target)) {
+                        const dmg = parseInt(entry.damage) || 0;
+                        if (dmg < 0) {
+                            npcHealth[target] = (npcHealth[target] || 0) - dmg;
+                        }
+                    }
+                }
+                
+                // 找出血量最高的NPC
+                let highestHealth = 0;
+                let highestNPC = '无';
+                
+                for (const [npc, health] of Object.entries(npcHealth)) {
+                    if (health > highestHealth) {
+                        highestHealth = health;
+                        highestNPC = npc;
+                    }
+                }
+                
+                return highestNPC;
             }
         }
 
@@ -1581,12 +1610,12 @@
 
             listContainer.innerHTML = combats.map(([id, combat]) => {
                 const playerCount = combat.players.length;
-                const mobCount = combat.mobs.length;
+                const highestNPC = combat.getHighestHealthNPC();
                 return `
                     <div class="combat-item" data-combat-id="${id}">
                         <div class="combat-id">战斗 #${id}</div>
                         <div class="combat-info">
-                            玩家: ${playerCount} | NPC: ${mobCount}
+                            玩家: ${playerCount} | NPC: ${highestNPC}
                         </div>
                     </div>
                 `;
@@ -1623,7 +1652,7 @@
             // 依次添加战斗项，实现从上到下的加载效果
             combats.forEach(([id, combat], index) => {
                 const playerCount = combat.players.length;
-                const mobCount = combat.mobs.length;
+                const highestNPC = combat.getHighestHealthNPC();
                 const isActive = id === currentCombatId;
                 const classes = isActive ? 'combat-item active' : 'combat-item';
                 
@@ -1633,7 +1662,7 @@
                 combatItem.innerHTML = `
                     <div class="combat-id">战斗 #${id}</div>
                     <div class="combat-info">
-                        玩家: ${playerCount} | NPC: ${mobCount}
+                        玩家: ${playerCount} | NPC: ${highestNPC}
                     </div>
                 `;
                 

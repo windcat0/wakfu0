@@ -1,0 +1,499 @@
+ WARN 22:02:48,936 [AsyncLoader-92] (FX:59) - Unable to read file:./contents/animations/equipments/equipments.jar!/210420101.anm : JAR entry 210420101.anm not found in .\contents\animations\equipments\equipments.jar
+ INFO 22:02:49,028 [AWT-EventQueue-0] (cdP:254) - Challenge courant : -1 (dans 0s)
+ INFO 22:02:49,029 [AWT-EventQueue-0] (cdP:281) - Pas de challenge dans cette zone, on s'arrête là
+ INFO 22:02:49,103 [AWT-EventQueue-0] (aPh:174) - [系统] 挂机期间，你以 49,486§ 的总价出售了1,703个物品。
+ INFO 22:02:49,104 [AWT-EventQueue-0] (aPh:174) - [系统] 你不在时收购了 315 件物品。
+ INFO 22:02:49,128 [AWT-EventQueue-0] (aPh:174) - [系统] 你有未领取的奖励，请记得领取。
+ INFO 22:02:51,402 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:02:52,417 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:02:53,417 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2251774043062223
+ INFO 22:02:53,616 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2251791222996942
+ INFO 22:03:05,468 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 对，右手扶左把，左手掏右兜
+ INFO 22:03:06,350 [AWT-EventQueue-0] (aPh:174) - [公会] Sleepykit : qwq
+ INFO 22:03:11,900 [AWT-EventQueue-0] (aPh:174) - [公会] Sleepykit : 有没有兽人呀
+ INFO 22:03:19,366 [AWT-EventQueue-0] (bcd:341) - Achievement activated : 1389
+ INFO 22:03:19,368 [AWT-EventQueue-0] (aPh:174) - [系统] 任务“击败10个怪物”开始了。
+ INFO 22:03:19,766 [AWT-EventQueue-0] (bcd:341) - Achievement activated : 1390
+ INFO 22:03:19,768 [AWT-EventQueue-0] (aPh:174) - [系统] 任务“制造10件物品”开始了。
+ INFO 22:03:20,168 [AWT-EventQueue-0] (bcd:341) - Achievement activated : 1391
+ INFO 22:03:20,168 [AWT-EventQueue-0] (aPh:174) - [系统] 任务“攻克地下城”开始了。
+ INFO 22:03:22,483 [AWT-EventQueue-0] (aPh:174) - [西文社群] Afrom : soy yo o el juego se cae a cada ratito
+ INFO 22:03:24,201 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 新人掉线了
+ INFO 22:03:28,720 [AWT-EventQueue-0] (cQQ:57) - Searching path to [bAL id=31547]{Point3 : (-1, -12, -47)}
+ WARN 22:03:29,342 [AsyncLoader-169] (FX:59) - Unable to read file:./contents/animations/equipments/equipments.jar!/210330101.anm : JAR entry 210330101.anm not found in .\contents\animations\equipments\equipments.jar
+ INFO 22:03:29,385 [AWT-EventQueue-0] (bkw:41) - Lancement de l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ WARN 22:03:29,459 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/icons/items/64/2182175.tga
+ INFO 22:03:35,535 [AWT-EventQueue-0] (aPh:174) - [系统] 你获得了 49,486 卡玛。
+ INFO 22:03:35,734 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:03:36,233 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 有啊，有231啊，等sme出本就打，他大概还有，
+ INFO 22:03:36,550 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:03:37,353 [AWT-EventQueue-0] (aPh:174) - [交易] Ö'Tsölution : WTS 阐释者　The Lucidator  合意匕首　Awright Dagger cheap!
+ INFO 22:03:38,850 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 太好了
+ WARN 22:03:39,239 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/189.tga
+ INFO 22:03:40,067 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : sme你还多久出本
+ INFO 22:03:42,685 [AWT-EventQueue-0] (aPh:174) - [西文社群] Kiddricatuc : sos vos
+ INFO 22:03:44,101 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 有纯新手
+ INFO 22:03:44,618 [AWT-EventQueue-0] (bkw:77) - On arrête l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:03:44,901 [AWT-EventQueue-0] (cdu:578) - Occupation déja terminée
+ INFO 22:03:45,717 [AWT-EventQueue-0] (aPh:174) - [法文招募] Titrie : des gens serrais dispo pour m'aider à faire les hordes de bléraux ?
+ WARN 22:03:47,969 [AWT-EventQueue-0] (alf:122) - Null sound id
+ WARN 22:03:47,972 [AWT-EventQueue-0] (alf:122) - Null sound id
+ WARN 22:03:47,973 [AWT-EventQueue-0] (alf:122) - Null sound id
+ WARN 22:03:49,988 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/110.tga
+ WARN 22:03:52,405 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/112.tga
+ INFO 22:04:02,069 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 首先恭喜他选择职业极其正确
+ WARN 22:04:03,891 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/115.tga
+ WARN 22:04:03,891 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/223.tga
+ WARN 22:04:03,891 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/113.tga
+ WARN 22:04:03,892 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/253.tga
+ERROR 22:04:05,181 [AWT-EventQueue-0] (Mt:117) - Unable to load bundle for language fr
+java.nio.file.NoSuchFileException: ..\backup\jp\i18n_fr.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.readAttributes(Unknown Source)
+	at java.base/java.nio.file.Files.readAttributes(Unknown Source)
+	at java.base/java.util.zip.ZipFile$Source.get(Unknown Source)
+	at java.base/java.util.zip.ZipFile$CleanableResource.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.jar.JarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.getJarFile(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarFileFactory.getOrCreate(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.connect(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.getInputStream(Unknown Source)
+	at java.base/java.net.URL.openStream(Unknown Source)
+	at Mt.e(SourceFile:111)
+	at Mt.b(SourceFile:91)
+	at Mt.aUI(SourceFile:86)
+	at Mt.a(SourceFile:49)
+	at bpI.dDD(SourceFile:52)
+	at bpI.isEnabled(SourceFile:41)
+	at cEy.displayElementTranslations(SourceFile:566)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at fIp.a(SourceFile:171)
+	at fIp.gBz(SourceFile:90)
+	at fIo.O(SourceFile:37)
+	at fIo.run(SourceFile:53)
+	at fHv.M(SourceFile:1269)
+	at fHv.c(SourceFile:1031)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.h(SourceFile:1125)
+	at fEs.h(SourceFile:1885)
+	at fBJ.g(SourceFile:345)
+	at fHV.g(SourceFile:429)
+	at axM.mouseMoved(SourceFile:706)
+	at java.desktop/java.awt.Component.processMouseMotionEvent(Unknown Source)
+	at java.desktop/java.awt.Component.processEvent(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.run(Unknown Source)
+ERROR 22:04:05,184 [AWT-EventQueue-0] (Mt:117) - Unable to load bundle for language en
+java.nio.file.NoSuchFileException: ..\backup\jp\i18n_en.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.readAttributes(Unknown Source)
+	at java.base/java.nio.file.Files.readAttributes(Unknown Source)
+	at java.base/java.util.zip.ZipFile$Source.get(Unknown Source)
+	at java.base/java.util.zip.ZipFile$CleanableResource.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.jar.JarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.getJarFile(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarFileFactory.getOrCreate(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.connect(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.getInputStream(Unknown Source)
+	at java.base/java.net.URL.openStream(Unknown Source)
+	at Mt.e(SourceFile:111)
+	at Mt.b(SourceFile:91)
+	at Mt.aUI(SourceFile:86)
+	at Mt.a(SourceFile:49)
+	at bpI.dDD(SourceFile:52)
+	at bpI.isEnabled(SourceFile:41)
+	at cEy.displayElementTranslations(SourceFile:566)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at fIp.a(SourceFile:171)
+	at fIp.gBz(SourceFile:90)
+	at fIo.O(SourceFile:37)
+	at fIo.run(SourceFile:53)
+	at fHv.M(SourceFile:1269)
+	at fHv.c(SourceFile:1031)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.h(SourceFile:1125)
+	at fEs.h(SourceFile:1885)
+	at fBJ.g(SourceFile:345)
+	at fHV.g(SourceFile:429)
+	at axM.mouseMoved(SourceFile:706)
+	at java.desktop/java.awt.Component.processMouseMotionEvent(Unknown Source)
+	at java.desktop/java.awt.Component.processEvent(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.run(Unknown Source)
+ERROR 22:04:05,184 [AWT-EventQueue-0] (Mt:117) - Unable to load bundle for language es
+java.nio.file.NoSuchFileException: ..\backup\jp\i18n_es.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.readAttributes(Unknown Source)
+	at java.base/java.nio.file.Files.readAttributes(Unknown Source)
+	at java.base/java.util.zip.ZipFile$Source.get(Unknown Source)
+	at java.base/java.util.zip.ZipFile$CleanableResource.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.jar.JarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.getJarFile(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarFileFactory.getOrCreate(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.connect(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.getInputStream(Unknown Source)
+	at java.base/java.net.URL.openStream(Unknown Source)
+	at Mt.e(SourceFile:111)
+	at Mt.b(SourceFile:91)
+	at Mt.aUI(SourceFile:86)
+	at Mt.a(SourceFile:49)
+	at bpI.dDD(SourceFile:52)
+	at bpI.isEnabled(SourceFile:41)
+	at cEy.displayElementTranslations(SourceFile:566)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at fIp.a(SourceFile:171)
+	at fIp.gBz(SourceFile:90)
+	at fIo.O(SourceFile:37)
+	at fIo.run(SourceFile:53)
+	at fHv.M(SourceFile:1269)
+	at fHv.c(SourceFile:1031)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.h(SourceFile:1125)
+	at fEs.h(SourceFile:1885)
+	at fBJ.g(SourceFile:345)
+	at fHV.g(SourceFile:429)
+	at axM.mouseMoved(SourceFile:706)
+	at java.desktop/java.awt.Component.processMouseMotionEvent(Unknown Source)
+	at java.desktop/java.awt.Component.processEvent(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.run(Unknown Source)
+ERROR 22:04:05,184 [AWT-EventQueue-0] (Mt:117) - Unable to load bundle for language pt
+java.nio.file.NoSuchFileException: ..\backup\jp\i18n_pt.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileAttributeViews$Basic.readAttributes(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.readAttributes(Unknown Source)
+	at java.base/java.nio.file.Files.readAttributes(Unknown Source)
+	at java.base/java.util.zip.ZipFile$Source.get(Unknown Source)
+	at java.base/java.util.zip.ZipFile$CleanableResource.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.zip.ZipFile.<init>(Unknown Source)
+	at java.base/java.util.jar.JarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.<init>(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.URLJarFile.getJarFile(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarFileFactory.getOrCreate(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.connect(Unknown Source)
+	at java.base/sun.net.www.protocol.jar.JarURLConnection.getInputStream(Unknown Source)
+	at java.base/java.net.URL.openStream(Unknown Source)
+	at Mt.e(SourceFile:111)
+	at Mt.b(SourceFile:91)
+	at Mt.aUI(SourceFile:86)
+	at Mt.a(SourceFile:49)
+	at bpI.dDD(SourceFile:52)
+	at bpI.isEnabled(SourceFile:41)
+	at cEy.displayElementTranslations(SourceFile:566)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at fIp.a(SourceFile:171)
+	at fIp.gBz(SourceFile:90)
+	at fIo.O(SourceFile:37)
+	at fIo.run(SourceFile:53)
+	at fHv.M(SourceFile:1269)
+	at fHv.c(SourceFile:1031)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.c(SourceFile:1051)
+	at fHv.h(SourceFile:1125)
+	at fEs.h(SourceFile:1885)
+	at fBJ.g(SourceFile:345)
+	at fHV.g(SourceFile:429)
+	at axM.mouseMoved(SourceFile:706)
+	at java.desktop/java.awt.Component.processMouseMotionEvent(Unknown Source)
+	at java.desktop/java.awt.Component.processEvent(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.Component.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$4.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.desktop/java.awt.EventQueue$5.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Unknown Source)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
+	at java.desktop/java.awt.EventDispatchThread.run(Unknown Source)
+ WARN 22:04:05,788 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/101.tga
+ WARN 22:04:06,403 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/117.tga
+ WARN 22:04:06,404 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/111.tga
+ WARN 22:04:06,404 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/114.tga
+ WARN 22:04:08,003 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/254.tga
+ WARN 22:04:08,525 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/108.tga
+ INFO 22:04:10,916 [AWT-EventQueue-0] (aPh:174) - [法文社群] Chientdent : Une derniere place corbeau noir les gars
+ INFO 22:04:18,884 [AWT-EventQueue-0] (aPh:174) - [西文社群] Okarin Kappa : lo que dijo ricachuki x2 sos vos
+ INFO 22:04:20,534 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:04:21,450 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 这个角色漂亮
+ INFO 22:04:21,756 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:04:24,266 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 火枪贼好玩
+ INFO 22:04:40,169 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 希望你不要弃坑
+ INFO 22:05:01,500 [AWT-EventQueue-0] (cQQ:57) - Searching path to [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:05:02,488 [AWT-EventQueue-0] (bkw:41) - Lancement de l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:05:06,551 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 为什么叫火枪贼，用枪biubiu的？
+ INFO 22:05:15,356 [AWT-EventQueue-0] (bkw:77) - On arrête l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:05:15,619 [AWT-EventQueue-0] (cdu:578) - Occupation déja terminée
+ INFO 22:05:24,035 [AWT-EventQueue-0] (aPh:174) - [西文招募] Ailing : 4/6 pio lajop mazmo asturb
+ INFO 22:05:30,285 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 苞米地的蒙面侠
+ INFO 22:05:36,035 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252255080775613
+ INFO 22:05:36,635 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252237900906432
+ INFO 22:05:36,735 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252220721037249
+ INFO 22:05:37,035 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252220721037252
+ INFO 22:05:37,035 [AWT-EventQueue-0] (flc:215) - [NATION] Trying to remove 6007662 from {Nation id=0} after a disconnection but he's not in it
+ INFO 22:05:37,335 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252203541102533
+ INFO 22:05:37,435 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2252203541102534
+ INFO 22:05:39,651 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:05:42,187 [AWT-EventQueue-0] (aPh:174) - [交易] Tohsee : 间距伏击ＩＩＩ　Distant Ambush III wtb 180k/ea
+ INFO 22:05:47,118 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:06:00,136 [AWT-EventQueue-0] (cQQ:57) - Searching path to [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:06:01,284 [AWT-EventQueue-0] (bkw:41) - Lancement de l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:06:16,168 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 因为这个职业叫盗贼
+ INFO 22:06:19,285 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : rogue
+ INFO 22:06:23,318 [AWT-EventQueue-0] (aPh:174) - [公会] Hongck : 星愿 部族
+ INFO 22:06:31,919 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 带新人要紧，你们去
+ INFO 22:06:39,268 [AWT-EventQueue-0] (flc:215) - [NATION] Trying to remove 6620685 from {Nation id=0} after a disconnection but he's not in it
+ INFO 22:06:46,051 [AWT-EventQueue-0] (aPh:174) - [系统] Luuxii（peter#9960 - 三嘟）进入十二世界。
+ INFO 22:06:46,568 [AWT-EventQueue-0] (aPh:174) - [公会] White Album : 。
+ INFO 22:06:56,852 [AWT-EventQueue-0] (aPh:174) - [法文招募] Asusa : cherche groupe pour modu du jour s3 ou plus
+ INFO 22:07:06,385 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 你们在哪里
+ INFO 22:07:14,852 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 我也来陪新人玩会儿
+ INFO 22:07:19,869 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:07:20,969 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:07:21,486 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 我一会要下，你们去打副本吧，别耽误
+ INFO 22:07:23,586 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 在僧侣
+ INFO 22:07:30,253 [AWT-EventQueue-0] (aPh:174) - [交易] Zeratoul-Twitch : WTS 魔之戒　Bagus Shushu (x10)  强身ＩＩＩ　Healing III (x2)  新世黑鸦骑士光环　Neo Black Crow Aura (x3)
+ INFO 22:07:34,269 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 副本还没开始
+ INFO 22:07:38,503 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 这新人比奥利奥强太多了
+ INFO 22:07:46,269 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 我草
+ INFO 22:07:47,886 [AWT-EventQueue-0] (aPh:174) - [交易] Karenur : WTS 塔尔•卡莎阔剑光环　Tal Kasha's Broadsword Aura 1,9
+ INFO 22:08:06,336 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:08:07,403 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:08:18,770 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 你带他打会老李
+ INFO 22:08:23,038 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 好
+ INFO 22:08:48,503 [AWT-EventQueue-0] (aPh:174) - [西文招募] I'M Shinzen : alguien dijo dormor? 1/6 con estelas
+ INFO 22:08:56,320 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : rouge不是盗贼么
+ INFO 22:09:05,287 [AWT-EventQueue-0] (aPh:174) - [交易] Treco : WTS 原始之力ＩＩ　Raw Power II  庐山戒指　Rozan Ring mp PRICE
+ INFO 22:09:12,153 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 队，就是盗贼
+ INFO 22:09:25,504 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）离开十二世界。
+ INFO 22:09:26,137 [AWT-EventQueue-0] (SR:407) - Invalid start cell for pathfind search : doesn't exist. HASHCODE : 2251791222865870
+ INFO 22:09:26,787 [AWT-EventQueue-0] (aPh:174) - [系统] Hakito（hakito-sama#5612 - 据说可以带物资车的萨满）进入十二世界。
+ INFO 22:09:30,887 [AWT-EventQueue-0] (aPh:174) - [交易] Ringoya : WTS 出血戒指　Bludring  魔之戒　Bagus Shushu  真力腰带　True Power Belt
+ INFO 22:09:40,854 [AWT-EventQueue-0] (aPh:174) - [法文招募] Debutant : recrute un bro pour une breche frifri besoin d'elem terre
+ INFO 22:09:43,854 [AWT-EventQueue-0] (aPh:174) - [公会] Maggie : 你们来这边，怪多
+ INFO 22:09:54,270 [AWT-EventQueue-0] (aPh:174) - [系统] Luuxii（peter#9960 - 三嘟）离开十二世界。
+ INFO 22:09:57,304 [AWT-EventQueue-0] (aPh:174) - [系统] Pranet（peter#9960 - 三嘟）进入十二世界。
+ INFO 22:10:05,286 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 好的
+ INFO 22:10:07,620 [AWT-EventQueue-0] (aPh:202) - [私密] TO "White Album" : 牢植物
+ INFO 22:10:17,654 [AWT-EventQueue-0] (aPh:202) - [私密] TO "White Album" : 想问问你qwq
+ INFO 22:10:19,237 [AWT-EventQueue-0] (aPh:174) - [公会] Maple : 打boss呢 快完事了
+ INFO 22:10:50,651 [AWT-EventQueue-0] (aPh:174) - [英文招募] Ailing : 4/6 pio lajop normal asturb mazmo
+ INFO 22:11:14,554 [AWT-EventQueue-0] (aPh:174) - [交易] Vick Dishcaven : WTB 「遗物」贴身　Contact
+ INFO 22:11:18,204 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 火枪两种形态
+ INFO 22:11:24,704 [AWT-EventQueue-0] (aPh:174) - [交易] Gargoyle : wtb 忍戒ＩＩＩ　Endurance III
+ INFO 22:11:30,154 [AWT-EventQueue-0] (aPh:202) - [私密] TO "White Album" : 分配者环王350卖得出去吗
+ INFO 22:11:44,888 [AWT-EventQueue-0] (flc:215) - [NATION] Trying to remove 6622370 from {Nation id=0} after a disconnection but he's not in it
+ INFO 22:11:48,756 [AWT-EventQueue-0] (aPh:174) - [法文招募] Confiture : Recrute 汉尼草地下城　Kannivore Dungeon modu s3 3/6
+ INFO 22:11:48,955 [AWT-EventQueue-0] (aPh:174) - [葡文招募] I'M Shinzen : 3/6 熔岩火山　Or'Hodruin Volcano
+ INFO 22:11:51,721 [AWT-EventQueue-0] (aPh:174) - [系统] Pranet（peter#9960 - 三嘟）离开十二世界。
+ INFO 22:11:59,038 [AWT-EventQueue-0] (aPh:174) - [公会] Sme : 1
+ INFO 22:12:06,471 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 1种事近战
+ INFO 22:12:07,105 [AWT-EventQueue-0] (aPh:174) - [英文招募] I'M Shinzen : 3/6 熔岩火山　Or'Hodruin Volcano
+ INFO 22:12:08,921 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 感觉 好灵活
+ INFO 22:12:10,838 [AWT-EventQueue-0] (aPh:174) - [系统] Neo-Shadow（kirihaya69#3333 - 一起打灰烬龙的Ursula）离开十二世界。
+ INFO 22:12:10,955 [AWT-EventQueue-0] (aPh:174) - [系统] Lomame（lin#3787 - 三嘟）进入十二世界。
+ INFO 22:12:12,105 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 另一种是远程
+ INFO 22:12:14,239 [AWT-EventQueue-0] (aPh:174) - [西文招募] Dokudjak : 2/6 campos hupremos mod S5
+ INFO 22:12:14,871 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 是的
+ INFO 22:12:32,755 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 你天界岛的那个训练场引导做过了吗
+ INFO 22:12:34,756 [AWT-EventQueue-0] (aPh:174) - [法文招募] Youtsu : Vous aimez la musique ? Ne cherchez plus, la guilde de l'orchestre Amaknéen, active,chill,full entraide,niveau 10 RECRUTE de nouveaux musiciens. Sorties DJ/BU/Modulox au programme. N'hésitez pas à me mp o/
+ INFO 22:12:34,972 [AWT-EventQueue-0] (aPh:174) - [错误信息] Nolita 不在线或不存在。
+ INFO 22:12:40,073 [AWT-EventQueue-0] (aPh:174) - [系统] Ursulacallistis（kirihaya69#3333 - 一起打灰烬龙的Ursula）进入十二世界。
+ INFO 22:12:55,755 [AWT-EventQueue-0] (aPh:174) - [系统] 你失去了 3,500,000 卡玛。
+ INFO 22:12:55,759 [AWT-EventQueue-0] (aPh:174) - [系统] 你得到了者环王　Gelano  x1。
+ INFO 22:12:56,706 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 做了
+ INFO 22:12:59,372 [AWT-EventQueue-0] (aPh:174) - [法文招募] Aizen Shinjin : Recrute 食人草原　Sureberry Fields daily modu s5 2/6
+ INFO 22:13:01,705 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 大致了解
+ INFO 22:13:06,185 [AWT-EventQueue-0] (bkw:77) - On arrête l'occupation MARKET sur la board [bAL id=31547]{Point3 : (-1, -12, -47)}
+ INFO 22:13:06,472 [AWT-EventQueue-0] (cdu:578) - Occupation déja terminée
+ INFO 22:13:09,922 [AWT-EventQueue-0] (aPh:174) - [交易] Tafais : vend 瑞艾姆戒指　Reiem Ring
+ INFO 22:13:10,572 [AWT-EventQueue-0] (cdV:390) - on quitte le monde 1136
+ INFO 22:13:10,590 [AWT-EventQueue-0] (flc:215) - [NATION] Trying to remove 6623058 from {Nation id=0} after a disconnection but he's not in it
+ INFO 22:13:10,590 [AWT-EventQueue-0] (flc:215) - [NATION] Trying to remove 6451491 from {Nation id=0} after a disconnection but he's not in it
+DEBUG 22:13:10,789 [AWT-EventQueue-0] (cdV:1092) - PERSONAL_SPACE_ENTER_RESULT_MESSAGE (success=true)
+ INFO 22:13:10,857 [AWT-EventQueue-0] (VW:60) - bZJ initialisé, centré sur (-1,0)
+ INFO 22:13:16,139 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 那个是伤害的基础
+ INFO 22:13:24,655 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 尤其是远程近战是什么意思
+ INFO 22:13:37,389 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 打对方抗性低的技能
+ INFO 22:13:43,122 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 对的
+ INFO 22:13:45,272 [AWT-EventQueue-0] (aPh:174) - [系统] Ursulacallistis（kirihaya69#3333 - 一起打灰烬龙的Ursula）离开十二世界。
+ INFO 22:13:47,372 [AWT-EventQueue-0] (aPh:174) - [系统] Riasu Gremory（kirihaya69#3333 - 一起打灰烬龙的Ursula）进入十二世界。
+ INFO 22:13:49,389 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 告诉你一个入门小技巧
+ INFO 22:13:55,806 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 我也是玩了很久之后再知道的
+ INFO 22:13:56,889 [AWT-EventQueue-0] (aPh:174) - [系统] Lomame（lin#3787 - 三嘟）离开十二世界。
+ INFO 22:14:03,672 [AWT-EventQueue-0] (aPh:174) - [交易] Clover : 诺克希大衣　Nox Greatcoat WTS 15,5mk
+ INFO 22:14:09,406 [AWT-EventQueue-0] (aPh:174) - [法文招募] I'M Shinzen : 4/6 熔岩火山　Or'Hodruin Volcano
+ INFO 22:14:13,122 [AWT-EventQueue-0] (aPh:174) - [系统] Riasu Gremory（kirihaya69#3333 - 一起打灰烬龙的Ursula）离开十二世界。
+ INFO 22:14:15,056 [AWT-EventQueue-0] (aPh:174) - [系统] Beta（kirihaya69#3333 - 一起打灰烬龙的Ursula）进入十二世界。
+ INFO 22:14:15,056 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 你炸炸弹的时候，远程近战的判定
+ INFO 22:14:23,423 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 不是怪物和炸弹的关系
+ INFO 22:14:29,089 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 是人和炸弹的关系
+ INFO 22:14:30,356 [AWT-EventQueue-0] (aPh:174) - [英文招募] Chanchitog : 3/6 S5 食人草原　Sureberry Fields
+ INFO 22:14:33,022 [AWT-EventQueue-0] (aPh:174) - [系统] Beta（kirihaya69#3333 - 一起打灰烬龙的Ursula）离开十二世界。
+ INFO 22:14:34,623 [AWT-EventQueue-0] (aPh:174) - [系统] Riasu Gremory（kirihaya69#3333 - 一起打灰烬龙的Ursula）进入十二世界。
+ INFO 22:14:35,256 [AWT-EventQueue-0] (aPh:174) - [法文招募] Shadow Light : 汉尼草地下城　Kannivore Dungeon s3 mod 3/6 :p
+ WARN 22:14:49,490 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/746.tga
+ INFO 22:14:49,823 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 包括背刺和打侧面，也是一样，判定是根据人和怪的位置关系来判定的
+ INFO 22:14:59,290 [AWT-EventQueue-0] (aPh:174) - [交易] Treco : WTS 原始之力ＩＩ　Raw Power II  庐山戒指　Rozan Ring mp PRICE
+ INFO 22:15:07,289 [AWT-EventQueue-0] (aPh:174) - [西文招募] Kurolink : se ayuda a subir de lvl 130+ en moon
+ INFO 22:15:24,906 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 这样才打得出伤害
+ INFO 22:15:30,356 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 举个例子
+ WARN 22:15:34,773 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/630.tga
+ WARN 22:15:34,807 [AWT-EventQueue-0] (aUC:482) - Impossible de trouver l'icone d'URL jar:file:./contents/gui_jar/gui.jar!/miscellaneous/itemTypes/419.tga
+ INFO 22:15:39,373 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 我现在是近战形态
+ INFO 22:15:44,140 [AWT-EventQueue-0] (aPh:174) - [葡文招募] Garaya : Waklegends BR Nv 10 recruta qualquer um! Se busca uma guilda para jogar junto em dg's e conteudos, esse é o lugar certo! Temos discord para comunicação, anuncios e eventos, e todos os bonus ativos. Chama PV
+ INFO 22:15:57,923 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 我现在的位置和怪物的关系
+ INFO 22:16:03,357 [AWT-EventQueue-0] (aPh:174) - [公会] Le-Ony : 就是近战+背刺
+ INFO 22:16:04,957 [AWT-EventQueue-0] (aPh:174) - [公会] Wodedaodun : 背刺
