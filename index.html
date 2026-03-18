@@ -761,7 +761,7 @@
                     <h3>上传日志文件</h3>
 
                     <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" multiple accept=".log,.log.1,.log.2,.txt">
+                        <input type="file" id="fileInput" multiple accept=".log,.log.1,.log.2,.log.3,.txt">
                         <label for="fileInput" class="file-input-label">
                             点击选择日志文件<br>
                             <small>支持 wakfu.log, wakfu.log.1 等</small>
@@ -2009,7 +2009,7 @@
         // 更新伤害表格
         function updateDamageTable(combat) {
             const tbody = document.getElementById('damageTableBody');
-            const data = combat.data.slice(0, 100); // 只显示前100条
+            const data = combat.data; // 显示所有伤害记录
 
             tbody.innerHTML = data.map(entry => {
                 const dmg = parseInt(entry.damage) || 0;
