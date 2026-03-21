@@ -1745,8 +1745,14 @@
             document.getElementById('npcTotalDamage').textContent = formatNumber(npcTotalDmg);
 
             // 玩家伤害排行图表 - 使用 ECharts
+            // 确保所有玩家都包含在统计中（包括伤害为0的）
+            const allPlayerDamage = {};
+            combat.players.forEach(player => {
+                allPlayerDamage[player] = stats.playerDamage[player] || 0;
+            });
+            
             // 将对象转换为数组并排序（降序）
-            const playerDamageArray = Object.entries(stats.playerDamage)
+            const playerDamageArray = Object.entries(allPlayerDamage)
                 .sort((a, b) => {
                     if (b[1] !== a[1]) {
                         return b[1] - a[1];
