@@ -797,6 +797,7 @@
             <div class="content-area">
                 <div class="tabs">
                     <button class="tab active" data-tab="overview">总览</button>
+                    <button class="tab" data-tab="healing">治疗统计</button>
                     <button class="tab" data-tab="players">玩家统计</button>
                     <button class="tab" data-tab="npcs">NPC统计</button>
                     <button class="tab" data-tab="details">详细数据</button>
@@ -831,6 +832,20 @@
                         <div class="chart-container">
                             <h4>玩家伤害排行</h4>
                             <div id="playerDamageChart" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="healing" class="tab-content">
+                    <div class="empty-state" id="healingEmpty">
+                        <h3>暂无数据</h3>
+                        <p>请选择一场战斗</p>
+                    </div>
+
+                    <div id="healingContent" style="display: none;">
+                        <div class="chart-container">
+                            <h4>玩家治疗排行</h4>
+                            <div id="playerHealingChart" style="width: 100%; height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -1717,6 +1732,8 @@
             // 显示内容区域
             document.getElementById('overviewEmpty').style.display = 'none';
             document.getElementById('overviewContent').style.display = 'block';
+            document.getElementById('healingEmpty').style.display = 'none';
+            document.getElementById('healingContent').style.display = 'block';
             document.getElementById('playersEmpty').style.display = 'none';
             document.getElementById('playersContent').style.display = 'block';
             document.getElementById('npcsEmpty').style.display = 'none';
@@ -1726,6 +1743,7 @@
 
             // 更新统计数据
             updateOverview(combat);
+            updateHealing(combat);
             updatePlayerGrid(combat);
             updateNpcGrid(combat);
             updateDamageTable(combat);
@@ -1885,6 +1903,164 @@
                         position: 'right',
                         formatter: function(params) {
                             const percentage = ((params.value / totalDmg) * 100).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#64748b',
+                        fontWeight: 'bold',
+                        fontSize: 16,
+                        distance: 12
+                    }
+                }]
+            };
+
+            echart.setOption(option);
+        }
+
+        // 更新治疗统计
+        async function updateHealing(combat) {
+            const stats = combat.getStats();
+
+            // 计算总治疗量
+            const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
+
+            // 确保所有玩家都包含在统计中（包括治疗为0的）
+            const allPlayerHealing = {};
+            combat.players.forEach(player => {
+                allPlayerHealing[player] = stats.playerHeal[player] || 0;
+            });
+            
+            // 将对象转换为数组并排序（降序）
+            const playerHealingArray = Object.entries(allPlayerHealing)
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) {
+                        return b[1] - a[1];
+                    }
+                    return a[0].localeCompare(b[0]);
+                });
+
+            const playerNames = playerHealingArray.map(item => item[0]);
+            const sortedData = playerHealingArray.map(item => item[1]);
+            const totalHeal = playerTotalHeal;
+
+            // 预加载所有图标
+            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
+            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
+
+            // 初始化或更新 ECharts
+            const chartDom = document.getElementById('playerHealingChart');
+            if (!chartDom) return;
+
+            if (charts['playerHealingChart']) {
+                charts['playerHealingChart'].dispose();
+            }
+
+            const echart = echarts.init(chartDom);
+            charts['playerHealingChart'] = echart;
+
+            // 构建 Y 轴标签数据（名字 + 图标）
+            const yAxisData = playerNames.map((name, index) => {
+                const breedId = combat.playersBreed[name] || '0';
+                const iconPath = getBreedIconPath(breedId);
+                return {
+                    value: name,
+                    iconPath: iconPath,
+                    breedId: breedId
+                };
+            });
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        const value = params[0].value;
+                        const percentage = totalHeal > 0 ? ((value / totalHeal) * 100).toFixed(1) : '0.0';
+                        return `${params[0].name}<br/>治疗: ${formatNumber(value)} (${percentage}%)`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '15%',
+                    bottom: '3%',
+                    top: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    splitLine: {
+                        lineStyle: { color: 'rgba(0, 0, 0, 0.05)' }
+                    },
+                    axisLine: { show: false }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: yAxisData,
+                    inverse: true,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: {
+                            color: '#333',
+                            fontSize: 16,
+                            formatter: function(value, index) {
+                                const item = yAxisData[index];
+                                if (item) {
+                                    return `{name|${value}} {icon${index}|}`;
+                                }
+                                return value;
+                            },
+                            rich: yAxisData.reduce((acc, item, index) => {
+                                const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
+                                acc[`icon${index}`] = {
+                                    height: 36,
+                                    width: 36,
+                                    backgroundColor: {
+                                        image: img && img.complete ? img.src : ''
+                                    },
+                                    borderRadius: 6,
+                                    shadowBlur: 8,
+                                    shadowColor: 'rgba(0, 0, 0, 0.3)',
+                                    shadowOffsetX: 0,
+                                    shadowOffsetY: 0
+                                };
+                                return acc;
+                            }, { name: { color: '#333', fontSize: 16, fontWeight: 'bold' } })
+                        }
+                },
+                series: [{
+                    type: 'bar',
+                    data: sortedData,
+                    barWidth: '55%',
+                    barMinHeight: 8,
+                    itemStyle: {
+                        borderRadius: [4, 8, 8, 4],
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#8B2F5C' },
+                            { offset: 0.5, color: '#A33D6F' },
+                            { offset: 1, color: '#C44B82' }
+                        ]),
+                        shadowColor: 'rgba(139, 47, 92, 0.3)',
+                        shadowBlur: 8,
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#A33D6F' },
+                                { offset: 0.5, color: '#C44B82' },
+                                { offset: 1, color: '#E55995' }
+                            ]),
+                            shadowColor: 'rgba(139, 47, 92, 0.5)',
+                            shadowBlur: 15,
+                            shadowOffsetX: 3,
+                            shadowOffsetY: 3
+                        }
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: function(params) {
+                            const percentage = totalHeal > 0 ? ((params.value / totalHeal) * 100).toFixed(1) : '0.0';
                             return percentage + '%';
                         },
                         color: '#64748b',
