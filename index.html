@@ -926,7 +926,7 @@
         let selectedPlayer = null;
         let charts = {};
 
-        const MAX_COMBATS = 5; // 保留最近5场战斗
+        const MAX_COMBATS = 10; // 保留最近10场战斗
 
         // 语言字典（简化版）
         const langDict = {
@@ -1051,6 +1051,7 @@
                 this.mobsSummon = [];
                 this.mobsSummonPos = [];
                 this.combatId = 'Unknown';
+                this.lineNumber = 0; // 使用行号来判定战斗顺序
                 this.data = [];
             }
 
@@ -1235,6 +1236,7 @@
                 // 战斗创建
                 if (line.includes('CREATION DU COMBAT')) {
                     isCreating = true;
+                    current.lineNumber = lineId; // 记录战斗开始的行号
                     continue;
                 }
 
@@ -1592,9 +1594,9 @@
 
         // 筛选最近N场战斗
         function filterRecentCombats(combatDict, maxCount) {
-            // 按战斗ID降序排序，保留 CombatData 实例（不展开）
+            // 按行号降序排序，保留 CombatData 实例（不展开）
             const sortedIds = Object.keys(combatDict)
-                .sort((a, b) => parseInt(b) - parseInt(a))
+                .sort((a, b) => combatDict[b].lineNumber - combatDict[a].lineNumber)
                 .slice(0, maxCount);
 
             // 返回筛选后的战斗数据（保持 CombatData 实例）
@@ -1620,7 +1622,7 @@
                 return;
             }
 
-            combats.sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+            combats.sort((a, b) => b[1].lineNumber - a[1].lineNumber);
 
             listContainer.innerHTML = combats.map(([id, combat]) => {
                 const playerCount = combat.players.length;
@@ -1658,7 +1660,7 @@
                 return;
             }
 
-            combats.sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+            combats.sort((a, b) => b[1].lineNumber - a[1].lineNumber);
 
             // 清空容器
             listContainer.innerHTML = '';
