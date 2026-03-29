@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>副本攻略 - Wakfu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #3CB3A8;
+            --primary-dark: #2A9D8F;
+            --primary-light: #4ECDC4;
+            --secondary-color: #8B2F5C;
+            --secondary-dark: #6B1F3F;
+            --accent-color: #4ECDC4;
+            --accent-light: #6EDDD4;
+            --primary-gradient: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 100%);
+            --secondary-gradient: linear-gradient(135deg, #8B2F5C 0%, #6B1F3F 100%);
+            --accent-gradient: linear-gradient(135deg, #4ECDC4 0%, #3CB3A8 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0d3d3a 0%, #1a5f5a 50%, #0d3d3a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(60, 179, 168, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 47, 92, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.08) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 50%, #1a5f5a 100%);
+            color: white;
+            padding: 0 30px;
+            height: 160px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .header .logo {
+            width: 240px;
+            height: 240px;
+            object-fit: contain;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3.675em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            letter-spacing: 2px;
+            font-family: 'STKaiti', 'KaiTi', serif;
+        }
+
+        .header .version {
+            font-size: 0.95em;
+            opacity: 0.9;
+            position: relative;
+            font-weight: 300;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .guide-section {
+            margin-bottom: 40px;
+        }
+
+        .guide-section h2 {
+            font-size: 2.2em;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color);
+            font-family: 'STKaiti', 'KaiTi', serif;
+        }
+
+        .guide-section h3 {
+            font-size: 1.6em;
+            color: #334155;
+            margin: 30px 0 15px 0;
+            font-family: 'STKaiti', 'KaiTi', serif;
+        }
+
+        .guide-section p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+
+        .level-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .level-section h4 {
+            font-size: 1.3em;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .level-section p {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .level-section .boss-info {
+            margin: 15px 0 15px 20px;
+            padding: 15px;
+            background: rgba(60, 179, 168, 0.1);
+            border-radius: var(--radius-sm);
+        }
+
+        .level-section .boss-info h5 {
+            font-size: 1.1em;
+            color: #334155;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .level-section .note {
+            margin: 15px 0 0 20px;
+            padding: 10px;
+            background: rgba(247, 147, 30, 0.1);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid #f7931e;
+        }
+
+        .level-section .note p {
+            margin: 0;
+            color: #7c2d12;
+            font-weight: 500;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 40px 0 20px 0;
+            padding: 12px 24px;
+            background: var(--primary-gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .guide-section h2 {
+                font-size: 1.8em;
+            }
+
+            .guide-section h3 {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="logo.webp" alt="Logo" class="logo">
+            <h1>副本攻略</h1>
+            <div class="version">Wakfu Guide</div>
+        </div>
+
+        <div class="main-content">
+            <div class="guide-section">
+                <h2>沃土《Wakfu》副本Boss攻略</h2>
+                <p>前言：此攻略使用了之前的攻略进行修改/补全(不知道作者是谁)。并且前期BOSS没机制或者不是很强的BOSS将不会收录，并且不会收入世界BOSS和矿塔的打法和215副本打法。（野外金BOSS要不没机制，要不就是弱化版BOSS）</p>
+                <p>◇范围            直线范围         正方形范围。</p>
+
+                <div class="level-section">
+                    <h4>51级</h4>
+                    <p><strong>51级野兽巢穴</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss:</h5>
+                        <p>每回合会召唤2个祭坛，需要人物站到祭坛周围的黑雾里面变成一只小绵羊，然后去用变成小羊的技能咬boss破除无敌。</p>
+                    </div>
+
+                    <p><strong>51级蚌蚌地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>小怪：</h5>
+                        <p>黑暗蚌会上1个DeBuff让人在3回合内死亡（此时队友打到会受到2倍伤害），解除方法是残血队友打死吃BUFF的人然后会满血复活。</p>
+                        <h5>BOSS：</h5>
+                        <p>如果不在小怪地形上被打会获得WP，每回合会消耗所有WP释放高压电的高额伤害（3格◇范围）。</p>
+                    </div>
+
+                    <p><strong>51级蟹皇领地</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>每回合开始会对朝向方向释放一个3格宽的直线AOE；BOSS会向沙堆释放技能，造成十字3格伤害。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>66级</h4>
+                    <p><strong>66级满月祭坛</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss:</h5>
+                        <p>一个月亮，然后所有小怪会得到很高的抗性加成，需要将这个月亮先打掉。</p>
+                    </div>
+
+                    <p><strong>66级邦塔鸵鸟</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>鸵鸟女王有无敌，要先打巨蛋，巨蛋也有无敌，要锁定鸵鸟女王才能对巨蛋造成伤害。女王400闪，需要超过1.25倍锁住</p>
+                    </div>
+
+                    <p><strong>66级咕哩泥塘</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>地形即死BOSS会推3格，皮皮会换位威胁最大优先击杀。</p>
+                    </div>
+
+                    <p><strong>66级鸦人大酋长神庙</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>1. 会释放2个图腾，一个毒图腾（进入吃毒DeBuff）一个火图腾每回合首次进入会受到一次伤害。</p>
+                        <p>2. 会引爆图腾造成周边正方形一格的AOE。</p>
+                        <p>3. 会使用一招伤害超高的单体技能，建议T锁住。</p>
+                    </div>
+
+                    <p><strong>66级盘丝洞</strong>：</p>
+                    <div class="boss-info">
+                        <h5>小怪：</h5>
+                        <p>都是背刺-400抗性，背刺击杀会很快。</p>
+                        <h5>BOSS：</h5>
+                        <p>每个对BOSS造成伤害的角色（召唤物也算）结束后会召唤一只小蜘蛛恶心你，BOSS和小怪会给你上DeBuff，层数到底一定后会被蛛丝包成茧，此时需要茧碰撞一个单位解除此状态（比如奶妈丢个小兔子在茧旁边然后使用风系1AP技能吹造成碰撞）。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：不建议打盘丝洞和酋长练级。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>81级</h4>
+                    <p><strong>81级斯雷克洞穴</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss：</h5>
+                        <p>BOSS开场无敌后，会在地上吐场地DeBuff，。踩上去后吃DeBuff然后变身斯雷克，用变身技能去打下boss，boss无敌自会解开。</p>
+                    </div>
+
+                    <p><strong>81级废弃虫洞</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss：</h5>
+                        <p>开场会召唤4个小独角仙，然后每杀掉一个小独角仙则boss的某一个抗性减0。当小独角仙全部死完后才会重新召唤。</p>
+                    </div>
+
+                    <p><strong>81级骸骨都市</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss：</h5>
+                        <p>有三个阶段，第一个阶段离他远的目标会受大量伤害，70%HP进入第二阶段，复活单位，40HP进入第三阶段，复活骷髅。</p>
+                        <p>进入战斗后会获得99%治疗抗性，复活后解除一部分。</p>
+                        <p>打法：远程p1送死，近战打到p2boss复活玩家 ,p2复活的人会有很强的buff。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>96级</h4>
+                    <p><strong>96级终结者的蒸汽室</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>每回合BUFF身上有个BUFF会写正/测/背面充满毁灭/创生。</p>
+                        <p>中性：切能在任何方向攻击BOSS，靠近毁灭or创生的队友会获得150元素伤害加成不会死亡。</p>
+                        <p>毁灭：只能在正/测/背面充满创生的方位对BOSS造成伤害。毁灭靠近毁灭2格内会被锁足一回合。</p>
+                        <p>创生：只能在正/测/背面充满毁灭的方位对BOSS造成伤害。创生靠近毁灭2格内会2人一起死亡。</p>
+                    </div>
+
+                    <p><strong>96级劲舞秀场</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>要注意看boss身上的异步点数。比如：异步点数是5 则需要在离boss 位置外5个位移格的地方才能造成伤害，否则反伤。如果异步点数是0则贴脸输出boss。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：Boss位置不算1格，别计算错了。</p>
+                    </div>
+
+                    <p><strong>96级犄角冰川</strong>：</p>
+                    <div class="boss-info">
+                        <h5>Boss：</h5>
+                        <p>每回合会给周围的小猪奶满，和每隔几回合召唤一只小猪。每回合结束会飞到一只小猪旁边。因为副本机制小怪靠近小怪会有很高的减伤，所以需要推开怪不让怪物相邻输出。</p>
+                    </div>
+
+                    <p><strong>96级土匪据点</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>土匪是，每个玩家背后进行一次攻击,就会召唤一个土匪帽子,当场上有三个帽子,就解除无敌</p>
+                    </div>
+                    <div class="note">
+                        <p>注意: boss近战伤害很高，而且是aoe◇2格所以近战尽量打完一套跑远。</p>
+                    </div>
+
+                    <p><strong>96级吉吉狼巢穴</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>偶数回合会免疫一切技能（可以使用武器攻击）；小怪祭祀会复活其他小怪。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>111级</h4>
+                    <p><strong>111级哈根达兹要塞</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>积累减bossAP20点，即可破无敌。</p>
+                    </div>
+
+                    <p><strong>111级旋车公路</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>需要有跳跳鞋后才能过地形进到副本，近身贴脸随便打一下就破无敌了，但是注意近战打一下会被弹开5格，所以尽量背后有障碍物，其他没什么。</p>
+                    </div>
+
+                    <p><strong>111级掌仙人地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>四属性打满boss各10层即可破无敌,。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意： 破无敌只维持到三回合，三个回合后还得重新破才能继续造成伤害。</p>
+                    </div>
+
+                    <p><strong>111级大使之翼</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS会释放一个DeBuff地形，踩在上面结束会死亡然后2回合后复活才能对BOSS造成伤害。</p>
+                    </div>
+
+                    <p><strong>111级布丁地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>每死完一个小怪BOSS会增加1WP，WP满后BOSS会对所有我方全屏雷击（伤害极高）。</p>
+                    </div>
+
+                    <p><strong>111级磨魂窟</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>分三个阶段每进入下个阶段会无敌到下回合BOSS结束回合，70%进入P2，30%进入P3。每回合开始BOSS会对米字直线/斜线造成百分比伤害，P2会放图腾不掉会回血。BOSS会给5格外的我方上一个反伤DeBuff，BOSS受到伤害吃Bebuff的人也会掉血。</p>
+                        <p>密框：释放一个地形踩上去他会飞到你旁边打你。</p>
+                        <p>幼框：超远程单体。</p>
+                        <p>奥框：在他直线接近会靠近距离3格触法。</p>
+                    </div>
+                    <div class="note">
+                        <p>备注：1.每个小怪死完BOSS会增加AP,MP,伤害，抗性，HP。请优先击杀BOSS。</p>
+                        <p>2.此副本治疗技能不会回血，攻击技能对队友造成伤害回血（同时对队友周围2格的队友造成伤害），建议叠盾职业进行恢复。</p>
+                        <p>3.不压级进入地下城时会自动调整成队伍最高等级者等级（上限170）。</p>
+                    </div>
+
+                    <p><strong>111迷之渔场</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>（攻略缺失）</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>126级</h4>
+                    <p><strong>126级魔眼窟</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>分3个阶段，70%进入P2，30%进入P3。P1只会受到直线伤害，P2只会受到斜线伤害。</p>
+                        <p>抖框：HP低于65%-35%会把造成伤害的玩家变成对面模样3回合（自动错过），打死解除。推后玩家1格减AP。</p>
+                        <p>壶框：3格拉人，十字1个减2MP技能，死亡时3格自爆25%最大生命伤害。</p>
+                        <p>六框：会2格AOE，和牺牲一个敌人。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：1.本副本使用治疗or吸血技能回复生命，受到伤害时中间图腾也会受到同样的伤害（护盾受到时图腾不会受到）。</p>
+                        <p>2. 回血只有中间图腾医疗波回血，射程3格弹射2格治疗最大HP40%+100全抗1回合。</p>
+                        <p>3. 小怪死亡会给我方全体5层上DeBuff上限15层，回合开始受到最大生命值15%的伤害。</p>
+                    </div>
+
+                    <p><strong>126级黑暗孢子地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>将boss召唤出来的伞跳菇在boss近身三格内（应该是三格，不是三格就两格）消灭，即可破无敌。BOSS移动过的位置会起雾，在里面结束会直接死亡，请携带减MP角色攻略。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意(主要针对压级高难度)： 蘑菇地两格子，为了防止炸。宁愿不消灭，也别1格子击杀破无敌 给boss加移动真的很致命。</p>
+                    </div>
+
+                    <p><strong>126级疯兔地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS开局无敌，踩地形上出现胡萝卜，打掉三个即可解除无敌，小怪召唤的胡萝卜也算在内，胡萝卜会给全场怪物提供减伤。BOSS每回合开始会释放十字地刺，请注意站位。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：场面上一旦有太多的胡萝卜，兔长官就会开大，等级低的容易灭团，请注意。具体多少个会开大，不是很清楚，个人推荐场面上不要超过5个胡萝卜</p>
+                    </div>
+
+                    <p><strong>126级黑疯兔地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>踩胡萝卜陷阱，待下一回合你头上会有一个胡萝卜标记，即炸蛋，然后走到兔诸侯边上，结束回合，炸蛋自动引爆，即解除BOSS无敌。</p>
+                    </div>
+
+                    <p><strong>126级福狸王宫殿</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>P1: boss开始是一个福狸老头 如果不打死则在boss回合 boss会给所有小怪加一个差不多无敌的光环。只有小怪走出来 才能造成伤害。或者将boss打死变身为福狸王，则光环消失。</p>
+                        <p>P2: 福狸王阶段，如果地上有橙色的光圈(福狸王灵魂)，则boss无敌。 需要人物将地上的橙色光圈全部踩完。 下一回合即可破无敌。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：1.福狸王不是永久破无敌，当福狸王召唤出橙色的光圈则无敌。所以还需要继续踩。</p>
+                        <p>2.副本小怪受到每个属性伤害会获得1个球（光法球环绕效果）受到4种属性伤害后会释放一个吸血技能，BOSS也有这个被动。</p>
+                        <p>3.副本小怪残血≤25%会获得大量护盾，持续到小怪下次行动后回合结束。（可以使用护甲穿透技能或者>25%HP提前击杀）</p>
+                    </div>
+
+                    <p><strong>126级神秘学院</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>做三年级主线后可以进入。</p>
+                        <p>BOSS每回合会免疫1个属性伤害（？存疑）。</p>
+                        <p>四关。第一关怪物伤害附带射程-1，第二个怪物伤害附带减AP，第三关怪物附带减MP，第四关怪物伤害减少20全抗每下（叠加）。每关小怪附带200对应元素伤害和150对应元素抗性，顺序为风-水-土-火。</p>
+                    </div>
+
+                    <p><strong>126级的树精本</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>boss会出现3个血条， boss这三根血条上面随机刷的盾，破盾10次则通关，每次破盾会重新在其部位刷新一层。 Boss中间本体会根据总盾数量变化，盾次数越少本体抗性越低。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：1、不能打死任何一个BOSS部位，否则失败（全体死亡）。</p>
+                        <p>2、另外不能让刷新出来的那个波特打boss。</p>
+                    </div>
+
+                    <p><strong>126级松露庄园</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>需要拿到跳跳鞋和戳戳弓后才能到达副本门口。BOSS会撞人造成大量AOE伤害，小怪很肉。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>141级</h4>
+                    <p><strong>141邪恶葡萄园</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS为狗男女，鼠王开场无敌，需要等2回合or打死2个小怪后下一回合开始解除无敌。开局周围会有4根无敌图腾为鼠王BOSS分别提供单体伤害/范围伤害/抗性/？。然后老太婆小怪每回合会给图腾增加等级，每根满级图腾会链接出现地形踩上去MP会减完，然后在上面结束回合会致死。</p>
+                        <p>女祭司每回合会无敌一个怪物。女祭祀改变自己和小怪的毒谭变成火焰1回合，在上面的友方会错过1回合（大招技能不是每回合释放有CD）。</p>
+                        <p>酒桶怪：范围伤害，会奶攻击范围内敌军。会吸收积累受到伤害回合开始爆炸周围1格。</p>
+                        <p>老太婆：免疫远程单体伤害。</p>
+                        <p>镰刀怪：回合开始跳上空中，攻击其他敌人会跳下来在身边1个造成伤害。</p>
+                    </div>
+
+                    <p><strong>141级斯拉姆地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>P1 boss当回合受到伤害如果没满3000以上，则会引爆伤害，并如果受到6格子以外的伤害会把你拉近一格子。</p>
+                        <p>P2 直线秒人，记得每人吃球，没有难度的 ，回合开始时身边要有队友，不然就无法移动，另外 如果伤害判定，超过6格子以上 则boss免疫伤害。</p>
+                    </div>
+
+                    <p><strong>141级埃努卓地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>1、boss在场，所有小怪免伤50%。</p>
+                        <p>2、记得打宝石，会增加对boss的伤害，只要不被贴脸，boss就不会有无敌。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：宝石对应的颜色，代表抗低 ，给宝石造成伤害就回复伤害同等的血量，每个宝石击杀全员当回合获得boss增伤buff，但中间宝石有单双数回合反弹伤害buff击杀时需要注意。</p>
+                    </div>
+
+                    <p><strong>141级兔皇帝城堡</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>锁住兔皇即可破无敌，尽量不要去减兔皇mp，一旦兔皇不走了，你锁定再高也没用。</p>
+                        <p>锁定公式：闪避*倍数>锁定。正面1.9倍，侧面1.6，背面1.3倍被就闪避。</p>
+                        <p>每个小怪会提供不同光环：机械兔（格挡暴击），兔射手（AP），兔骑兵（MP），兔守卫（全抗）。</p>
+                    </div>
+
+                    <p><strong>141级废弃胡萝卜储藏室</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS会回复受到伤害的100%。每踩一个血清就会减少一部分踩完3个后受伤回血变为0%。场地致死buff很容易减员，死亡无法地形救活。全部小怪都会种一个胡萝卜图腾带场地致死效果（正方形1格），僵尸兔爷爷会减少你大量MP，请注意携带位移技能。</p>
+                    </div>
+
+                    <p><strong>141级软泥地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>Boss看颜色打属性伤害，分别是，土，火，水，风，依次这个顺序输出，且伤害要高于一定数值，若不高于会有副作用(不仅不造成伤害还会根据颜色不同,反馈的效果也不同)，</p>
+                        <p>boss反馈属性惩罚是：火就弹射反弹伤害,水变成回血,风会击退,土会减移动。</p>
+                        <p>小怪特性是：固定值减少500*对应元素层数的元素伤害（打前请点开怪物状态看）。每次受到伤害会减抗，但会增加最终伤害,最高减5次。小怪会变扁，然后获得很多抗性一回合，此时建议打别个小怪。</p>
+                    </div>
+
+                    <p><strong>141级恶之源</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS关，全部敌人会获得一个骤死BUFF，回合开始时对身后我方生命降到1，获得失去生命50%的护甲。BOSS会主动给一个人上骤死BUFF，注意：拥有此BUFF的人才能对BOSS造成伤害。</p>
+                        <p>每种小怪死后会留下不同力场（正方形3X3），丛林茎——受到伤害减半；花球茎——受到伤害加倍；竹球茎——移除效果加倍。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>156级</h4>
+                    <p><strong>156级卡利老巢</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS关卡会有秒杀地形，小怪会推人和换位技能，请注意先后手顺序。</p>
+                        <p>P1：基本没啥事，除非压级太狠打小怪都吃力。</p>
+                        <p>p2：会有一个无敌，p2 boss每回合会召唤一个当前无敌的小怪，这时候有两个造成伤害的办法：</p>
+                        <p>1、第一个消灭小怪，获得一个两回合的buff，有这个buff可以伤害boss；</p>
+                        <p>2、另一个办法就是，当血线过低时(大概30%左右)，你会获得一个涉足的增益buff(加最终伤害和暴击的buff)，有这个buff也可以伤害boss （可能狂战本，就是鼓励狂干吧）</p>
+                        <p>P3:boss会放一次全屏技能,伤害根据理他远近有关,越远伤害越高, 注意：8格子外，基本就是没了。</p>
+                    </div>
+
+                    <p><strong>156级石笋旅店</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>石笋精死亡2格自爆最远程击杀，石笋精受到攻击时其十字上的小石笋精会缩地到其回合开始前无敌，老石笋精被攻击时周围2格有队友会加2000护甲。</p>
+                        <p>BOSS有3个阶段。</p>
+                        <p>P1：回合开始脚底会亮，回合结束亮的位置会出现石柱秒杀上面友方（可以通过把小怪丢到开始位置不出石柱）。BOSS奇数回合会对正面5格造成直线AOE，偶数回合会对两边4格造成直线AOE伤害。</p>
+                        <p>P2：BOSS每回合开始会造成全屏的AOE直线伤害，需要躲在石柱后面将不受到伤害。友方回合开始会产生熔岩地形，走开后走上去会直接死亡且无尸体。</p>
+                        <p>P3：同P2。会随机移除2根石柱。</p>
+                    </div>
+
+                    <p><strong>156级土匪老巢</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS每回合会回复全部HP无视无可救药。每恢复1%会获得一层BUFF，BUFF越高终伤越高抗性越低。需要一回合击杀。</p>
+                    </div>
+
+                    <p><strong>156级盗贼地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>开局，然后每4个回合还是3个回合会召唤炸蛋，炸蛋数量不确定，场上有炸蛋。boss无敌，解除炸蛋方法是：在炸蛋四周放技能，</p>
+                        <p>或者有单位炸蛋四周移动（炸蛋有空雷，有减wp 有掉血的）</p>
+                        <p>这些惩罚是在你解除炸蛋才会有,你没解除炸蛋，不会受影响,然后boss 开局较大几率会释放跳离他最远的一个单位的机制。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：boss会有一个斩首的技能，技能效果是被砍的人物抗性为0。</p>
+                    </div>
+
+                    <p><strong>156级基地号飞艇</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>boss 开局会有个时法的柱子,每次boss.回合结束,柱子的结束回合2*2的范围爆炸,</p>
+                        <p>受到爆炸范围影响的角色获得反向移动buff,每次反向移动都会产生1*1的爆炸,炸到boss,在这个人物的结束回合前解除无敌。</p>
+                        <p>boss在p3时,每次受到伤害他自身也会爆炸,来造成伤害,飞艇差不多注意这两点,就能过了,</p>
+                    </div>
+                    <div class="note">
+                        <p>注意:飞艇小怪法师,他创生满了会进入飞升模式，输出会爆高但不能移动，也没有近战技能。</p>
+                    </div>
+
+                    <p><strong>156级械卡工厂（昔）</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>开始战斗后，会有蓝色格子和白色骷髅头，每回合会绕中心旋转，每转完360°会增加扇形面积，现在蓝色扇形开始时就可以对boss造成伤害。</p>
+                        <p>调整好先手，避免造成连续死亡。boss本身伤害一般，二阶段有换位，注意自身位置，别被换到骷髅头上，三阶段伤害会高一点，但是也不是很高，完全扛得住</p>
+                    </div>
+
+                    <p><strong>156级机械迷城（留）</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>P1：Boss固定且免疫mp损失,需要开始在12格点位上站立，等颜色改变后走开，如果在该点位上释放技能，</p>
+                        <p>则点位又会变为原来的颜色，待12格全部变颜色后，可以攻击boss；</p>
+                        <p>P2：每回合都会有aoe，必须站在中间，才可以避免aoe，可以直接打进P2，跳过P2；</p>
+                        <p>P3(HP50%的时候)：需要将两格（红颜se）站上去，释放一个技能，让其变为另外一种颜色，橙色的不用管，踩完两格后便可攻击boss。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：三阶段boss若是在中间，则是无敌的，必须位移将boss赶出中间位置，另外不要和小怪和boss站斜线 不然会掉血。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>171级</h4>
+                    <p><strong>171级汉尼芭地下城（野人）</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>Boss在图腾3格范围内开始是会获得对于元素的图腾buff持续1回合，玩家在图腾3格内开始也会获得相应图腾元素buff持续2回合，当玩家有和boss相应的图腾元素时可用相应的元素攻击boss（每下不超过5000，单回合单元素能造成的总伤害不超过其血上限20%）图腾附近会有落石，伤害不低，所以不要站在图腾附近三格内，图腾可以打掉，会重生，用同属性技能打图腾，可以和图腾换位置</p>
+                    </div>
+
+                    <p><strong>171级椰人地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>将boss拉到1血椰子炸蛋附近，炸蛋引爆就可以破无敌。注意只有一血椰子才会爆炸，在某一方向攻击椰子炸蛋，炸蛋会往攻击者的方向滚动将boss拉到1血椰子炸蛋附近，炸蛋引爆就可以破无敌。注意只有一血椰子才会爆炸，在某一方向攻击椰子炸蛋，炸蛋会往攻击者的方向滚动。</p>
+                        <p>boss有个隐藏被动，当回合受到的次数伤害，当回合会加抗性，多段伤害职业要注意。</p>
+                    </div>
+
+                    <p><strong>171级尼罗鳄地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>一阶段无无敌，二阶段用位移撞击，减ap即可破无敌(注意减ap技能不是100%的成功，只有减了ap才其他技能才可以对boss造成伤害)，注意地坑和副本机制打滑。</p>
+                        <p>使用位移技能会向前打滑，撞击到boss，减了ap就能破无敌。</p>
+                        <p>打滑机制是指用任何位移技能都会像你使用技能的哪一方前进三格子来着，打滑不可怕，可怕的是boss的推拉，建议队伍有个守护好好的贴墙锁着他。</p>
+                    </div>
+                    <div class="note">
+                        <p>建议：打这个本最好带个减抗职业，比如宝藏。因为如果清掉小怪打boss，boss会贼硬。</p>
+                    </div>
+
+                    <p><strong>171级汉尼草地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS分3个阶段HP，开场会召唤4个痒痒花，每阶段boss都会重新召唤痒痒花，boss获得场上痒痒花数量*25%的减伤。注意上阶段的痒痒花没清掉会保留到下回合。</p>
+                        <p>打掉痒痒花会获得一个近战减伤50%的buff一回合。boss在附近也会有减伤50%的buff。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意点： 1、如果被小怪食人花给吞了 那么需要受到背刺伤害才能让食人花将人吐出来。 如果不吐出来 每回合掉血，血为0就死。</p>
+                        <p>2、boss p3会给一个玩家上一个传球buff回合结束时要走到一个友方旁边传球才不会掉血，否则第一次掉25%第二次50%。</p>
+                    </div>
+
+                    <p><strong>171级沙鼠地下城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>沙鼠妈妈</p>
+                        <p>boss每回合开始身边会刷半径一格的陷阱（身边一圈8格），拥有感电buff（小怪或者boss能给角色上）的玩家在近战范围攻击boss会消除以角色为中心半径2格的陷阱但不包括脚下。陷阱没被消除时boss固定并且无敌，陷阱全部消除后boss解除无敌，固定。 在Boss近战范围时有感电buff攻击boss会增加其wp，大招伤害根据wp增长。Boss如果不能和玩家召唤物贴脸则放不出大（批雷）。</p>
+                    </div>
+
+                    <p><strong>171级紫金城</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS分2阶段：</p>
+                        <p>P1：BOSS无敌，每回合会造成2次无视距离和视野的单体技能和一次超长的直线伤害后获得15终伤（拖得越久越难打）。需要打爆场地四个方向的四个酒桶后BOSS解除无敌跳向场地中央（如果中间那格有单位将不会移动），每个酒桶打爆后打爆者会获得BUFF（AP抗性/终疗+终甲/暴击率+爆伤/狂暴伤害+被打反伤），同时召唤一波小怪——门口熊猫各一个，优先击杀掉长得高的涂毒熊猫，不要站直线会被胖熊猫AOE砍。</p>
+                        <p>P2：因为是打爆第四个桶进入P2所以一般会剩1组小怪，快速清理掉。</p>
+                        <p>BOSS会重新召唤4个酒桶，进入P2后BOSS第一次行动回合中间加200抗性地方不会落雷，之前不能站在中间结束不然会被劈死。击杀酒桶会让BOSS不霹雷，酒桶需要全部击杀后BOSS才会重新召唤。</p>
+                        <p>技能改变直线伤害技能改为距离3格且◇范围3格的大AOE，BOSS回合开始会释放2个标记(开碗6个)在地图上，在下回合BOSS开始时会对标记◇范围2格造成大量伤害。</p>
+                    </div>
+                </div>
+
+                <div class="level-section">
+                    <h4>186级</h4>
+                    <p><strong>186级冰盖峰</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>小怪机制简单，氮云气要有我方单位（例如小机器人之类的）贴身，或者给卫星上个固定（如诱导箭），不贴身也能打伤害。</p>
+                        <p>Boss需要在云气眼上破无敌，分两个阶段，但是没啥差别，直接打就行。需要有推/拉/搬运的职业才好打(开碗最好有时法/熊猫)</p>
+                    </div>
+                    <div class="note">
+                        <p>注意点：1.需要有搬运，守护极佳(其实熊猫更适合开碗打)，在第二回合boss行动后，守护直接带着boss传送去云气眼，当前回合不会出黑云，</p>
+                        <p>之后回合boss接近其他云气的时候有几率（这个出黑云机制还不明白，欢迎补充）转化成黑云。角色在黑云里不会立即死亡，</p>
+                        <p>可以利用这一点，把角色推出来。角色走进黑云立即死亡。</p>
+                        <p>2.boss会在它的回合开始时推开贴身角色，会拉人，建议主t加持固定，或者在背后加个障碍物，建议削减MP。</p>
+                        <p>3.Boss在两个阶段开始是都有可能获得近战反弹buff，即近战范围（1-2）内有角色会免疫伤害并将伤害转移到此角色身上。</p>
+                        <p>4.小怪死后会给最近的怪物传递一个buff。</p>
+                        <p>5.比较重要的一点 人物尽可能的不要和运气眼 站一条直线，除非自己能固定或者后面有障碍物挡着你。</p>
+                    </div>
+
+                    <p><strong>186级獾兽巢穴</strong>：</p>
+                    <div class="boss-info">
+                        <h5>小怪：</h5>
+                        <p>三格：顾名思义，站在它三格以内输出</p>
+                        <p>背刺：同上，站在背后输出</p>
+                        <p>盾奶：盾奶其开始回合时近战范围（半径2格造成伤害和apmp削减）</p>
+                        <h5>BOSS：</h5>
+                        <p>每个回合结束后会有一个buff，随机出现以下三种，考验站位。</p>
+                        <p>Buff种类，距离boss (1):3格内，(2)：4-6格内 (3)：7格外 只有按照要求站位才能对boss造成伤害，</p>
+                        <p>不按要求会在boss回合开始时受到极高伤害，也就掉个几万血。Boss单体技能无视护盾，角色太靠近会吃aoe。</p>
+                        <p>第一阶段：开局站位在boss三格内。</p>
+                        <p>第二阶段：开局召唤三只小怪，召唤出来第一回合无敌，同时不会行动，以Boss为中心 出现4个格子，不站白格子也没事，只要距离对了就行。</p>
+                        <p>站了白格子的，奖励ap，mp，并且下回合在任何位置攻击boss都不反伤，且站白格子人越多，boss伤害抗性越低（一般输出站就行）</p>
+                        <p>第三回合：召唤三只小怪。</p>
+                    </div>
+
+                    <p><strong>186级蛋龙庇护地</strong>：</p>
+                    <div class="boss-info">
+                        <h5>小怪：</h5>
+                        <p>建议先杀最小最矮的水波龙，然后双头龙。如果有把握秒掉蛋龙战士 那也是可以的，如果不能则按建议来。</p>
+                        <h5>BOSS：</h5>
+                        <p>必须踩到地上的蛋壳才能输出boss</p>
+                        <p>第一阶段：它就是个蛋，需要吃到50ap的伤害才能破壳而出。这阶段杀小怪，调整站位。</p>
+                        <p>第二阶段：破壳而出，会在让它破壳而出的那个角色之后行动，建议主t破壳。输出职业需要踩离他直线六格远的印记，才能对boss造成伤害，</p>
+                        <p>同时其他三个印记两格范围内爆Zha，伤害极高。</p>
+                        <p>第三阶段：印记改为出现在在角色斜线三格远的地方，爆Zha同上。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意点：1.建议守护破壳，同时传送boss，贴墙站位，防止被击退。</p>
+                        <p>2.每回合都要对boss造成伤害。</p>
+                        <p>3.第三阶段 加血或者套生命护甲的盾都会被boss偷取。且此阶段每回合必须要有近战输出，如果没有请做好投降的准备。</p>
+                        <p>三阶段最好能做到不套盾不奶。否则输出跟不上 那也只能投降。(当然这是打低难度的，高难度还是需要奶的)</p>
+                    </div>
+
+                    <p><strong>186级熔岩火山</strong>：</p>
+                    <div class="boss-info">
+                        <h5>小怪：</h5>
+                        <p>自己回合开始时，若血量低于百分之二十，涅槃，回满血，加抗。 所以小怪要么不打，要打请在它行动之前尽早杀掉，切忌不要留残血。另外请尽量优先将4格怪击杀。</p>
+                        <p>近战：近战范围内有两个角色才可以击杀，否则涅槃。</p>
+                        <p>四格：3格以外击杀，最好四格(boss位置不算1格)处击杀，且4格内不能有其他队友，否则涅槃。四格外对其造成伤害的角色附近会生成黑雾，减射程，造成伤害。</p>
+                        <p>背刺：背后击杀，否则涅槃。</p>
+                        <h5>BOSS：</h5>
+                        <p>每回合开始时召唤陨石，如果石头数量）6不清理会变成火坑，进入火坑即死。只能受到直线伤害，否则反弹。对boss造成伤害的角色，</p>
+                        <p>如果没有固定，会传送到对称于boss的另一边。Boss会击退一个贴身角色，需要固定，或者身后放障碍物。</p>
+                        <p>第一阶段：正常清小怪，正常打。</p>
+                        <p>第二阶段：最远距离的两个角色脚下出现印记，在下一回合开始时会在0-1格范围内变成十字形火坑。</p>
+                        <p>第三阶段：最近距离两个角色脚下出现印记。</p>
+                    </div>
+
+                    <p><strong>186级潘达拉坟墓</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>BOSS每回合会踢一脚然后产生火焰地形。每回合需要有人被烧然后获得一个技能破除BOSS的幽灵防护。如果BOSS无法踢到友方英雄，会释放陨石雨，攻击所有友方单位◇2格队友会受到大量伤害。</p>
+                        <h5>小怪：</h5>
+                        <p>狸猫幽灵：◇3格AOE奶，直线踢飞到障碍物。</p>
+                        <p>长柄幽灵：每回合减2次AP。HP低时会有直线AOE吸血。</p>
+                        <p>妖怪幽灵：一拳超人。</p>
+                    </div>
+
+                    <p><strong>186级祸豹峡谷</strong>：</p>
+                    <div class="boss-info">
+                        <h5>BOSS：</h5>
+                        <p>攻击小怪或者小怪遗骨会获得Spotted的BUFF，最高40层每人最高获得10层。每层会减少BOSS25全抗。</p>
+                        <p>BOSS的上勾拳攻击有Spotted的BUFF的人时会在人物十字直线召唤同等等级的遗骨（10万HP）遗骨撞到友方英雄直接秒杀。</p>
+                    </div>
+                    <div class="note">
+                        <p>注意：此本无视野无法造成伤害。</p>
+                    </div>
+
+                    <p><strong>186级鸮鸟工厂</strong>：</p>
+                    <div class="boss-info">
+                        <h5>终伤机制：</h5>
+                        <p>鸮鸟有一个1-21层终伤机制 影响全体玩家/怪物 层数21时所有人获得100终伤加成，1时-100% 11层终伤不变。</p>
+                        <p>层数增加和减少跟每回合玩家和怪物是否站直线有关，玩家和怪物站直线时buff增加，不和怪物站直线则减少。这个会在每次玩家/怪物回合开始时判定 增加的属性跟总人数，怪物数有关。</p>
+                        <h5>Boss机制</h5>
+                        <p>Boss不在金羽毛上时无敌，全程固定不可被搬运。攻击boss会让boss顺时针飞到下一个平台的中心，如果下一个平台中心格被堵住则不会移动。</p>
+                        <p>Boss关卡有9个平台 平台被坠落陷阱隔开（走上去即死，不留尸体）。每次boss开始回合时8个平台会被随机分配buff、抗性增加/减少、移动增加/减少、终伤增加/减少、一个金羽毛、有一个空的。</p>
+                        <p>Boss会攻击2个目标每人一下，每回合开始时会对8个平台的中心（除中间平台）造成一个半径1格的十字落雷（超高伤）。boss每回合开始时会顺时针飞向下一个平台并对该平台造成一个伤害（伤害一般），如果其回合开始时下一个平台中心格被卡住，boss不会移动并可以被攻击进行逆时针飞行。</p>
+                    </div>
+                </div>
+
+                <a href="index.html" class="back-link">返回首页</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
