@@ -843,6 +843,25 @@
                     </div>
 
                     <div id="healingContent" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h4>玩家总治疗</h4>
+                                <div class="value" id="healingTotalHeal">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>玩家总输出</h4>
+                                <div class="value" id="healingTotalDamage">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>玩家总承伤</h4>
+                                <div class="value" id="healingTotalTaken">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>NPC总输出</h4>
+                                <div class="value" id="healingNpcDamage">0</div>
+                            </div>
+                        </div>
+
                         <div class="chart-container">
                             <h4>玩家治疗排行</h4>
                             <div id="playerHealingChart" style="width: 100%; height: 400px;"></div>
@@ -1920,8 +1939,17 @@
         async function updateHealing(combat) {
             const stats = combat.getStats();
 
-            // 计算总治疗量
+            // 计算总数
+            const playerTotalDmg = Object.values(stats.playerDamage).reduce((a, b) => a + b, 0);
+            const playerTotalTaken = Object.values(stats.playerTaken).reduce((a, b) => a + b, 0);
             const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
+            const npcTotalDmg = Object.values(stats.npcDamage).reduce((a, b) => a + b, 0);
+
+            // 更新统计数据
+            document.getElementById('healingTotalHeal').textContent = formatNumber(playerTotalHeal);
+            document.getElementById('healingTotalDamage').textContent = formatNumber(playerTotalDmg);
+            document.getElementById('healingTotalTaken').textContent = formatNumber(playerTotalTaken);
+            document.getElementById('healingNpcDamage').textContent = formatNumber(npcTotalDmg);
 
             // 确保所有玩家都包含在统计中（包括治疗为0的）
             const allPlayerHealing = {};
