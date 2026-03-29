@@ -2111,6 +2111,7 @@
                 const breed = combat.playersBreed[player] || '0';
                 const breedName = breedNames[breed] || '未知';
                 const damage = stats.playerDamage[player] || 0;
+                const heal = stats.playerHeal[player] || 0;
                 const iconPath = getBreedIconPath(breed);
 
                 return `
@@ -2125,6 +2126,7 @@
                         </div>
                         <div class="breed">${breedName}</div>
                         <div class="damage">${formatNumber(damage)} 伤害</div>
+                        <div class="damage" style="color: #66BB6A;">${formatNumber(heal)} 治疗</div>
                     </div>
                 `;
             }).join('');
