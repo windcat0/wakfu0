@@ -2347,6 +2347,16 @@
                     content.classList.remove('active');
                 });
                 document.getElementById(tabId).classList.add('active');
+
+                // 切换到包含ECharts图表的标签页时，调整图表大小
+                setTimeout(() => {
+                    if (tabId === 'overview' && charts['playerDamageChart']) {
+                        charts['playerDamageChart'].resize();
+                    }
+                    if (tabId === 'healing' && charts['playerHealingChart']) {
+                        charts['playerHealingChart'].resize();
+                    }
+                }, 100);
             });
         });
     </script>
