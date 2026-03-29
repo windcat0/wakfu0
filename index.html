@@ -797,7 +797,7 @@
             <div class="content-area">
                 <div class="tabs">
                     <button class="tab active" data-tab="overview">总览</button>
-                    <button class="tab" data-tab="healing">治疗统计</button>
+                    <button class="tab" data-tab="healing">治疗总览</button>
                     <button class="tab" data-tab="players">玩家统计</button>
                     <button class="tab" data-tab="npcs">NPC统计</button>
                     <button class="tab" data-tab="details">详细数据</button>
@@ -1916,7 +1916,7 @@
             echart.setOption(option);
         }
 
-        // 更新治疗统计
+        // 更新治疗总览
         async function updateHealing(combat) {
             const stats = combat.getStats();
 
@@ -2034,11 +2034,11 @@
                     itemStyle: {
                         borderRadius: [4, 8, 8, 4],
                         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                            { offset: 0, color: '#8B2F5C' },
-                            { offset: 0.5, color: '#A33D6F' },
-                            { offset: 1, color: '#C44B82' }
+                            { offset: 0, color: '#4CAF50' },
+                            { offset: 0.5, color: '#66BB6A' },
+                            { offset: 1, color: '#81C784' }
                         ]),
-                        shadowColor: 'rgba(139, 47, 92, 0.3)',
+                        shadowColor: 'rgba(76, 175, 80, 0.3)',
                         shadowBlur: 8,
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
@@ -2046,11 +2046,11 @@
                     emphasis: {
                         itemStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                                { offset: 0, color: '#A33D6F' },
-                                { offset: 0.5, color: '#C44B82' },
-                                { offset: 1, color: '#E55995' }
+                                { offset: 0, color: '#66BB6A' },
+                                { offset: 0.5, color: '#81C784' },
+                                { offset: 1, color: '#A5D6A7' }
                             ]),
-                            shadowColor: 'rgba(139, 47, 92, 0.5)',
+                            shadowColor: 'rgba(76, 175, 80, 0.5)',
                             shadowBlur: 15,
                             shadowOffsetX: 3,
                             shadowOffsetY: 3
