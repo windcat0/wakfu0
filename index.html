@@ -744,7 +744,9 @@
 
 
 
-        #playerDamageChart {
+        #playerDamageChart,
+        #playerHealingChart,
+        #playerSummaryChart {
             min-height: 350px;
         }
 
@@ -815,6 +817,7 @@
                 <div class="tabs">
                     <button class="tab active" data-tab="overview">伤害总览</button>
                     <button class="tab" data-tab="healing">治疗总览</button>
+                    <button class="tab" data-tab="summary">综合总览</button>
                     <button class="tab" data-tab="players">玩家统计</button>
                     <button class="tab" data-tab="npcs">NPC统计</button>
                     <button class="tab" data-tab="details">详细数据</button>
@@ -883,6 +886,39 @@
                         <div class="chart-container">
                             <h4>玩家治疗排行</h4>
                             <div id="playerHealingChart" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="summary" class="tab-content">
+                    <div class="empty-state" id="summaryEmpty">
+                        <h3>暂无数据</h3>
+                        <p>请选择一场战斗</p>
+                    </div>
+
+                    <div id="summaryContent" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h4>玩家总输出</h4>
+                                <div class="value" id="summaryTotalDamage">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>玩家总治疗</h4>
+                                <div class="value" id="summaryTotalHeal">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>玩家总吸血</h4>
+                                <div class="value" id="summaryTotalLifeSteal">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>玩家总承伤</h4>
+                                <div class="value" id="summaryTotalTaken">0</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4>玩家综合数据排行</h4>
+                            <div id="playerSummaryChart" style="width: 100%; height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -1799,6 +1835,8 @@
             document.getElementById('overviewContent').style.display = 'block';
             document.getElementById('healingEmpty').style.display = 'none';
             document.getElementById('healingContent').style.display = 'block';
+            document.getElementById('summaryEmpty').style.display = 'none';
+            document.getElementById('summaryContent').style.display = 'block';
             document.getElementById('playersEmpty').style.display = 'none';
             document.getElementById('playersContent').style.display = 'block';
             document.getElementById('npcsEmpty').style.display = 'none';
@@ -1809,6 +1847,7 @@
             // 更新统计数据
             updateOverview(combat);
             updateHealing(combat);
+            updateSummary(combat);
             updatePlayerGrid(combat);
             updateNpcGrid(combat);
             updateDamageTable(combat);
@@ -2147,6 +2186,196 @@
                         distance: 12
                     }
                 }]
+            };
+
+            echart.setOption(option);
+        }
+
+        // 更新综合总览
+        async function updateSummary(combat) {
+            const stats = combat.getStats();
+
+            // 计算总数
+            const playerTotalDmg = Object.values(stats.playerDamage).reduce((a, b) => a + b, 0);
+            const playerTotalTaken = Object.values(stats.playerTaken).reduce((a, b) => a + b, 0);
+            const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
+            const playerTotalLifeSteal = Object.values(stats.playerLifeSteal).reduce((a, b) => a + b, 0);
+
+            document.getElementById('summaryTotalDamage').textContent = formatNumber(playerTotalDmg);
+            document.getElementById('summaryTotalHeal').textContent = formatNumber(playerTotalHeal);
+            document.getElementById('summaryTotalLifeSteal').textContent = formatNumber(playerTotalLifeSteal);
+            document.getElementById('summaryTotalTaken').textContent = formatNumber(playerTotalTaken);
+
+            // 确保所有玩家都包含在统计中
+            const allPlayerData = {};
+            combat.players.forEach(player => {
+                allPlayerData[player] = {
+                    damage: stats.playerDamage[player] || 0,
+                    heal: stats.playerHeal[player] || 0,
+                    lifeSteal: stats.playerLifeSteal[player] || 0
+                };
+            });
+
+            // 按总输出排序
+            const playerDataArray = Object.entries(allPlayerData)
+                .sort((a, b) => {
+                    const totalA = a[1].damage + a[1].heal + a[1].lifeSteal;
+                    const totalB = b[1].damage + b[1].heal + b[1].lifeSteal;
+                    if (totalB !== totalA) {
+                        return totalB - totalA;
+                    }
+                    return a[0].localeCompare(b[0]);
+                });
+
+            const playerNames = playerDataArray.map(item => item[0]);
+            const damageData = playerDataArray.map(item => item[1].damage);
+            const healData = playerDataArray.map(item => item[1].heal);
+            const lifeStealData = playerDataArray.map(item => item[1].lifeSteal);
+
+            // 预加载所有图标
+            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
+            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
+
+            // 初始化或更新 ECharts
+            const chartDom = document.getElementById('playerSummaryChart');
+            if (!chartDom) return;
+
+            if (charts['playerSummaryChart']) {
+                charts['playerSummaryChart'].dispose();
+            }
+
+            const echart = echarts.init(chartDom);
+            charts['playerSummaryChart'] = echart;
+
+            // 构建 Y 轴标签数据（名字 + 图标）
+            const yAxisData = playerNames.map((name, index) => {
+                const breedId = combat.playersBreed[name] || '0';
+                const iconPath = getBreedIconPath(breedId);
+                return {
+                    value: name,
+                    iconPath: iconPath,
+                    breedId: breedId
+                };
+            });
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        let result = params[0].name + '<br/>';
+                        params.forEach(param => {
+                            const color = param.seriesName === '伤害' ? '#f7931e' : 
+                                         param.seriesName === '治疗' ? '#66BB6A' : '#9C27B0';
+                            result += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${color};"></span>`;
+                            result += `${param.seriesName}: ${formatNumber(param.value)}<br/>`;
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: ['伤害', '治疗', '吸血'],
+                    top: 10,
+                    textStyle: {
+                        fontSize: 14,
+                        color: '#333'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '60',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    splitLine: {
+                        lineStyle: { color: 'rgba(0, 0, 0, 0.12)' }
+                    },
+                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
+                    axisTick: { show: true, lineStyle: { color: '#94a3b8' } },
+                    axisLabel: { color: '#475569', fontSize: 12 }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: yAxisData,
+                    inverse: true,
+                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: '#333',
+                        fontSize: 16,
+                        formatter: function(value, index) {
+                            const item = yAxisData[index];
+                            if (item) {
+                                return `{name|${value}} {icon${index}|}`;
+                            }
+                            return value;
+                        },
+                        rich: yAxisData.reduce((acc, item, index) => {
+                            const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
+                            acc[`icon${index}`] = {
+                                height: 36,
+                                width: 36,
+                                backgroundColor: {
+                                    image: img && img.complete ? img.src : ''
+                                },
+                                borderRadius: 6,
+                                shadowBlur: 8,
+                                shadowColor: 'rgba(0, 0, 0, 0.3)',
+                                shadowOffsetX: 0,
+                                shadowOffsetY: 0
+                            };
+                            return acc;
+                        }, { name: { color: '#333', fontSize: 16, fontWeight: 'bold' } })
+                    }
+                },
+                series: [
+                    {
+                        name: '伤害',
+                        type: 'bar',
+                        data: damageData,
+                        barWidth: '20%',
+                        barGap: '10%',
+                        itemStyle: {
+                            borderRadius: [4, 4, 4, 4],
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#f7931e' },
+                                { offset: 0.5, color: '#ff9f43' },
+                                { offset: 1, color: '#feca57' }
+                            ])
+                        }
+                    },
+                    {
+                        name: '治疗',
+                        type: 'bar',
+                        data: healData,
+                        barWidth: '20%',
+                        itemStyle: {
+                            borderRadius: [4, 4, 4, 4],
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#66BB6A' },
+                                { offset: 0.5, color: '#81C784' },
+                                { offset: 1, color: '#A5D6A7' }
+                            ])
+                        }
+                    },
+                    {
+                        name: '吸血',
+                        type: 'bar',
+                        data: lifeStealData,
+                        barWidth: '20%',
+                        itemStyle: {
+                            borderRadius: [4, 4, 4, 4],
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#9C27B0' },
+                                { offset: 0.5, color: '#AB47BC' },
+                                { offset: 1, color: '#CE93D8' }
+                            ])
+                        }
+                    }
+                ]
             };
 
             echart.setOption(option);
@@ -2510,6 +2739,15 @@
                                 charts['playerHealingChart'].dispose();
                             }
                             updateHealing(combat);
+                        }
+                    }
+                    if (tabId === 'summary' && currentCombatId) {
+                        const combat = combatDataDict[currentCombatId];
+                        if (combat) {
+                            if (charts['playerSummaryChart']) {
+                                charts['playerSummaryChart'].dispose();
+                            }
+                            updateSummary(combat);
                         }
                     }
                 }, 100);
