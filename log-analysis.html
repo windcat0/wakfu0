@@ -199,9 +199,9 @@
         .btn {
             width: 100%;
             padding: 14px 24px;
-            background: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 100%);
-            color: white;
-            border: none;
+            background: rgba(60, 179, 168, 0.3);
+            color: #e6e9f0;
+            border: 1px solid rgba(60, 179, 168, 0.4);
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
@@ -218,7 +218,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
             transition: left 0.5s;
         }
 
@@ -228,7 +228,9 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(60, 179, 168, 0.4);
+            background: rgba(60, 179, 168, 0.4);
+            border-color: rgba(60, 179, 168, 0.6);
+            box-shadow: 0 4px 15px rgba(60, 179, 168, 0.3);
         }
 
         .btn:active {
@@ -236,7 +238,9 @@
         }
 
         .btn:disabled {
-            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            background: rgba(75, 85, 99, 0.3);
+            color: #9ca3af;
+            border-color: rgba(75, 85, 99, 0.4);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -303,14 +307,14 @@
         }
 
         .combat-item.active {
-            background: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 100%);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 15px rgba(60, 179, 168, 0.4);
+            background: rgba(60, 179, 168, 0.3);
+            color: #e6e9f0;
+            border-color: rgba(60, 179, 168, 0.5);
+            box-shadow: 0 4px 15px rgba(60, 179, 168, 0.2);
         }
 
         .combat-item.active::before {
-            background: white;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .combat-item .combat-id {
@@ -628,14 +632,15 @@
         }
 
         .data-table th {
-            background: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 100%);
-            color: white;
+            background: rgba(60, 179, 168, 0.25);
+            color: #e6e9f0;
             padding: 14px 16px;
             text-align: left;
             font-weight: 600;
             font-size: 0.9em;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(60, 179, 168, 0.3);
         }
 
         .data-table td {
