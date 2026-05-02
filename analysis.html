@@ -1882,6 +1882,13 @@
             const combat = combatDataDict[combatId];
             if (!combat) return;
 
+            // 默认显示总览标签
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="summary"]').classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('summary').classList.add('active');
+
             // 显示内容区域
             document.getElementById('overviewEmpty').style.display = 'none';
             document.getElementById('overviewContent').style.display = 'block';
