@@ -36,33 +36,34 @@
 
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #0d3d3a 0%, #1a5f5a 50%, #0d3d3a 100%);
+            background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
+            background-attachment: fixed;
+            color: #e6e9f0;
             min-height: 100vh;
-            padding: 20px;
             position: relative;
             overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
+        .bg-glow {
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background:
-                radial-gradient(circle at 20% 80%, rgba(60, 179, 168, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 47, 92, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.08) 0%, transparent 40%);
-            animation: bgFloat 20s ease-in-out infinite;
+            top: -10%;
+            left: -10%;
+            width: 70vw;
+            height: 70vh;
+            background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
+            filter: blur(80px);
         }
 
-        @keyframes bgFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(2%, 2%) rotate(1deg); }
-            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        .bg-glow.bottom {
+            top: auto;
+            bottom: -15%;
+            left: auto;
+            right: -5%;
+            background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
+            width: 60vw;
+            height: 60vh;
         }
 
         .container {
@@ -157,6 +158,89 @@
             width: 18px;
             height: 18px;
             fill: currentColor;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: rgba(18, 20, 30, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .navbar .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar .logo img {
+            height: 2.5rem;
+            vertical-align: middle;
+        }
+
+        .navbar .logo span {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-weight: 400;
+            -webkit-text-fill-color: #ccc;
+            background-clip: unset;
+            letter-spacing: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #b9c2d9;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.2s, text-shadow 0.2s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: linear-gradient(90deg, #818cf8, #c084fc);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
         }
 
         .main-content {
@@ -504,17 +588,23 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="logo.webp" alt="Logo" class="logo">
-            <h1>副本攻略</h1>
-            <div class="version">Wakfu Guide</div>
-            <a href="index.html" class="home-btn">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                首页
-            </a>
-        </div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow bottom"></div>
 
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <img src="logo.webp" alt="logo">
+            Wakfu·攻略 <span>Beta</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="guide.html">资料库</a></li>
+            <li><a href="#">配装器</a></li>
+            <li><a href="#">社区</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
         <div class="main-content">
             <div class="guide-section">
                 <div class="table-wrapper">

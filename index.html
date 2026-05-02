@@ -1,2768 +1,451 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <title>汪汪队出击 - Wakfu Combat Logs Analysis</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-color: #3CB3A8;
-            --primary-dark: #2A9D8F;
-            --primary-light: #4ECDC4;
-            --secondary-color: #8B2F5C;
-            --secondary-dark: #6B1F3F;
-            --accent-color: #4ECDC4;
-            --accent-light: #6EDDD4;
-            --primary-gradient: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 100%);
-            --secondary-gradient: linear-gradient(135deg, #8B2F5C 0%, #6B1F3F 100%);
-            --accent-gradient: linear-gradient(135deg, #4ECDC4 0%, #3CB3A8 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
-            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 20px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #0d3d3a 0%, #1a5f5a 50%, #0d3d3a 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background:
-                radial-gradient(circle at 20% 80%, rgba(60, 179, 168, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 47, 92, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(78, 205, 196, 0.08) 0%, transparent 40%);
-            animation: bgFloat 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes bgFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(2%, 2%) rotate(1deg); }
-            66% { transform: translate(-1%, 1%) rotate(-1deg); }
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: var(--glass-bg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            position: relative;
-            z-index: 1;
-            backdrop-filter: blur(10px);
-            padding: 0;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #3CB3A8 0%, #2A9D8F 50%, #1a5f5a 100%);
-            color: white;
-            padding: 0 30px;
-            height: 160px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.5;
-        }
-
-        .header .logo {
-            width: 240px;
-            height: 240px;
-            object-fit: contain;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 3.675em;
-            margin-bottom: 10px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            position: relative;
-            letter-spacing: 2px;
-            font-family: 'STKaiti', 'KaiTi', serif;
-        }
-
-        .header .version {
-            font-size: 0.95em;
-            opacity: 0.9;
-            position: relative;
-            font-weight: 300;
-        }
-
-        .header .disclaimer {
-            font-size: 0.85em;
-            margin-top: 20px;
-            opacity: 0.85;
-            text-align: left;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            position: relative;
-            line-height: 1.6;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 0;
-            min-height: calc(100vh - 220px);
-        }
-
-        .sidebar {
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            border-right: 1px solid rgba(0, 0, 0, 0.06);
-            padding: 24px;
-        }
-
-        .upload-section {
-            margin-bottom: 24px;
-        }
-
-        .upload-section h3 {
-            margin-bottom: 16px;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .upload-section h3::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 18px;
-            background: var(--primary-gradient);
-            border-radius: 2px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            margin-bottom: 16px;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            display: none;
-        }
-
-        .file-input-label {
-            display: block;
-            padding: 20px;
-            background: white;
-            border: 2px dashed #cbd5e1;
-            border-radius: var(--radius-md);
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            color: #64748b;
-        }
-
-        .file-input-label:hover {
-            background: linear-gradient(135deg, rgba(247, 147, 30, 0.08) 0%, rgba(255, 111, 0, 0.08) 100%);
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px 24px;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn:disabled::before {
-            display: none;
-        }
-
-        .combat-list {
-            margin-top: 24px;
-        }
-
-        .combat-list h3 {
-            margin-bottom: 12px;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .combat-list h3::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 18px;
-            background: var(--primary-gradient);
-            border-radius: 2px;
-        }
-
-        .combat-item {
-            padding: 14px 16px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: var(--radius-sm);
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .combat-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: transparent;
-            transition: var(--transition);
-        }
-
-        .combat-item:hover {
-            background: linear-gradient(135deg, rgba(60, 179, 168, 0.1) 0%, rgba(42, 157, 143, 0.1) 100%);
-            border-color: var(--primary-color);
-            transform: translateX(4px);
-        }
-
-        .combat-item:hover::before {
-            background: var(--primary-gradient);
-        }
-
-        .combat-item.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 15px rgba(60, 179, 168, 0.4);
-        }
-
-        .combat-item.active::before {
-            background: white;
-        }
-
-        .combat-item .combat-id {
-            font-weight: 600;
-            font-size: 1.05em;
-        }
-
-        .combat-item .combat-info {
-            font-size: 0.85em;
-            margin-top: 6px;
-            opacity: 0.75;
-        }
-
-        .content-area {
-            padding: 24px;
-            background: #ffffff;
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 24px;
-            gap: 4px;
-        }
-
-        .tab {
-            padding: 14px 28px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #64748b;
-            transition: var(--transition);
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            position: relative;
-        }
-
-        .tab:hover {
-            color: var(--primary-color);
-            background: linear-gradient(135deg, rgba(247, 147, 30, 0.08) 0%, rgba(255, 111, 0, 0.08) 100%);
-        }
-
-        .tab.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .guide-tab {
-            text-decoration: none;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .stats-grid {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            flex: 1;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: var(--radius-md);
-            padding: 18px 20px;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            border: 2px solid rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-card h4 {
-            color: #64748b;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-            font-weight: 700;
-        }
-
-        .stat-card .value {
-            font-size: 1.8em;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .player-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 24px;
-            margin-bottom: 28px;
-        }
-
-        .player-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: var(--radius-md);
-            padding: 28px;
-            box-shadow: var(--shadow-sm);
-            cursor: pointer;
-            transition: var(--transition);
-            border: 2px solid rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .player-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-gradient);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .player-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--shadow-md);
-        }
-
-        .player-card:hover::after {
-            transform: scaleX(1);
-        }
-
-        .player-card.selected {
-            border-color: var(--primary-color);
-            background: linear-gradient(135deg, rgba(60, 179, 168, 0.1) 0%, rgba(42, 157, 143, 0.1) 100%);
-        }
-
-        .player-card.selected::after {
-            transform: scaleX(1);
-        }
-
-        .player-card .name {
-            font-weight: 600;
-            font-size: 1.5em;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            color: #1e293b;
-        }
-
-        .player-card-icon {
-            width: 50px;
-            height: 50px;
-            margin-right: 14px;
-            border-radius: 10px;
-            vertical-align: middle;
-            object-fit: contain;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .player-card .breed {
-            color: #64748b;
-            font-size: 1em;
-        }
-
-        .player-card .damage {
-            margin-top: 20px;
-            font-size: 1.1em;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .chart-container {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: var(--radius-md);
-            padding: 24px;
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 24px;
-            border: 2px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .chart-container h4 {
-            margin-bottom: 18px;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chart-container h4::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 18px;
-            background: var(--primary-gradient);
-            border-radius: 2px;
-        }
-
-        .element-fire { color: #ef4444; }
-        .element-water { color: #06b6d4; }
-        .element-air { color: #a855f7; }
-        .element-earth { color: #22c55e; }
-        .element-neutral { color: #6b7280; }
-
-        .detail-section {
-            display: none;
-        }
-
-        .detail-section.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .element-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .element-stat {
-            padding: 18px;
-            border-radius: var(--radius-md);
-            text-align: center;
-            transition: var(--transition);
-        }
-
-        .element-stat.fire { 
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); 
-            border: 2px solid #fecaca;
-        }
-        .element-stat.water { 
-            background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%); 
-            border: 2px solid #a5f3fc;
-        }
-        .element-stat.air { 
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); 
-            border: 2px solid #e9d5ff;
-        }
-        .element-stat.earth { 
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
-            border: 2px solid #bbf7d0;
-        }
-
-        .element-stat:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .element-stat .label {
-            font-size: 0.9em;
-            color: #64748b;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
-        .element-stat .value {
-            font-size: 1.6em;
-            font-weight: 700;
-        }
-
-        .element-stat.fire .value { color: #ef4444; }
-        .element-stat.water .value { color: #06b6d4; }
-        .element-stat.air .value { color: #a855f7; }
-        .element-stat.earth .value { color: #22c55e; }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .data-table th {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .data-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-        }
-
-        .data-table tr {
-            transition: var(--transition);
-        }
-
-        .data-table tbody tr:hover {
-            background: linear-gradient(135deg, rgba(247, 147, 30, 0.08) 0%, rgba(255, 111, 0, 0.08) 100%);
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #64748b;
-            font-size: 1.1em;
-        }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid var(--primary-color);
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 12px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes highlight-fade {
-            0% {
-                background: var(--primary-gradient);
-                box-shadow: 0 4px 20px rgba(247, 147, 30, 0.5);
-                transform: scale(1.02);
-            }
-            30% {
-                background: var(--primary-gradient);
-                box-shadow: 0 4px 20px rgba(247, 147, 30, 0.5);
-                transform: scale(1);
-            }
-            100% {
-                background: white;
-                box-shadow: none;
-                transform: scale(1);
-            }
-        }
-
-        .combat-item.highlight {
-            animation: highlight-fade 2.5s ease-out forwards;
-        }
-
-        .combat-item.highlight .combat-id,
-        .combat-item.highlight .combat-info {
-            color: white;
-        }
-
-        .combat-item.highlight.fade-out .combat-id,
-        .combat-item.highlight.fade-out .combat-info {
-            color: inherit;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 12px;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .empty-state p {
-            font-size: 0.95em;
-        }
-
-        .position-canvas {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: var(--radius-md);
-            margin-top: 24px;
-        }
-
-
-
-        #playerDamageChart,
-        #playerHealingChart,
-        #playerSummaryChart {
-            min-height: 350px;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                border-right: none;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            }
-
-            .element-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .stats-grid {
-                flex-wrap: wrap;
-            }
-
-            .stat-card {
-                min-width: calc(50% - 8px);
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Wakfu 攻略站 · 万象之扉</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', system-ui, sans-serif;
+      background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
+      background-attachment: fixed;
+      color: #e6e9f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 70vw;
+      height: 70vh;
+      background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+    .bg-glow.bottom {
+      top: auto;
+      bottom: -15%;
+      left: auto;
+      right: -5%;
+      background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
+      width: 60vw;
+      height: 60vh;
+    }
+
+    /* 导航栏 - 毛玻璃 */
+    .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      background: rgba(18, 20, 30, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo span {
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-weight: 400;
+      -webkit-text-fill-color: #ccc;
+      background-clip: unset;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: #b9c2d9;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.2s, text-shadow 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, #818cf8, #c084fc);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-links a:hover {
+      color: #fff;
+      text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
+    }
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    /* HERO 区域 */
+    .hero {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1300px;
+      margin: 1rem auto 0;
+      padding: 1rem 5%;
+      text-align: center;
+    }
+    .hero h1 {
+      font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #e2e8ff, #c7b9ff, #f5c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 20px rgba(130, 100, 250, 0.5));
+    }
+    .hero .subtitle {
+      font-size: 1.3rem;
+      color: #94a3c8;
+      max-width: 700px;
+      margin: 0 auto 2rem;
+      font-weight: 400;
+    }
+    .hero .accent-line {
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      margin: 0 auto 2rem;
+      border-radius: 4px;
+      box-shadow: 0 0 18px #a78bfa;
+    }
+
+    /* 卡片网格 - 每行4个 */
+    .cards-section {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1350px;
+      padding: 1rem 5% 4rem;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.8rem;
+      justify-content: center;
+    }
+
+    /* 卡片样式 */
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 2rem 1.5rem 1.8rem;
+      transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s, border-color 0.3s, background 0.3s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.9rem;
+      box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 55%, transparent 70%);
+      transition: left 0.7s ease;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .card:hover::before {
+      left: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-12px) scale(1.02);
+      border-color: rgba(180, 140, 255, 0.5);
+      box-shadow: 0 28px 45px -12px rgba(120, 80, 220, 0.5), 0 0 0 1px rgba(200, 150, 255, 0.2) inset;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .card:nth-child(1):hover { border-color: #60a5fa; box-shadow: 0 28px 45px -12px #3b82f6; }
+    .card:nth-child(2):hover { border-color: #f472b6; box-shadow: 0 28px 45px -12px #ec4899; }
+    .card:nth-child(3):hover { border-color: #fbbf24; box-shadow: 0 28px 45px -12px #f59e0b; }
+    .card:nth-child(4):hover { border-color: #34d399; box-shadow: 0 28px 45px -12px #10b981; }
+    .card:nth-child(5):hover { border-color: #a78bfa; box-shadow: 0 28px 45px -12px #8b5cf6; }
+    .card:nth-child(6):hover { border-color: #fb923c; box-shadow: 0 28px 45px -12px #f97316; }
+    .card:nth-child(7):hover { border-color: #38bdf8; box-shadow: 0 28px 45px -12px #0ea5e9; }
+    .card:nth-child(8):hover { border-color: #e879f9; box-shadow: 0 28px 45px -12px #d946ef; }
+
+    .card-icon {
+      width: 68px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 8px 18px -8px rgba(0,0,0,0.4);
+      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+      z-index: 1;
+    }
+
+    .card-icon svg {
+      width: 40px;
+      height: 40px;
+      transition: transform 0.3s, filter 0.3s;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.1) rotate(2deg);
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 25px -8px rgba(180, 130, 255, 0.4);
+    }
+    .card:hover .card-icon svg {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 10px rgba(220, 210, 255, 0.7));
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      font-weight: 650;
+      letter-spacing: 0.3px;
+      color: #f1f5f9;
+      z-index: 1;
+      transition: color 0.2s;
+      margin: 0;
+    }
+    .card:hover h3 {
+      color: #ffffff;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: #9ca3c0;
+      z-index: 1;
+      transition: color 0.3s;
+      margin: 0;
+      line-height: 1.4;
+    }
+    .card:hover p {
+      color: #d1d5e6;
+    }
+
+    /* 页脚 */
+    .footer {
+      width: 100%;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(10, 12, 22, 0.6);
+      backdrop-filter: blur(8px);
+      margin-top: auto;
+      z-index: 2;
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 500px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+      .navbar {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="logo.webp" alt="Logo" class="logo">
-            <h1>汪汪队出击</h1>
-            <div class="version">Logs Analysis v202603291800</div>
+  <div class="bg-glow"></div>
+  <div class="bg-glow bottom"></div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <a href="#" class="logo">
+      <img src="logo.webp" alt="logo" style="height: 2.5rem; vertical-align: middle;">
+      Wakfu·攻略 <span>Beta</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">首页</a></li>
+      <li><a href="#">资料库</a></li>
+      <li><a href="#">配装器</a></li>
+      <li><a href="#">社区</a></li>
+    </ul>
+  </nav>
+
+  <!-- 主视觉区 -->
+  <section class="hero">
+    <h1>探索十二世界 · 掌握奥古之秘</h1>
+    <div class="accent-line"></div>
+  </section>
+
+  <!-- 卡片区域：每行4个 -->
+  <main class="cards-section">
+    <div class="cards-grid">
+      <!-- 卡片1：新手入门 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+          </svg>
         </div>
+        <h3>新手入门</h3>
+        <p>阵营、界面与操作指南</p>
+      </div>
 
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="upload-section">
-                    <h3>上传日志文件</h3>
+      <!-- 卡片2：战斗日志分析 -->
+      <a href="log-analysis.html" class="card" style="text-decoration: none;">
+        <div class="card-icon" style="font-size: 2rem; background: linear-gradient(135deg, #b3cdff 0%, #a78bfa 60%, #f0abfc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.6));">⚔️</div>
+        <h3>战斗日志分析</h3>
+        <p>伤害拆解与行动轴优化</p>
+      </a>
 
-                    <div style="margin: 10px 0; padding: 6px 12px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid #e2e8f0;">
-                        <div style="display: flex; align-items: center; justify-content: flex-start; padding-left: 0;">
-                            <code id="dirPath" style="font-size: 0.9em; background: #e2e8f0; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: var(--transition); margin-left: -8px;" data-bs-toggle="tooltip" data-bs-placement="top" title="Copy to Clipboard">%APPDATA%\zaap\gamesLogs\wakfu\logs</code>
-                        </div>
-                    </div>
-
-                    <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" multiple accept=".log,.log.1,.log.2,.log.3,.txt">
-                        <label for="fileInput" class="file-input-label">
-                            点击选择日志文件<br>
-                            <small>支持 wakfu.log, wakfu.log.1 等</small>
-                        </label>
-                    </div>
-                    <button class="btn" id="analyzeBtn" disabled>开始分析</button>
-                </div>
-
-                <div class="combat-list">
-                    <h3>战斗列表</h3>
-                    <div id="combatList">
-                        <div class="empty-state">
-                            <p>请上传日志文件</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="content-area">
-                <div class="tabs">
-                    <button class="tab active" data-tab="overview">伤害总览</button>
-                    <button class="tab" data-tab="healing">治疗总览</button>
-                    <button class="tab" data-tab="summary">总览</button>
-                    <button class="tab" data-tab="players">玩家统计</button>
-                    <button class="tab" data-tab="npcs">NPC统计</button>
-                    <button class="tab" data-tab="details">详细数据</button>
-                    <a href="guide.html" class="tab guide-tab" target="_blank">副本攻略</a>
-                </div>
-
-                <div id="overview" class="tab-content active">
-                    <div class="empty-state" id="overviewEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请上传日志文件并选择一场战斗</p>
-                    </div>
-
-                    <div id="overviewContent" style="display: none;">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <h4>玩家总输出</h4>
-                                <div class="value" id="playerTotalDamage">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总承伤</h4>
-                                <div class="value" id="playerTotalTaken">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总治疗</h4>
-                                <div class="value" id="playerTotalHeal">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>NPC总输出</h4>
-                                <div class="value" id="npcTotalDamage">0</div>
-                            </div>
-                        </div>
-
-                        <div class="chart-container">
-                            <h4>玩家伤害排行</h4>
-                            <div id="playerDamageChart" style="width: 100%; height: 400px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="healing" class="tab-content">
-                    <div class="empty-state" id="healingEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请选择一场战斗</p>
-                    </div>
-
-                    <div id="healingContent" style="display: none;">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <h4>玩家总治疗</h4>
-                                <div class="value" id="healingTotalHeal">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总输出</h4>
-                                <div class="value" id="healingTotalDamage">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总承伤</h4>
-                                <div class="value" id="healingTotalTaken">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>NPC总输出</h4>
-                                <div class="value" id="healingNpcDamage">0</div>
-                            </div>
-                        </div>
-
-                        <div class="chart-container">
-                            <h4>玩家治疗排行</h4>
-                            <div id="playerHealingChart" style="width: 100%; height: 400px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="summary" class="tab-content">
-                    <div class="empty-state" id="summaryEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请选择一场战斗</p>
-                    </div>
-
-                    <div id="summaryContent" style="display: none;">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <h4>玩家总输出</h4>
-                                <div class="value" id="summaryTotalDamage">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总治疗</h4>
-                                <div class="value" id="summaryTotalHeal">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总吸血</h4>
-                                <div class="value" id="summaryTotalLifeSteal">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>玩家总承伤</h4>
-                                <div class="value" id="summaryTotalTaken">0</div>
-                            </div>
-                        </div>
-
-                        <div class="chart-container">
-                            <h4>玩家综合数据排行</h4>
-                            <div id="playerSummaryChart" style="width: 100%; height: 400px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="players" class="tab-content">
-                    <div class="empty-state" id="playersEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请选择一场战斗</p>
-                    </div>
-
-                    <div id="playersContent" style="display: none;">
-                        <div class="player-grid" id="playerGrid"></div>
-                    </div>
-                </div>
-
-                <div id="npcs" class="tab-content">
-                    <div class="empty-state" id="npcsEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请选择一场战斗</p>
-                    </div>
-
-                    <div id="npcsContent" style="display: none;">
-                        <div class="player-grid" id="npcGrid"></div>
-                    </div>
-                </div>
-
-                <div id="details" class="tab-content">
-                    <div class="empty-state" id="detailsEmpty">
-                        <h3>暂无数据</h3>
-                        <p>请选择一场战斗</p>
-                    </div>
-
-                    <div id="detailsContent" style="display: none;">
-                        <div id="playerDetailSection" class="detail-section">
-                            <h3 id="detailPlayerName">玩家详情</h3>
-                            <div class="element-stats">
-                                <div class="element-stat fire">
-                                    <div class="label">火系伤害</div>
-                                    <div class="value" id="detailFire">0</div>
-                                </div>
-                                <div class="element-stat water">
-                                    <div class="label">水系伤害</div>
-                                    <div class="value" id="detailWater">0</div>
-                                </div>
-                                <div class="element-stat air">
-                                    <div class="label">风系伤害</div>
-                                    <div class="value" id="detailAir">0</div>
-                                </div>
-                                <div class="element-stat earth">
-                                    <div class="label">土系伤害</div>
-                                    <div class="value" id="detailEarth">0</div>
-                                </div>
-                            </div>
-                            <div class="heal-stats" style="display: flex; gap: 20px; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                <div class="heal-stat" style="flex: 1; text-align: center;">
-                                    <div class="label" style="font-size: 12px; color: #666; margin-bottom: 5px;">治疗量</div>
-                                    <div class="value" id="detailHeal" style="font-size: 20px; font-weight: 600; color: #66BB6A;">0</div>
-                                </div>
-                                <div class="life-steal-stat" style="flex: 1; text-align: center;">
-                                    <div class="label" style="font-size: 12px; color: #666; margin-bottom: 5px;">吸血量</div>
-                                    <div class="value" id="detailLifeSteal" style="font-size: 20px; font-weight: 600; color: #9C27B0;">0</div>
-                                </div>
-                            </div>
-
-                            <div class="chart-container">
-                                <h4>技能伤害分布</h4>
-                                <canvas id="skillDamageChart"></canvas>
-                            </div>
-
-                            <div class="chart-container">
-                                <h4>目标伤害分配</h4>
-                                <canvas id="targetDamageChart"></canvas>
-                            </div>
-                        </div>
-
-                        <h3 style="margin-top: 30px; margin-bottom: 15px;">完整伤害记录</h3>
-                        <div style="overflow-x: auto;">
-                            <table class="data-table" id="damageTable">
-                                <thead>
-                                    <tr>
-                                        <th>角色</th>
-                                        <th>目标</th>
-                                        <th>伤害</th>
-                                        <th>元素</th>
-                                        <th>暴击</th>
-                                        <th>描述</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="damageTableBody">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <!-- 卡片3：副本攻略 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f9a8d4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 C10 6 8 8 6 8 C3 8 3 11 5 12 C2 12 2 15 5 16 C4 18 6 21 9 20 C11 22 13 22 15 20 C18 21 20 18 19 16 C22 15 22 12 19 12 C21 11 21 8 18 8 C16 8 14 6 12 2Z" />
+            <circle cx="10" cy="12" r="1.2" fill="#f9a8d4" />
+            <circle cx="14" cy="12" r="1.2" fill="#f9a8d4" />
+            <line x1="8" y1="19" x2="16" y2="19" stroke-width="2" />
+          </svg>
         </div>
+        <h3>副本攻略</h3>
+        <p>全地下城机制与站位</p>
+      </div>
+
+      <!-- 卡片4：任务攻略 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" />
+            <path d="M14 2v6h6" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+        </div>
+        <h3>任务攻略</h3>
+        <p>主线支线及隐藏成就</p>
+      </div>
+
+      <!-- 卡片5：职业攻略 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="17" y1="3" x2="17" y2="21" />
+            <polygon points="17 2 21 6 17 10" />
+            <circle cx="12" cy="12" r="1.8" />
+            <line x1="9" y1="12" x2="3" y2="6" />
+            <path d="M21 16 L15 10" />
+          </svg>
+        </div>
+        <h3>职业攻略</h3>
+        <p>18职业构筑与强度解析</p>
+      </div>
+
+      <!-- 卡片6：生活攻略 -->
+      <div class="card">
+        <div class="card-icon" style="font-size: 2rem; background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));">🌱</div>
+        <h3>生活攻略</h3>
+        <p>14种专业技能与配方大全</p>
+      </div>
+
+      <!-- 卡片7：图鉴与收藏 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="14" rx="7" ry="5" />
+            <path d="M7 11 C5 8 6 4 12 4 C18 4 19 8 17 11" />
+            <circle cx="9" cy="12" r="1.2" fill="#7dd3fc" />
+            <circle cx="15" cy="12" r="1.2" fill="#7dd3fc" />
+            <path d="M11 13.5 C11 13.5 12 14.5 13 13.5" />
+          </svg>
+        </div>
+        <h3>图鉴与收藏</h3>
+        <p>宠物坐骑时装全收录</p>
+      </div>
+
+      <!-- 卡片8：装备数据库 -->
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f0abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L4 5v6.5C4 17 8 21 12 22c4-1 8-5 8-10.5V5l-8-3z" />
+            <circle cx="12" cy="11.5" r="2" />
+            <line x1="12" y1="9.5" x2="12" y2="13.5" />
+            <line x1="10" y1="11.5" x2="14" y2="11.5" />
+          </svg>
+        </div>
+        <h3>装备数据库</h3>
+        <p>全装备筛选与配装模拟</p>
+      </div>
     </div>
-
-    <script>
-        // 全局变量
-        let combatDataDict = {};
-        let currentCombatId = null;
-        let selectedPlayer = null;
-        let charts = {};
-
-        const MAX_COMBATS = 10; // 保留最近10场战斗
-
-        // 语言字典（简化版）
-        const langDict = {
-            en: {},
-            zh: {},
-            zhtw: {}
-        };
-
-        // 种族名称映射
-        const breedNames = {
-            '1': '守护(Feca)',
-            '2': '召唤(Osamodas)',
-            '3': '宝藏(Enutrof)',
-            '4': '刺客(Sram)',
-            '5': '时法(Xelor)',
-            '6': '幸运猫(Ecaflip)',
-            '7': '治疗(Eniripsa)',
-            '8': '夸夸(Iop)',
-            '9': '弓箭(Cra)',
-            '10': '植物(Sadida)',
-            '11': '狂战(Sacrier)',
-            '12': '熊猫(Pandawa)',
-            '13': '盗贼(Rogue)',
-            '14': '萨满(Masqueraiders)',
-            '15': '狗子(Ouginak)',
-            '16': '蒸汽(Foggernaut)',
-            '17': '雨果(Eliotrope)',
-            '18': '雨果(Eliotrope)',
-            '19': '光法(Huppermage)'
-        };
-
-        // 元素颜色
-        const elementColors = {
-            'Fire': '#ff6b6b',
-            'Water': '#4ecdc4',
-            'Air': '#a855f7',
-            'Earth': '#84cc16',
-            'Neutral': '#9ca3af'
-        };
-
-        // ========== 职业图标功能 ==========
-
-        // 检查 breed ID 是否有效
-        function isValidBreedId(breedId) {
-            const id = parseInt(breedId, 10);
-            return id >= 1 && id <= 19;
-        }
-
-        // 获取职业图标路径
-        function getBreedIconPath(breedId) {
-            const id = String(breedId);
-            if (isValidBreedId(id)) {
-                return `asset/breed/${id}.png`;
-            }
-            return 'asset/breed/0.png';
-        }
-
-        // 柱状图图标样式配置
-        const CHART_ICON_STYLE = {
-            width: 18,
-            height: 18,
-            marginRight: 4,
-            borderRadius: 2,
-            verticalAlign: 'middle'
-        };
-
-        // 玩家卡片图标样式配置
-        const CARD_ICON_STYLE = {
-            width: 24,
-            height: 24,
-            marginRight: 8,
-            borderRadius: 4,
-            verticalAlign: 'middle'
-        };
-
-        // 图标缓存
-        const iconCache = {};
-
-        // 预加载职业图标
-        function preloadBreedIcon(breedId) {
-            const path = getBreedIconPath(breedId);
-            if (iconCache[path]) {
-                return Promise.resolve(iconCache[path]);
-            }
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    iconCache[path] = img;
-                    resolve(img);
-                };
-                img.onerror = () => {
-                    // 加载失败，使用默认图标
-                    const defaultPath = 'asset/breed/0.png';
-                    if (iconCache[defaultPath]) {
-                        resolve(iconCache[defaultPath]);
-                    } else {
-                        const defaultImg = new Image();
-                        defaultImg.onload = () => {
-                            iconCache[defaultPath] = defaultImg;
-                            resolve(defaultImg);
-                        };
-                        defaultImg.onerror = () => {
-                            // 默认图标也加载失败，返回 null
-                            resolve(null);
-                        };
-                        defaultImg.src = defaultPath;
-                    }
-                };
-                img.src = path;
-            });
-        }
-
-        // CombatData 类
-        class CombatData {
-            constructor() {
-                this.players = [];
-                this.playersPos = [];
-                this.playersSummon = [];
-                this.playersSummonPos = [];
-                this.playersBreed = {};
-                this.mobs = [];
-                this.mobsPos = [];
-                this.mobsSummon = [];
-                this.mobsSummonPos = [];
-                this.combatId = 'Unknown';
-                this.lineNumber = 0; // 使用行号来判定战斗顺序
-                this.data = [];
-            }
-
-            isTeamMember(name, isPlayer) {
-                if (name === 'Unknown') return true;
-                return (this.players.includes(name) || this.playersSummon.includes(name)) === isPlayer;
-            }
-
-            addEntry(caster, target, damage = 0, element = 'Neutral', crit = false, block = false, desc = '', extra = '') {
-                this.data.push({
-                    caster: caster,
-                    target: target,
-                    damage: damage,
-                    element: element,
-                    crit: crit,
-                    block: block,
-                    desc: desc,
-                    extra: extra
-                });
-            }
-
-            // 获取召唤物的主人，如果不是召唤物则返回自身
-            getSummoner(caster) {
-                const match = caster.match(/\(([^)]+)\)$/);
-                if (match) {
-                    return match[1].trim();
-                }
-                return caster;
-            }
-
-            getStats() {
-                const stats = {
-                    playerDamage: {},
-                    playerTaken: {},
-                    playerHeal: {},
-                    playerLifeSteal: {},
-                    npcDamage: {},
-                    npcTaken: {},
-                    npcHeal: {},
-                    elements: { Fire: 0, Water: 0, Air: 0, Earth: 0, Neutral: 0 }
-                };
-
-                for (const entry of this.data) {
-                    const dmg = parseInt(entry.damage) || 0;
-                    const caster = this.getSummoner(entry.caster);
-                    const target = this.getSummoner(entry.target);
-                    const isPlayerCaster = this.isTeamMember(caster, true);
-                    const isPlayerTarget = this.isTeamMember(target, true);
-
-                    // 伤害统计
-                    if (dmg < 0) {
-                        if (isPlayerCaster) {
-                            stats.playerDamage[caster] = (stats.playerDamage[caster] || 0) - dmg;
-                            stats.elements[entry.element] = (stats.elements[entry.element] || 0) - dmg;
-                        } else {
-                            stats.npcDamage[caster] = (stats.npcDamage[caster] || 0) - dmg;
-                        }
-
-                        if (isPlayerTarget) {
-                            stats.playerTaken[target] = (stats.playerTaken[target] || 0) - dmg;
-                        } else {
-                            stats.npcTaken[target] = (stats.npcTaken[target] || 0) - dmg;
-                        }
-                    }
-
-                    // 治疗/护盾统计
-                    if (dmg > 0) {
-                        if (isPlayerCaster) {
-                            // 获取施法者的职业
-                            const casterBreed = this.playersBreed[caster];
-                            // 治疗(Eniripsa)对自己造成的治疗算作治疗，其他职业对自身造成的治疗统计为吸血
-                            if (caster === target && casterBreed !== '7') {
-                                stats.playerLifeSteal[caster] = (stats.playerLifeSteal[caster] || 0) + dmg;
-                            } else {
-                                stats.playerHeal[caster] = (stats.playerHeal[caster] || 0) + dmg;
-                            }
-                        } else {
-                            stats.npcHeal[caster] = (stats.npcHeal[caster] || 0) + dmg;
-                        }
-                    }
-                }
-
-                return stats;
-            }
-
-            getPlayerDetail(playerName) {
-                const detail = {
-                    damage: 0,
-                    taken: 0,
-                    heal: 0,
-                    lifeSteal: 0,
-                    elements: { Fire: 0, Water: 0, Air: 0, Earth: 0, Neutral: 0 },
-                    skills: {},
-                    targets: {}
-                };
-
-                // 获取玩家职业
-                const playerBreed = this.playersBreed[playerName];
-
-                for (const entry of this.data) {
-                    const caster = this.getSummoner(entry.caster);
-                    const target = this.getSummoner(entry.target);
-                    
-                    if (caster === playerName) {
-                        const dmg = parseInt(entry.damage) || 0;
-                        if (dmg < 0) {
-                            detail.damage -= dmg;
-                            detail.elements[entry.element] = (detail.elements[entry.element] || 0) - dmg;
-                            detail.skills[entry.desc] = (detail.skills[entry.desc] || 0) - dmg;
-                            if (target !== playerName) {
-                                detail.targets[target] = (detail.targets[target] || 0) - dmg;
-                            }
-                        } else {
-                            // 治疗(Eniripsa)对自己造成的治疗算作治疗，其他职业对自身造成的治疗统计为吸血
-                            if (caster === target && playerBreed !== '7') {
-                                detail.lifeSteal += dmg;
-                            } else {
-                                detail.heal += dmg;
-                            }
-                        }
-                    }
-                    if (target === playerName) {
-                        const dmg = parseInt(entry.damage) || 0;
-                        if (dmg < 0) {
-                            detail.taken -= dmg;
-                        }
-                    }
-                }
-
-                return detail;
-            }
-
-            // 获取血量最高的NPC
-            getHighestHealthNPC() {
-                const npcHealth = {};
-                
-                // 计算每个NPC受到的总伤害（即总血量）
-                for (const entry of this.data) {
-                    const target = this.getSummoner(entry.target);
-                    if (this.mobs.includes(target)) {
-                        const dmg = parseInt(entry.damage) || 0;
-                        if (dmg < 0) {
-                            npcHealth[target] = (npcHealth[target] || 0) - dmg;
-                        }
-                    }
-                }
-                
-                // 找出血量最高的NPC
-                let highestHealth = 0;
-                let highestNPC = '无';
-                
-                for (const [npc, health] of Object.entries(npcHealth)) {
-                    if (health > highestHealth) {
-                        highestHealth = health;
-                        highestNPC = npc;
-                    }
-                }
-                
-                return highestNPC;
-            }
-        }
-
-        // 解析战斗日志
-        function parseCombatData(fullText) {
-            combatDataDict = {};
-            const lines = fullText.split('\n');
-
-            let current = new CombatData();
-            let recentSummoner = '';
-            let recentCaster = '';
-            let recentDest = '';
-            let recentNamedEffectApply = {};
-            let recentNamedEffectCrit = {};
-            let recentNamedSummonApply = {};
-            let recentBreedPlayer = {};
-            let linesToFillCaster = [];
-            let spell = '';
-            let isCritic = false;
-            let isCreating = false;
-
-            // 关键词 - 与Python保持一致
-            const castLangs = ['casts', '施放', '施放'];
-            const summonsLangs = ['Summons', '召唤', '召喚', 'transformed into Super', '变身精英', '變身精英'];
-            const hpLangs = ['HP', '生命', '生命'];
-            const armorLangs = ['Armor', '护甲', '護甲'];
-            const bombLangs = ['Blinding Bomb', 'Burning Bomb', 'Paralyzing Bomb', '燃烧弹', '麻痹弹', '致盲弹', '燃燒彈', '麻痺彈', '致盲彈'];
-            const addedvalueLangs = ['Added Value', '增值', '增值'];
-            const lightLangs = ['Light', '光系', '光系'];
-            const neutralLangs = ['Neutral', '中性', '中性'];
-            const directModifierLangs = ['箭塔', '弹射', '歪曲', 'Pulsar', 'Animal Devotion', '回旋镖', 'Bad Luck', 'Chance', 'Slight Bad Luck', 'Slight Chance', 'Yowling', 'Propagator', 'Vampiripsa', 'Radiance', 'Single Heal', '分配', '自我矛盾'];
-            const selfModifierLangs = ['血甲', '息存', '盾墙', '预防', '归心', '奥秘', 'Berserk Wakfu', 'Puncture', 'Clinging to Life', 'Blood Pact', 'Pillar', 'Wakfu Pact', 'Blackjack', 'Blade Master'];
-            const burningModifierLangs = ['燃烧'];
-            const counterattackModifierLangs = ['Counterattack', '反击'];
-            const ignoreModifierLangs = ['Vital Energy', '气功'];
-
-            for (let lineId = 0; lineId < lines.length; lineId++) {
-                const line = lines[lineId];
-
-                // 战斗创建
-                if (line.includes('CREATION DU COMBAT')) {
-                    isCreating = true;
-                    current.lineNumber = lineId; // 记录战斗开始的行号
-                    continue;
-                }
-
-                // 战斗参与者
-                if (line.includes('[_FL_]')) {
-                    if (!isCreating) continue;
-
-                    const match = line.match(/fightId=([0-9]+) ([^:]+) breed : ([0-9]+) .+ isControlledByAI=(true|false) .+ join the fight at \{Point3 : \(([^,]+), ([^,]+), ([^,]+)\)\}/);
-                    if (!match) {
-                        console.log('未识别的[_FL_]记录:', line);
-                        continue;
-                    }
-
-                    const [, combatId, fighterName, fighterBreed, isMob, x, y, z] = match;
-                    current.combatId = combatId;
-                    const name = fighterName.trim();
-                    const breed = fighterBreed;
-                    const isMobBool = isMob === 'true';
-                    const position = [parseInt(x), -parseInt(y), parseInt(z)];
-
-                    let isMasqueDouble = false;
-
-                    if (!isMobBool) {
-                        if (!recentBreedPlayer[breed]) {
-                            recentBreedPlayer[breed] = name;
-                        } else if (recentBreedPlayer[breed] !== name) {
-                            console.log(`另一玩家 ${recentBreedPlayer[breed]} 具有相同种族(${breed})，无法区分种族被动:`, name);
-                            recentBreedPlayer[breed] = 'Unknown';
-                        }
-                    }
-
-                    if (isMobBool && recentSummoner !== '') {
-                        if (name === recentSummoner) {
-                            console.log('检测到分身/重生类召唤:', recentSummoner);
-                            isMasqueDouble = true;
-                        } else {
-                            if (!recentNamedSummonApply[name]) {
-                                recentNamedSummonApply[name] = recentSummoner;
-                            } else if (recentNamedSummonApply[name] !== recentSummoner) {
-                                console.log(`另一角色 ${recentNamedSummonApply[name]} 已有同名召唤物，无法区分:`, recentSummoner, name);
-                                recentNamedSummonApply[name] = 'Unknown';
-                            }
-
-                            const desc = `${name} (${recentNamedSummonApply[name]})`;
-                            if (recentSummoner && current.players.includes(recentSummoner) && !current.playersSummon.includes(desc)) {
-                                current.playersSummon.push(desc);
-                                current.playersSummonPos.push(position);
-                            }
-                            if (recentSummoner && current.mobs.includes(recentSummoner) && !current.mobsSummon.includes(desc)) {
-                                current.mobsSummon.push(desc);
-                                current.mobsSummonPos.push(position);
-                            }
-                        }
-                    } else {
-                        if (isMobBool) {
-                            if (!current.mobs.includes(name)) {
-                                current.mobs.push(name);
-                                current.mobsPos.push(position);
-                            } else {
-                                const index = current.mobs.indexOf(name);
-                                current.mobsPos[index].push(...position);
-                            }
-                        } else {
-                            if (!current.players.includes(name)) {
-                                current.players.push(name);
-                                current.playersPos.push(position);
-                            }
-                        }
-                    }
-
-                    if (!isMasqueDouble) {
-                        current.playersBreed[name] = breed;
-                    }
-                }
-
-                // 战斗结束
-                if (line.includes('End fight with id')) {
-                    const match = line.match(/End fight with id ([0-9]+)/);
-                    if (match) {
-                        const endId = match[1];
-                        if (endId === current.combatId) {
-                            isCreating = false;
-
-                            // 删掉吃干饭的召唤物
-                            const hasData = (name) => current.data.some(entry => entry.caster === name);
-                            current.playersSummon = current.playersSummon.filter(v => hasData(v));
-                            current.mobsSummon = current.mobsSummon.filter(v => hasData(v));
-
-                            combatDataDict[current.combatId] = current;
-                            current = new CombatData();
-                            recentSummoner = '';
-                            recentCaster = '';
-                            recentDest = '';
-                            recentNamedEffectApply = {};
-                            recentNamedEffectCrit = {};
-                            recentNamedSummonApply = {};
-                            recentBreedPlayer = {};
-                            linesToFillCaster = [];
-                            spell = '';
-                            isCritic = false;
-                        }
-                    }
-                }
-
-                if (!isCreating) continue;
-
-                // 游戏日志消息 - 支持 [战斗日志] 和 chat.pipeName.gameInformation
-                if (line.includes('[战斗日志]') || line.includes('chat.pipeName.gameInformation')) {
-                    recentSummoner = '';
-                    const match = line.match(/.*\[战斗日志\]\s+(.+)/);
-                    if (!match) continue;
-                    let logLine = match[1];
-
-                    console.log('解析日志行:', logLine); // 调试信息
-
-                    // 施法动作 - A 施放 B型 或 A casts B型
-                    if (castLangs.some(lang => logLine.includes(lang))) {
-                        const castMatch = logLine.match(new RegExp(`(.+)(${castLangs.join('|')})(.+)`));
-                        if (castMatch) {
-                            let caster = castMatch[1].trim();
-                            spell = castMatch[3].trim().replace(/["「」]/g, '').replace('.', '').trim();
-                            isCritic = false;
-
-                            if (recentNamedSummonApply[caster]) {
-                                caster = `${caster} (${recentNamedSummonApply[caster]})`;
-                            }
-
-                            // 填充之前的caster
-                            for (let i = 0; i < linesToFillCaster.length; i++) {
-                                linesToFillCaster[i].caster = caster;
-                            }
-                            linesToFillCaster = [];
-
-                            // 检测暴击
-                            if (spell.includes('暴击') || spell.includes('Critical') || spell.includes('critical')) {
-                                spell = spell.replace(/\((暴击|Critical|critical)\)/, '').trim();
-                                isCritic = true;
-                            }
-
-                            recentCaster = caster;
-                            console.log('施法:', caster, '技能:', spell, '暴击:', isCritic);
-                            
-                            if (!recentNamedEffectApply[spell]) {
-                                recentNamedEffectApply[spell] = caster;
-                                recentNamedEffectCrit[spell] = isCritic;
-                            } else if (recentNamedEffectApply[spell] !== caster) {
-                                recentNamedEffectApply[spell] = 'Unknown';
-                                recentNamedEffectCrit[spell] = isCritic;
-                            }
-                        }
-                    }
-                    // 冒号分隔的日志 - A: B型（伤害/治疗/护盾）
-                    else if (logLine.includes(':')) {
-                        const colonMatch = logLine.match(/([^:]+):(.+)/);
-                        if (colonMatch) {
-                            let caster = colonMatch[1].trim();
-                            let behavior = colonMatch[2].trim();
-
-                            if (recentNamedSummonApply[caster]) {
-                                caster = `${caster} (${recentNamedSummonApply[caster]})`;
-                            }
-
-                            // 召唤检测
-                            if (summonsLangs.some(lang => behavior.includes(lang))) {
-                                while (recentNamedSummonApply[caster] && caster !== recentNamedSummonApply[caster]) {
-                                    caster = recentNamedSummonApply[caster];
-                                }
-                                recentSummoner = caster;
-
-                                // 炸弹检测
-                                for (const bomb of bombLangs) {
-                                    if (behavior.includes(bomb)) {
-                                        spell = bomb;
-                                        if (!recentNamedEffectApply[spell]) {
-                                            recentNamedEffectApply[spell] = caster;
-                                        } else if (recentNamedEffectApply[spell] !== caster) {
-                                            recentNamedEffectApply[spell] = 'Unknown';
-                                        }
-                                    }
-                                }
-                            }
-
-                            // 增值效果修正
-                            if (addedvalueLangs.some(lang => behavior.includes(lang))) {
-                                if (current.data.length > 0 && current.data[current.data.length - 1].caster !== caster) {
-                                    console.log('通过增值效果修正间接伤害来源:', caster);
-                                    current.data[current.data.length - 1].caster = caster;
-                                    current.data[current.data.length - 1].desc = '未知间接伤害';
-                                }
-                            }
-
-                            // 伤害/治疗解析 - 必须匹配数字和HP/Armor关键词
-                            const damageRegex = new RegExp(`(-?[0-9,]+).*(${[...hpLangs, ...armorLangs].join('|')})`);
-                            const damageMatch = behavior.match(damageRegex);
-                            if (damageMatch) {
-                                console.log('伤害匹配:', behavior, '结果:', damageMatch);
-                                
-                                const modifiers = [];
-                                let tempBehavior = behavior;
-
-                                // 提取括号内的修饰符
-                                while (true) {
-                                    const parenMatch = tempBehavior.match(/[（(]([^()（）]+)[）)]/);
-                                    if (!parenMatch) break;
-                                    modifiers.push(parenMatch[1]);
-                                    tempBehavior = tempBehavior.replace(parenMatch[0], '').trim();
-                                }
-
-                                // 移除HP/Armor关键词和逗号
-                                tempBehavior = tempBehavior.replace(/,/g, '');
-                                hpLangs.forEach(lang => {
-                                    tempBehavior = tempBehavior.replace(new RegExp(lang, 'g'), '');
-                                });
-                                armorLangs.forEach(lang => {
-                                    tempBehavior = tempBehavior.replace(new RegExp(lang, 'g'), '');
-                                });
-                                tempBehavior = tempBehavior.trim();
-
-                                // 提取数值
-                                const valueMatch = behavior.match(/(-?[0-9,]+)/);
-                                if (!valueMatch) continue;
-
-                                const value = parseInt(valueMatch[1].replace(/,/g, ''));
-                                const isArmor = armorLangs.some(lang => behavior.includes(lang));
-
-                                console.log('数值:', value, '是否护甲:', isArmor, '修饰符:', modifiers);
-
-                                // 判断元素
-                                let damageElement = 'Neutral';
-                                let isBlock = false;
-
-                                // 元素名称映射（包含中文）
-                                const elementMap = {
-                                    'FIRE': ['FIRE', 'Fire', '火', '火系'],
-                                    'WATER': ['WATER', 'Water', '水', '水系'],
-                                    'EARTH': ['EARTH', 'Earth', '土', '土系'],
-                                    'AIR': ['AIR', 'Air', '风', '风系']
-                                };
-
-                                for (const [key, values] of Object.entries(elementMap)) {
-                                    if (modifiers.some(m => values.some(value => m.includes(value)))) {
-                                        damageElement = getElementName(key);
-                                        break;
-                                    }
-                                }
-
-                                // 判断格挡
-                                if (modifiers.some(m => m.includes('Block') || m.includes('格挡'))) {
-                                    isBlock = true;
-                                }
-
-                                // 过滤掉光系、中性等修饰符
-                                const filteredModifiers = modifiers.filter(m => 
-                                    !lightLangs.some(l => m.includes(l)) && 
-                                    !neutralLangs.some(l => m.includes(l)) && 
-                                    m.trim() !== '' &&
-                                    !m.includes('FIRE') && !m.includes('WATER') && 
-                                    !m.includes('EARTH') && !m.includes('AIR') &&
-                                    !m.includes('Fire') && !m.includes('Water') && 
-                                    !m.includes('Earth') && !m.includes('Air') &&
-                                    !m.includes('火') && !m.includes('水') && 
-                                    !m.includes('土') && !m.includes('风') &&
-                                    !m.includes('火系') && !m.includes('水系') && 
-                                    !m.includes('土系') && !m.includes('风系')
-                                );
-
-                                // 确定伤害来源和描述
-                                let source = 'Unknown';
-                                let desc = '';
-                                let crit = isCritic;
-
-                                if (filteredModifiers.length > 0) {
-                                    for (const mod of filteredModifiers) {
-                                        // 直接修饰符
-                                        if (directModifierLangs.some(m => mod.includes(m))) {
-                                            source = recentCaster;
-                                            desc = mod;
-                                            break;
-                                        }
-                                        // 自身修饰符
-                                        if (selfModifierLangs.some(m => mod.includes(m))) {
-                                            source = caster;
-                                            desc = mod;
-                                            break;
-                                        }
-                                        // 燃烧修饰符
-                                        if (burningModifierLangs.some(m => mod.includes(m))) {
-                                            source = '[Burning]';
-                                            desc = mod;
-                                            crit = false;
-                                            break;
-                                        }
-                                        // 反击修饰符
-                                        if (counterattackModifierLangs.some(m => mod.includes(m))) {
-                                            source = recentDest;
-                                            desc = mod;
-                                            crit = false;
-                                            break;
-                                        }
-                                        // 忽略修饰符
-                                        if (ignoreModifierLangs.some(m => mod.includes(m))) {
-                                            source = '[Ignored]';
-                                            desc = mod;
-                                            crit = false;
-                                            break;
-                                        }
-                                        // 查找具名效果
-                                        if (recentNamedEffectApply[mod]) {
-                                            source = recentNamedEffectApply[mod];
-                                            desc = mod;
-                                            crit = recentNamedEffectCrit[mod] || false;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                // 如果没有修饰符或source仍为Unknown，使用最近施法者
-                                if (source === 'Unknown' || source === 'Unknown') {
-                                    source = recentCaster || 'Unknown';
-                                    desc = spell || '';
-                                }
-
-                                // 添加伤害条目
-                                current.addEntry(source, caster, value, damageElement, crit, isBlock, desc, filteredModifiers.join(','));
-                                
-                                console.log('添加伤害:', source, '->', caster, value, damageElement, crit, isBlock, desc);
-
-                                // 燃烧效果需要后续填充caster
-                                if (source === '[Burning]') {
-                                    linesToFillCaster.push(current.data[current.data.length - 1]);
-                                }
-
-                                recentDest = caster;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return combatDataDict;
-        }
-
-        // 获取元素名称
-        function getElementName(elem) {
-            const map = {
-                'FIRE': 'Fire',
-                'WATER': 'Water',
-                'EARTH': 'Earth',
-                'AIR': 'Air'
-            };
-            return map[elem] || 'Neutral';
-        }
-
-        // ========== 战斗筛选功能 ==========
-
-        // 筛选最近N场战斗
-        function filterRecentCombats(combatDict, maxCount) {
-            // 按行号降序排序，保留 CombatData 实例（不展开）
-            const sortedIds = Object.keys(combatDict)
-                .sort((a, b) => combatDict[b].lineNumber - combatDict[a].lineNumber)
-                .slice(0, maxCount);
-
-            // 返回筛选后的战斗数据（保持 CombatData 实例）
-            const result = {};
-            sortedIds.forEach(id => {
-                result[id] = combatDict[id];
-            });
-            return result;
-        }
-
-        // 格式化数字
-        function formatNumber(num) {
-            return num.toLocaleString();
-        }
-
-        // 更新战斗列表
-        function updateCombatList() {
-            const listContainer = document.getElementById('combatList');
-            const combats = Object.entries(combatDataDict);
-
-            if (combats.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state"><p>未找到战斗记录</p></div>';
-                return;
-            }
-
-            combats.sort((a, b) => b[1].lineNumber - a[1].lineNumber);
-
-            listContainer.innerHTML = combats.map(([id, combat]) => {
-                const playerCount = combat.players.length;
-                const highestNPC = combat.getHighestHealthNPC();
-                return `
-                    <div class="combat-item" data-combat-id="${id}">
-                        <div class="combat-id">战斗 #${id}</div>
-                        <div class="combat-info">
-                            玩家: ${playerCount} | NPC: ${highestNPC}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // 绑定点击事件
-            listContainer.querySelectorAll('.combat-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const combatId = item.dataset.combatId;
-                    selectCombat(combatId);
-
-                    // 更新选中状态
-                    listContainer.querySelectorAll('.combat-item').forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                });
-            });
-        }
-
-        // 更新战斗列表（从上到下依次加载）
-        function updateCombatListWithHighlight() {
-            const listContainer = document.getElementById('combatList');
-            const combats = Object.entries(combatDataDict);
-
-            if (combats.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state"><p>未找到战斗记录</p></div>';
-                return;
-            }
-
-            combats.sort((a, b) => b[1].lineNumber - a[1].lineNumber);
-
-            // 清空容器
-            listContainer.innerHTML = '';
-
-            // 依次添加战斗项，实现从上到下的加载效果
-            combats.forEach(([id, combat], index) => {
-                const playerCount = combat.players.length;
-                const highestNPC = combat.getHighestHealthNPC();
-                const isActive = id === currentCombatId;
-                const classes = isActive ? 'combat-item active' : 'combat-item';
-                
-                const combatItem = document.createElement('div');
-                combatItem.className = classes;
-                combatItem.dataset.combatId = id;
-                combatItem.innerHTML = `
-                    <div class="combat-id">战斗 #${id}</div>
-                    <div class="combat-info">
-                        玩家: ${playerCount} | NPC: ${highestNPC}
-                    </div>
-                `;
-                
-                // 设置初始状态
-                combatItem.style.opacity = '0';
-                combatItem.style.transform = 'translateY(20px)';
-                combatItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                
-                // 添加到容器
-                listContainer.appendChild(combatItem);
-                
-                // 延迟显示，实现依次加载效果
-                setTimeout(() => {
-                    combatItem.style.opacity = '1';
-                    combatItem.style.transform = 'translateY(0)';
-                }, index * 100);
-                
-                // 绑定点击事件
-                combatItem.addEventListener('click', () => {
-                    const combatId = combatItem.dataset.combatId;
-                    selectCombat(combatId);
-
-                    // 更新选中状态
-                    listContainer.querySelectorAll('.combat-item').forEach(i => i.classList.remove('active'));
-                    combatItem.classList.add('active');
-                });
-            });
-        }
-
-        // 选择战斗
-        function selectCombat(combatId) {
-            currentCombatId = combatId;
-            const combat = combatDataDict[combatId];
-            if (!combat) return;
-
-            // 显示内容区域
-            document.getElementById('overviewEmpty').style.display = 'none';
-            document.getElementById('overviewContent').style.display = 'block';
-            document.getElementById('healingEmpty').style.display = 'none';
-            document.getElementById('healingContent').style.display = 'block';
-            document.getElementById('summaryEmpty').style.display = 'none';
-            document.getElementById('summaryContent').style.display = 'block';
-            document.getElementById('playersEmpty').style.display = 'none';
-            document.getElementById('playersContent').style.display = 'block';
-            document.getElementById('npcsEmpty').style.display = 'none';
-            document.getElementById('npcsContent').style.display = 'block';
-            document.getElementById('detailsEmpty').style.display = 'none';
-            document.getElementById('detailsContent').style.display = 'block';
-
-            // 更新统计数据
-            updateOverview(combat);
-            updateHealing(combat);
-            updateSummary(combat);
-            updatePlayerGrid(combat);
-            updateNpcGrid(combat);
-            updateDamageTable(combat);
-        }
-
-        // 更新总览
-        async function updateOverview(combat) {
-            const stats = combat.getStats();
-
-            // 计算总数
-            const playerTotalDmg = Object.values(stats.playerDamage).reduce((a, b) => a + b, 0);
-            const playerTotalTaken = Object.values(stats.playerTaken).reduce((a, b) => a + b, 0);
-            const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
-            const npcTotalDmg = Object.values(stats.npcDamage).reduce((a, b) => a + b, 0);
-
-            document.getElementById('playerTotalDamage').textContent = formatNumber(playerTotalDmg);
-            document.getElementById('playerTotalTaken').textContent = formatNumber(playerTotalTaken);
-            document.getElementById('playerTotalHeal').textContent = formatNumber(playerTotalHeal);
-            document.getElementById('npcTotalDamage').textContent = formatNumber(npcTotalDmg);
-
-            // 玩家伤害排行图表 - 使用 ECharts
-            // 确保所有玩家都包含在统计中（包括伤害为0的）
-            const allPlayerDamage = {};
-            combat.players.forEach(player => {
-                allPlayerDamage[player] = stats.playerDamage[player] || 0;
-            });
-            
-            // 将对象转换为数组并排序（降序）
-            const playerDamageArray = Object.entries(allPlayerDamage)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) {
-                        return b[1] - a[1];
-                    }
-                    return a[0].localeCompare(b[0]);
-                });
-
-            const playerNames = playerDamageArray.map(item => item[0]);
-            const sortedData = playerDamageArray.map(item => item[1]);
-            const totalDmg = playerTotalDmg;
-
-            // 预加载所有图标
-            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
-            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
-
-            // 初始化或更新 ECharts
-            const chartDom = document.getElementById('playerDamageChart');
-            if (!chartDom) return;
-
-            if (charts['playerDamageChart']) {
-                charts['playerDamageChart'].dispose();
-            }
-
-            const echart = echarts.init(chartDom);
-            charts['playerDamageChart'] = echart;
-
-            // 构建 Y 轴标签数据（名字 + 图标）
-            const yAxisData = playerNames.map((name, index) => {
-                const breedId = combat.playersBreed[name] || '0';
-                const iconPath = getBreedIconPath(breedId);
-                return {
-                    value: name,
-                    iconPath: iconPath,
-                    breedId: breedId
-                };
-            });
-
-            const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: function(params) {
-                        const value = params[0].value;
-                        const percentage = ((value / totalDmg) * 100).toFixed(1);
-                        return `${params[0].name}<br/>伤害: ${formatNumber(value)} (${percentage}%)`;
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '15%',
-                    bottom: '3%',
-                    top: '3%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    splitLine: {
-                        lineStyle: { color: 'rgba(0, 0, 0, 0.12)' }
-                    },
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: true, lineStyle: { color: '#94a3b8' } },
-                    axisLabel: { color: '#475569', fontSize: 12 }
-                },
-                yAxis: {
-                    type: 'category',
-                    data: yAxisData,
-                    inverse: true,
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: false },
-                    axisLabel: {
-                            color: '#333',
-                            fontSize: 16,
-                            formatter: function(value, index) {
-                                const item = yAxisData[index];
-                                if (item) {
-                                    return `{name|${value}} {icon${index}|}`;
-                                }
-                                return value;
-                            },
-                            rich: yAxisData.reduce((acc, item, index) => {
-                                const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
-                                acc[`icon${index}`] = {
-                                    height: 36,
-                                    width: 36,
-                                    backgroundColor: {
-                                        image: img && img.complete ? img.src : ''
-                                    },
-                                    borderRadius: 6,
-                                    shadowBlur: 8,
-                                    shadowColor: 'rgba(0, 0, 0, 0.3)',
-                                    shadowOffsetX: 0,
-                                    shadowOffsetY: 0
-                                };
-                                return acc;
-                            }, { name: { color: '#333', fontSize: 16, fontWeight: 'bold' } })
-                        }
-                },
-                series: [{
-                    type: 'bar',
-                    data: sortedData,
-                    barWidth: '55%',
-                    barMinHeight: 8,
-                    itemStyle: {
-                        borderRadius: [4, 8, 8, 4],
-                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                            { offset: 0, color: '#3CB3A8' },
-                            { offset: 0.5, color: '#4ECDC4' },
-                            { offset: 1, color: '#6EDDD4' }
-                        ]),
-                        shadowColor: 'rgba(60, 179, 168, 0.3)',
-                        shadowBlur: 8,
-                        shadowOffsetX: 2,
-                        shadowOffsetY: 2
-                    },
-                    emphasis: {
-                        itemStyle: {
-                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                                { offset: 0, color: '#4ECDC4' },
-                                { offset: 0.5, color: '#6EDDD4' },
-                                { offset: 1, color: '#8EFEF6' }
-                            ]),
-                            shadowColor: 'rgba(60, 179, 168, 0.5)',
-                            shadowBlur: 15,
-                            shadowOffsetX: 3,
-                            shadowOffsetY: 3
-                        }
-                    },
-                    label: {
-                        show: true,
-                        position: 'right',
-                        formatter: function(params) {
-                            const percentage = ((params.value / totalDmg) * 100).toFixed(1);
-                            return percentage + '%';
-                        },
-                        color: '#64748b',
-                        fontWeight: 'bold',
-                        fontSize: 16,
-                        distance: 12
-                    }
-                }]
-            };
-
-            echart.setOption(option);
-        }
-
-        // 更新治疗总览
-        async function updateHealing(combat) {
-            const stats = combat.getStats();
-
-            // 计算总数
-            const playerTotalDmg = Object.values(stats.playerDamage).reduce((a, b) => a + b, 0);
-            const playerTotalTaken = Object.values(stats.playerTaken).reduce((a, b) => a + b, 0);
-            const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
-            const npcTotalDmg = Object.values(stats.npcDamage).reduce((a, b) => a + b, 0);
-
-            // 更新统计数据
-            document.getElementById('healingTotalHeal').textContent = formatNumber(playerTotalHeal);
-            document.getElementById('healingTotalDamage').textContent = formatNumber(playerTotalDmg);
-            document.getElementById('healingTotalTaken').textContent = formatNumber(playerTotalTaken);
-            document.getElementById('healingNpcDamage').textContent = formatNumber(npcTotalDmg);
-
-            // 确保所有玩家都包含在统计中（包括治疗为0的）
-            const allPlayerHealing = {};
-            combat.players.forEach(player => {
-                allPlayerHealing[player] = stats.playerHeal[player] || 0;
-            });
-            
-            // 将对象转换为数组并排序（降序）
-            const playerHealingArray = Object.entries(allPlayerHealing)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) {
-                        return b[1] - a[1];
-                    }
-                    return a[0].localeCompare(b[0]);
-                });
-
-            const playerNames = playerHealingArray.map(item => item[0]);
-            const sortedData = playerHealingArray.map(item => item[1]);
-            const totalHeal = playerTotalHeal;
-
-            // 预加载所有图标
-            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
-            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
-
-            // 初始化或更新 ECharts
-            const chartDom = document.getElementById('playerHealingChart');
-            if (!chartDom) return;
-
-            if (charts['playerHealingChart']) {
-                charts['playerHealingChart'].dispose();
-            }
-
-            const echart = echarts.init(chartDom);
-            charts['playerHealingChart'] = echart;
-
-            // 构建 Y 轴标签数据（名字 + 图标）
-            const yAxisData = playerNames.map((name, index) => {
-                const breedId = combat.playersBreed[name] || '0';
-                const iconPath = getBreedIconPath(breedId);
-                return {
-                    value: name,
-                    iconPath: iconPath,
-                    breedId: breedId
-                };
-            });
-
-            const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: function(params) {
-                        const value = params[0].value;
-                        const percentage = totalHeal > 0 ? ((value / totalHeal) * 100).toFixed(1) : '0.0';
-                        return `${params[0].name}<br/>治疗: ${formatNumber(value)} (${percentage}%)`;
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '15%',
-                    bottom: '3%',
-                    top: '3%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    splitLine: {
-                        lineStyle: { color: 'rgba(0, 0, 0, 0.12)' }
-                    },
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: true, lineStyle: { color: '#94a3b8' } },
-                    axisLabel: { color: '#475569', fontSize: 12 }
-                },
-                yAxis: {
-                    type: 'category',
-                    data: yAxisData,
-                    inverse: true,
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: false },
-                    axisLabel: {
-                            color: '#333',
-                            fontSize: 16,
-                            formatter: function(value, index) {
-                                const item = yAxisData[index];
-                                if (item) {
-                                    return `{name|${value}} {icon${index}|}`;
-                                }
-                                return value;
-                            },
-                            rich: yAxisData.reduce((acc, item, index) => {
-                                const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
-                                acc[`icon${index}`] = {
-                                    height: 36,
-                                    width: 36,
-                                    backgroundColor: {
-                                        image: img && img.complete ? img.src : ''
-                                    },
-                                    borderRadius: 6,
-                                    shadowBlur: 8,
-                                    shadowColor: 'rgba(0, 0, 0, 0.3)',
-                                    shadowOffsetX: 0,
-                                    shadowOffsetY: 0
-                                };
-                                return acc;
-                            }, { name: { color: '#333', fontSize: 16, fontWeight: 'bold' } })
-                        }
-                },
-                series: [{
-                    type: 'bar',
-                    data: sortedData,
-                    barWidth: '55%',
-                    barMinHeight: 8,
-                    itemStyle: {
-                        borderRadius: [4, 8, 8, 4],
-                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                            { offset: 0, color: '#66BB6A' },
-                            { offset: 0.5, color: '#81C784' },
-                            { offset: 1, color: '#A5D6A7' }
-                        ]),
-                        shadowColor: 'rgba(102, 187, 106, 0.3)',
-                        shadowBlur: 8,
-                        shadowOffsetX: 2,
-                        shadowOffsetY: 2
-                    },
-                    emphasis: {
-                        itemStyle: {
-                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                            { offset: 0, color: '#81C784' },
-                            { offset: 0.5, color: '#A5D6A7' },
-                            { offset: 1, color: '#C8E6C9' }
-                        ]),
-                        shadowColor: 'rgba(129, 199, 132, 0.5)',
-                            shadowBlur: 15,
-                            shadowOffsetX: 3,
-                            shadowOffsetY: 3
-                        }
-                    },
-                    label: {
-                        show: true,
-                        position: 'right',
-                        formatter: function(params) {
-                            const percentage = totalHeal > 0 ? ((params.value / totalHeal) * 100).toFixed(1) : '0.0';
-                            return percentage + '%';
-                        },
-                        color: '#64748b',
-                        fontWeight: 'bold',
-                        fontSize: 16,
-                        distance: 12
-                    }
-                }]
-            };
-
-            echart.setOption(option);
-        }
-
-        // 更新总览
-        async function updateSummary(combat) {
-            const stats = combat.getStats();
-
-            // 计算总数
-            const playerTotalDmg = Object.values(stats.playerDamage).reduce((a, b) => a + b, 0);
-            const playerTotalTaken = Object.values(stats.playerTaken).reduce((a, b) => a + b, 0);
-            const playerTotalHeal = Object.values(stats.playerHeal).reduce((a, b) => a + b, 0);
-            const playerTotalLifeSteal = Object.values(stats.playerLifeSteal).reduce((a, b) => a + b, 0);
-
-            document.getElementById('summaryTotalDamage').textContent = formatNumber(playerTotalDmg);
-            document.getElementById('summaryTotalHeal').textContent = formatNumber(playerTotalHeal);
-            document.getElementById('summaryTotalLifeSteal').textContent = formatNumber(playerTotalLifeSteal);
-            document.getElementById('summaryTotalTaken').textContent = formatNumber(playerTotalTaken);
-
-            // 确保所有玩家都包含在统计中
-            const allPlayerData = {};
-            combat.players.forEach(player => {
-                allPlayerData[player] = {
-                    damage: stats.playerDamage[player] || 0,
-                    heal: stats.playerHeal[player] || 0,
-                    lifeSteal: stats.playerLifeSteal[player] || 0
-                };
-            });
-
-            // 按总输出排序
-            const playerDataArray = Object.entries(allPlayerData)
-                .sort((a, b) => {
-                    const totalA = a[1].damage + a[1].heal + a[1].lifeSteal;
-                    const totalB = b[1].damage + b[1].heal + b[1].lifeSteal;
-                    if (totalB !== totalA) {
-                        return totalB - totalA;
-                    }
-                    return a[0].localeCompare(b[0]);
-                });
-
-            const playerNames = playerDataArray.map(item => item[0]);
-            const damageData = playerDataArray.map(item => item[1].damage);
-            const healData = playerDataArray.map(item => item[1].heal);
-            const lifeStealData = playerDataArray.map(item => item[1].lifeSteal);
-            
-            // 计算总伤害
-            const totalDamage = damageData.reduce((sum, value) => sum + value, 0);
-            
-            // 计算总治疗和吸血
-            const totalHealAndLifeSteal = healData.reduce((sum, value) => sum + value, 0) + lifeStealData.reduce((sum, value) => sum + value, 0);
-
-            // 预加载所有图标
-            const breedIds = [...new Set(playerNames.map(name => combat.playersBreed[name] || '0'))];
-            await Promise.all(breedIds.map(id => preloadBreedIcon(id)));
-
-            // 初始化或更新 ECharts
-            const chartDom = document.getElementById('playerSummaryChart');
-            if (!chartDom) return;
-
-            if (charts['playerSummaryChart']) {
-                charts['playerSummaryChart'].dispose();
-            }
-
-            const echart = echarts.init(chartDom);
-            charts['playerSummaryChart'] = echart;
-
-            // 构建 Y 轴标签数据（名字 + 图标）
-            const yAxisData = playerNames.map((name, index) => {
-                const breedId = combat.playersBreed[name] || '0';
-                const iconPath = getBreedIconPath(breedId);
-                return {
-                    value: name,
-                    iconPath: iconPath,
-                    breedId: breedId
-                };
-            });
-
-            const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: function(params) {
-                        let result = params[0].name + '<br/>';
-                        params.forEach(param => {
-                            const color = param.seriesName === '伤害' ? '#f7931e' : 
-                                         param.seriesName === '治疗' ? '#66BB6A' : '#9C27B0';
-                            result += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${color};"></span>`;
-                            result += `${param.seriesName}: ${formatNumber(param.value)}<br/>`;
-                        });
-                        return result;
-                    }
-                },
-                legend: {
-                    data: ['伤害', '治疗', '吸血'],
-                    top: 10,
-                    textStyle: {
-                        fontSize: 14,
-                        color: '#333'
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    top: '60',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    splitLine: {
-                        lineStyle: { color: 'rgba(0, 0, 0, 0.12)' }
-                    },
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: true, lineStyle: { color: '#94a3b8' } },
-                    axisLabel: { color: '#475569', fontSize: 12 }
-                },
-                yAxis: {
-                    type: 'category',
-                    data: yAxisData,
-                    inverse: true,
-                    axisLine: { show: true, lineStyle: { color: '#94a3b8', width: 1 } },
-                    axisTick: { show: false },
-                    axisLabel: {
-                        color: '#333',
-                        fontSize: 16,
-                        formatter: function(value, index) {
-                            const item = yAxisData[index];
-                            if (item) {
-                                return `{name|${value}} {icon${index}|}`;
-                            }
-                            return value;
-                        },
-                        rich: yAxisData.reduce((acc, item, index) => {
-                            const img = iconCache[item.iconPath] || iconCache['asset/breed/0.png'];
-                            acc[`icon${index}`] = {
-                                height: 36,
-                                width: 36,
-                                backgroundColor: {
-                                    image: img && img.complete ? img.src : ''
-                                },
-                                borderRadius: 6,
-                                shadowBlur: 8,
-                                shadowColor: 'rgba(0, 0, 0, 0.3)',
-                                shadowOffsetX: 0,
-                                shadowOffsetY: 0
-                            };
-                            return acc;
-                        }, { name: { color: '#333', fontSize: 16, fontWeight: 'bold' } })
-                    }
-                },
-                series: [
-                    {
-                        name: '伤害',
-                        type: 'bar',
-                        data: damageData,
-                        barWidth: '35%',
-                        barCategoryGap: '80%',
-
-                        itemStyle: {
-                            borderRadius: [4, 4, 4, 4],
-                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                                { offset: 0, color: '#3CB3A8' },
-                                { offset: 0.5, color: '#4ECDC4' },
-                                { offset: 1, color: '#6EDDD4' }
-                            ])
-                        }
-                    },
-                    {
-                        name: '治疗',
-                        type: 'bar',
-                        stack: 'total',
-                        data: healData,
-                        barWidth: '35%',
-                        barGap: '0%',
-                        itemStyle: {
-                            borderRadius: [4, 4, 0, 0],
-                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                                { offset: 0, color: '#66BB6A' },
-                                { offset: 0.5, color: '#81C784' },
-                                { offset: 1, color: '#A5D6A7' }
-                            ])
-                        }
-                    },
-                    {
-                        name: '吸血',
-                        type: 'bar',
-                        stack: 'total',
-                        data: lifeStealData,
-                        barWidth: '35%',
-                        itemStyle: {
-                            borderRadius: [0, 0, 4, 4],
-                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                                { offset: 0, color: '#9C27B0' },
-                                { offset: 0.5, color: '#AB47BC' },
-                                { offset: 1, color: '#CE93D8' }
-                            ])
-                        }
-                    }
-                ]
-            };
-
-            echart.setOption(option);
-        }
-
-        // 更新玩家网格
-        function updatePlayerGrid(combat) {
-            const grid = document.getElementById('playerGrid');
-            const stats = combat.getStats();
-
-            grid.innerHTML = combat.players.map((player, index) => {
-                const breed = combat.playersBreed[player] || '0';
-                const breedName = breedNames[breed] || '未知';
-                const damage = stats.playerDamage[player] || 0;
-                const heal = stats.playerHeal[player] || 0;
-                const lifeSteal = stats.playerLifeSteal[player] || 0;
-                const iconPath = getBreedIconPath(breed);
-
-                return `
-                    <div class="player-card" data-player="${player}" data-index="${index}">
-                        <div class="name">
-                            <img class="player-card-icon" 
-                                 src="${iconPath}" 
-                                 alt="${breedName}"
-                                 onerror="this.src='asset/breed/0.png'"
-                                 loading="lazy">
-                            <span>${player}</span>
-                        </div>
-                        <div class="breed">${breedName}</div>
-                        <div class="damage">伤害：${formatNumber(damage)}</div>
-                        <div class="damage" style="color: #66BB6A;">治疗：${formatNumber(heal)}</div>
-                        <div class="damage" style="color: #9C27B0;">吸血：${formatNumber(lifeSteal)}</div>
-                    </div>
-                `;
-            }).join('');
-
-            // 绑定点击事件
-            grid.querySelectorAll('.player-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const playerName = card.dataset.player;
-                    showPlayerDetail(combat, playerName);
-
-                    grid.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                });
-            });
-        }
-
-        // 更新NPC网格
-        function updateNpcGrid(combat) {
-            const grid = document.getElementById('npcGrid');
-            const stats = combat.getStats();
-
-            grid.innerHTML = combat.mobs.map((mob, index) => {
-                const damage = stats.npcDamage[mob] || 0;
-
-                return `
-                    <div class="player-card" data-npc="${mob}" data-index="${index}">
-                        <div class="name">${mob}</div>
-                        <div class="breed">NPC</div>
-                        <div class="damage">伤害：${formatNumber(damage)}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 显示玩家详情
-        function showPlayerDetail(combat, playerName) {
-            selectedPlayer = playerName;
-            const detail = combat.getPlayerDetail(playerName);
-
-            document.getElementById('detailPlayerName').textContent = `玩家详情: ${playerName}`;
-            document.getElementById('detailFire').textContent = formatNumber(detail.elements.Fire);
-            document.getElementById('detailWater').textContent = formatNumber(detail.elements.Water);
-            document.getElementById('detailAir').textContent = formatNumber(detail.elements.Air);
-            document.getElementById('detailEarth').textContent = formatNumber(detail.elements.Earth);
-            document.getElementById('detailHeal').textContent = formatNumber(detail.heal);
-            document.getElementById('detailLifeSteal').textContent = formatNumber(detail.lifeSteal);
-
-            document.getElementById('playerDetailSection').classList.add('active');
-
-            // 技能伤害图表
-            const skillLabels = Object.keys(detail.skills);
-            const skillData = Object.values(detail.skills);
-
-            // 创建渐变色
-            const skillCanvas = document.getElementById('skillDamageChart');
-            const skillCtx = skillCanvas.getContext('2d');
-            const skillGradient = skillCtx.createLinearGradient(0, 0, skillCanvas.width || 400, 0);
-            skillGradient.addColorStop(0, '#f7931e');
-            skillGradient.addColorStop(1, '#ff6f00');
-
-            updateChart('skillDamageChart', 'bar', {
-                labels: skillLabels,
-                datasets: [{
-                    label: '伤害',
-                    data: skillData,
-                    backgroundColor: skillGradient,
-                    borderRadius: 6
-                }]
-            }, {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.12)',
-                            drawBorder: true
-                        },
-                        border: { color: '#94a3b8' },
-                        ticks: { color: '#475569', font: { size: 12 } }
-                    },
-                    y: {
-                        grid: {
-                            display: false
-                        },
-                        border: { color: '#94a3b8' },
-                        ticks: { color: '#475569', font: { size: 12 } }
-                    }
-                },
-                animation: {
-                    duration: 800,
-                    easing: 'easeOutQuart'
-                }
-            });
-
-            // 目标伤害图表
-            const targetLabels = Object.keys(detail.targets);
-            const targetData = Object.values(detail.targets);
-
-            // 创建渐变色
-            const targetCanvas = document.getElementById('targetDamageChart');
-            const targetCtx = targetCanvas.getContext('2d');
-            const targetGradient = targetCtx.createLinearGradient(0, 0, 0, targetCanvas.height || 300);
-            targetGradient.addColorStop(0, '#ff6f00');
-            targetGradient.addColorStop(1, '#f7931e');
-
-            updateChart('targetDamageChart', 'bar', {
-                labels: targetLabels,
-                datasets: [{
-                    label: '伤害',
-                    data: targetData,
-                    backgroundColor: targetGradient,
-                    borderRadius: 6
-                }]
-            }, {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.12)',
-                            drawBorder: true
-                        },
-                        border: { color: '#94a3b8' },
-                        ticks: { color: '#475569', font: { size: 12 } }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.12)',
-                            drawBorder: true
-                        },
-                        border: { color: '#94a3b8' },
-                        ticks: { color: '#475569', font: { size: 12 } }
-                    }
-                },
-                animation: {
-                    duration: 800,
-                    easing: 'easeOutQuart'
-                }
-            });
-        }
-
-        // 更新伤害表格
-        function updateDamageTable(combat) {
-            const tbody = document.getElementById('damageTableBody');
-            const data = combat.data; // 显示所有伤害记录
-
-            tbody.innerHTML = data.map(entry => {
-                const dmg = parseInt(entry.damage) || 0;
-                const dmgClass = dmg < 0 ? 'element-fire' : 'element-water';
-                const critText = entry.crit ? '是' : '否';
-
-                return `
-                    <tr>
-                        <td>${entry.caster}</td>
-                        <td>${entry.target}</td>
-                        <td class="${dmgClass}">${dmg > 0 ? '+' : ''}${dmg}</td>
-                        <td class="element-${entry.element.toLowerCase()}">${entry.element}</td>
-                        <td>${critText}</td>
-                        <td>${entry.desc}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // 更新图表
-        function updateChart(canvasId, type, data, options) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
-
-            // 销毁旧图表
-            if (charts[canvasId]) {
-                charts[canvasId].destroy();
-            }
-
-            // 创建新图表
-            charts[canvasId] = new Chart(canvas, {
-                type: type,
-                data: data,
-                options: options
-            });
-        }
-
-        // 文件上传处理
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const files = e.target.files;
-            const analyzeBtn = document.getElementById('analyzeBtn');
-
-            if (files.length > 0) {
-                analyzeBtn.disabled = false;
-                // 自动触发分析
-                analyzeBtn.click();
-            } else {
-                analyzeBtn.disabled = true;
-            }
-        });
-
-        // 初始化Bootstrap Tooltips
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-        // 复制目录路径功能
-        document.getElementById('dirPath').addEventListener('click', function() {
-            const dirPath = this.textContent;
-            const tooltip = bootstrap.Tooltip.getInstance(this);
-            
-            // 使用 Clipboard API 复制文本
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(dirPath)
-                    .then(() => {
-                        // 更新ToolTip内容为"Copied!"
-                        tooltip.setContent({ '.tooltip-inner': 'Copied!' });
-                        tooltip.show();
-                        
-                        // 2秒后恢复原始ToolTip内容
-                        setTimeout(() => {
-                            tooltip.setContent({ '.tooltip-inner': 'Copy to Clipboard' });
-                        }, 2000);
-                    })
-                    .catch(err => {
-                        console.error('复制失败:', err);
-                        alert('复制失败，请手动复制目录路径');
-                    });
-            } else {
-                // 兼容性处理：使用传统的复制方法
-                const textArea = document.createElement('textarea');
-                textArea.value = dirPath;
-                document.body.appendChild(textArea);
-                textArea.select();
-                
-                try {
-                    document.execCommand('copy');
-                    // 更新ToolTip内容为"Copied!"
-                    tooltip.setContent({ '.tooltip-inner': 'Copied!' });
-                    tooltip.show();
-                    
-                    // 2秒后恢复原始ToolTip内容
-                    setTimeout(() => {
-                        tooltip.setContent({ '.tooltip-inner': 'Copy to Clipboard' });
-                    }, 2000);
-                } catch (err) {
-                    console.error('复制失败:', err);
-                    alert('复制失败，请手动复制目录路径');
-                } finally {
-                    document.body.removeChild(textArea);
-                }
-            }
-        });
-
-        // 分析按钮点击
-        document.getElementById('analyzeBtn').addEventListener('click', async function() {
-            const files = document.getElementById('fileInput').files;
-            if (files.length === 0) return;
-
-            this.disabled = true;
-            this.textContent = '分析中...';
-
-            try {
-                let fullText = '';
-
-                // 读取所有文件
-                for (const file of files) {
-                    const text = await readFileAsText(file);
-                    fullText += text + '\n';
-                }
-
-                // 解析数据
-                const combatDict = parseCombatData(fullText);
-
-                // 筛选最近5场战斗
-                combatDataDict = filterRecentCombats(combatDict, MAX_COMBATS);
-
-                // 更新UI（带渐变提示）
-                updateCombatListWithHighlight();
-
-            } catch (error) {
-                console.error('分析失败:', error);
-                alert('分析失败: ' + error.message);
-            } finally {
-                this.disabled = false;
-                this.textContent = '开始分析';
-            }
-        });
-
-        // 读取文件为文本
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsText(file, 'utf-8');
-            });
-        }
-
-        // 标签页切换
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabId = this.dataset.tab;
-
-                // 更新标签状态
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-
-                // 更新内容显示
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabId).classList.add('active');
-
-                // 切换到包含ECharts图表的标签页时，调整图表大小并触发动画
-                setTimeout(() => {
-                    if (tabId === 'overview' && currentCombatId) {
-                        const combat = combatDataDict[currentCombatId];
-                        if (combat) {
-                            if (charts['playerDamageChart']) {
-                                charts['playerDamageChart'].dispose();
-                            }
-                            updateOverview(combat);
-                        }
-                    }
-                    if (tabId === 'healing' && currentCombatId) {
-                        const combat = combatDataDict[currentCombatId];
-                        if (combat) {
-                            if (charts['playerHealingChart']) {
-                                charts['playerHealingChart'].dispose();
-                            }
-                            updateHealing(combat);
-                        }
-                    }
-                    if (tabId === 'summary' && currentCombatId) {
-                        const combat = combatDataDict[currentCombatId];
-                        if (combat) {
-                            if (charts['playerSummaryChart']) {
-                                charts['playerSummaryChart'].dispose();
-                            }
-                            updateSummary(combat);
-                        }
-                    }
-                }, 100);
-            });
-        });
-    </script>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生 · 非官方玩家攻略站</p>
+  </footer>
 </body>
 </html>
