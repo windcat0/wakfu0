@@ -95,13 +95,15 @@
       letter-spacing: 0;
     }
 
-    .nav-links {
+    ul.nav-links {
       display: flex;
       gap: 2.2rem;
       list-style: none;
+      padding: 0;
+      margin: 0;
     }
 
-    .nav-links a {
+    ul.nav-links a {
       color: #b9c2d9;
       text-decoration: none;
       font-weight: 500;
@@ -110,7 +112,7 @@
       position: relative;
     }
 
-    .nav-links a::after {
+    ul.nav-links a::after {
       content: '';
       position: absolute;
       bottom: -4px;
@@ -122,13 +124,19 @@
       border-radius: 2px;
     }
 
-    .nav-links a:hover {
+    ul.nav-links a:hover {
       color: #fff;
       text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
     }
 
-    .nav-links a:hover::after {
+    ul.nav-links a:hover::after {
       width: 100%;
+    }
+
+    ul.nav-links li {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
 
         .main-content {
@@ -769,29 +777,33 @@
                 min-width: calc(50% - 8px);
             }
         }
+
+        @media (max-width: 500px) {
+            .navbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="bg-glow"></div>
     <div class="bg-glow bottom"></div>
 
-    <nav class="navbar">
-        <a href="index.html" class="logo">
-            <img src="logo.webp" alt="logo">
-            Wakfu·攻略 <span>Beta</span>
-        </a>
-        <ul class="nav-links">
-            <li><a href="index.html">首页</a></li>
-            <li><a href="beginner.html">新手入门</a></li>
-            <li><a href="analysis.html">出警</a></li>
-            <li><a href="dungeon.html">副本攻略</a></li>
-            <li><a href="class.html">职业攻略</a></li>
-        </ul>
-    </nav>
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="analysis.html">出警</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
+    </ul>
+  </nav>
 
-    <div class="container">
-
-        <div class="main-content">
+    <div class="main-content">
             <div class="sidebar">
                 <div class="upload-section">
                     <h3>上传日志文件</h3>
@@ -1022,7 +1034,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <script>
         // 全局变量
