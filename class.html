@@ -99,7 +99,7 @@
     .nav-links a {
       color: #b9c2d9;
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 700;
       font-size: 1rem;
       transition: color 0.2s, text-shadow 0.2s;
       position: relative;
@@ -147,17 +147,13 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 28px;
-      padding: 2rem 1.5rem 1.8rem;
+      border-radius: 16px;
+      padding: 1.5rem;
       transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s, border-color 0.3s, background 0.3s;
       cursor: default;
       position: relative;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 0.9rem;
+      display: block;
       box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5);
       text-decoration: none;
     }
@@ -186,18 +182,19 @@
     }
 
     .card-icon {
-      width: 68px;
-      height: 68px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 18px;
+      border-radius: 50%;
       background: rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(5px);
       box-shadow: 0 8px 18px -8px rgba(0,0,0,0.4);
       transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
       z-index: 1;
-      font-size: 2.5rem;
+      font-size: 1.25rem;
+      flex-shrink: 0;
     }
 
     .card:hover .card-icon {
@@ -207,8 +204,8 @@
     }
 
     .card h3 {
-      font-size: 1.5rem;
-      font-weight: 650;
+      font-size: 1.125rem;
+      font-weight: 700;
       letter-spacing: 0.3px;
       color: #f1f5f9;
       z-index: 1;
@@ -220,7 +217,7 @@
     }
 
     .card p {
-      font-size: 0.95rem;
+      font-size: 0.875rem;
       color: #9ca3c0;
       z-index: 1;
       transition: color 0.3s;
@@ -230,6 +227,15 @@
     .card:hover p {
       color: #d1d5e6;
     }
+
+    .card:nth-child(1):hover { border-color: #60a5fa; box-shadow: 0 28px 45px -12px #3b82f6; }
+    .card:nth-child(2):hover { border-color: #f472b6; box-shadow: 0 28px 45px -12px #ec4899; }
+    .card:nth-child(3):hover { border-color: #fbbf24; box-shadow: 0 28px 45px -12px #f59e0b; }
+    .card:nth-child(4):hover { border-color: #34d399; box-shadow: 0 28px 45px -12px #10b981; }
+    .card:nth-child(5):hover { border-color: #a78bfa; box-shadow: 0 28px 45px -12px #8b5cf6; }
+    .card:nth-child(6):hover { border-color: #fb923c; box-shadow: 0 28px 45px -12px #f97316; }
+    .card:nth-child(7):hover { border-color: #38bdf8; box-shadow: 0 28px 45px -12px #0ea5e9; }
+    .card:nth-child(8):hover { border-color: #e879f9; box-shadow: 0 28px 45px -12px #d946ef; }
 
     .page-title {
       font-family: 'KaiTi', 'STKaiti', '楷体', serif;
@@ -331,9 +337,9 @@
       { name: "植物术士 (Sadida)", slug: "sadida", role: "控制 / 召唤植物", icon: "🌿", description: "自然盟友，召唤荆棘与玩偶进行区域封锁。" },
       { name: "时间术士 (Xelor)", slug: "xelor", role: "行动力操控 / 爆发", icon: "⏳", description: "掌控时间沙漏，操控AP/MP的战术核心。" },
       { name: "盗贼 (Rogue)", slug: "rogue", role: "炸弹爆破 / 远程", icon: "💣", description: "埋设连锁炸弹的爆破鬼才，毁灭性AOE。" },
-      { name: "面具师 (Masqueraider)", slug: "masqueraider", role: "近战 / 位移", icon: "🎭", description: "穿梭战场的假面舞者，兼具近战压制与机动性。" },
+      { name: "萨满 (Masqueraider)", slug: "masqueraider", role: "近战 / 位移", icon: "🎭", description: "穿梭战场的假面舞者，兼具近战压制与机动性。" },
       { name: "异度旅者 (Eliotrope)", slug: "eliotrope", role: "传送 / 远程输出", icon: "🌀", description: "利用传送门进行立体打击，高机动炮台。" },
-      { name: "萨满 (Huppermage)", slug: "huppermage", role: "元素连携 / 全能", icon: "🔮", description: "四元素流转的魔法骑士，连招华丽的全能决斗者。" }
+      { name: "光能法师 (Huppermage)", slug: "huppermage", role: "元素连携 / 全能", icon: "🔮", description: "四元素流转的魔法骑士，连招华丽的全能决斗者。" }
     ];
 
     const demoSkills = [
@@ -354,8 +360,10 @@
       function classCard(c) {
         return `
           <a href="#/classes/${c.slug}" class="card">
-            <div class="card-icon">${c.icon || '🎯'}</div>
-            <h3>${c.name}</h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <div class="card-icon">${c.icon || '🎯'}</div>
+              <h3>${c.name}</h3>
+            </div>
             <p>${c.role}</p>
           </a>
         `;
