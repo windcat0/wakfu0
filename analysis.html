@@ -1312,7 +1312,10 @@
                         if (dmg < 0) {
                             detail.damage -= dmg;
                             detail.elements[entry.element] = (detail.elements[entry.element] || 0) - dmg;
-                            detail.skills[entry.desc] = (detail.skills[entry.desc] || 0) - dmg;
+                            if (!detail.skills[entry.desc]) {
+                                detail.skills[entry.desc] = { damage: 0, element: entry.element };
+                            }
+                            detail.skills[entry.desc].damage -= dmg;
                             if (target !== playerName) {
                                 detail.targets[target] = (detail.targets[target] || 0) - dmg;
                             }
@@ -2536,21 +2539,27 @@
 
             // 技能伤害图表
             const skillLabels = Object.keys(detail.skills);
-            const skillData = Object.values(detail.skills);
+            const skillData = Object.values(detail.skills).map(s => s.damage);
+            const skillElements = Object.values(detail.skills).map(s => s.element);
 
-            // 创建渐变色
-            const skillCanvas = document.getElementById('skillDamageChart');
-            const skillCtx = skillCanvas.getContext('2d');
-            const skillGradient = skillCtx.createLinearGradient(0, 0, skillCanvas.width || 400, 0);
-            skillGradient.addColorStop(0, '#f7931e');
-            skillGradient.addColorStop(1, '#ff6f00');
+            // 根据元素类型设置颜色
+            const skillColors = skillElements.map(element => {
+                const colorMap = {
+                    'Fire': '#ff6b6b',
+                    'Water': '#4ecdc4',
+                    'Air': '#a855f7',
+                    'Earth': '#84cc16',
+                    'Neutral': '#9ca3af'
+                };
+                return colorMap[element] || '#9ca3af';
+            });
 
             updateChart('skillDamageChart', 'bar', {
                 labels: skillLabels,
                 datasets: [{
                     label: '伤害',
                     data: skillData,
-                    backgroundColor: skillGradient,
+                    backgroundColor: skillColors,
                     borderRadius: 6
                 }]
             }, {
