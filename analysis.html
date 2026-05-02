@@ -1386,6 +1386,7 @@
             let spell = '';
             let isCritic = false;
             let isCreating = false;
+            let recentSpellElement = 'Neutral';
 
             // 关键词 - 与Python保持一致
             const castLangs = ['casts', '施放', '施放'];
@@ -1531,6 +1532,7 @@
                             let caster = castMatch[1].trim();
                             spell = castMatch[3].trim().replace(/["「」]/g, '').replace('.', '').trim();
                             isCritic = false;
+                            recentSpellElement = 'Neutral';
 
                             if (recentNamedSummonApply[caster]) {
                                 caster = `${caster} (${recentNamedSummonApply[caster]})`;
@@ -1548,8 +1550,26 @@
                                 isCritic = true;
                             }
 
+                            // 检测元素 - 在施法行中查找元素信息
+                            const spellElementMap = {
+                                'FIRE': ['火', '火系', 'FIRE', 'Fire'],
+                                'WATER': ['水', '水系', 'WATER', 'Water'],
+                                'EARTH': ['土', '土系', '地系', 'EARTH', 'Earth'],
+                                'AIR': ['风', '风系', 'AIR', 'Air']
+                            };
+                            for (const [element, keywords] of Object.entries(spellElementMap)) {
+                                if (keywords.some(kw => spell.toLowerCase().includes(kw.toLowerCase()))) {
+                                    recentSpellElement = element.charAt(0).toUpperCase() + element.slice(1).toLowerCase();
+                                    if (element === 'FIRE') recentSpellElement = 'Fire';
+                                    else if (element === 'WATER') recentSpellElement = 'Water';
+                                    else if (element === 'EARTH') recentSpellElement = 'Earth';
+                                    else if (element === 'AIR') recentSpellElement = 'Air';
+                                    break;
+                                }
+                            }
+
                             recentCaster = caster;
-                            console.log('施法:', caster, '技能:', spell, '暴击:', isCritic);
+                            console.log('施法:', caster, '技能:', spell, '暴击:', isCritic, '元素:', recentSpellElement);
                             
                             if (!recentNamedEffectApply[spell]) {
                                 recentNamedEffectApply[spell] = caster;
@@ -1644,15 +1664,31 @@
                                 const elementMap = {
                                     'FIRE': ['FIRE', 'Fire', '火', '火系'],
                                     'WATER': ['WATER', 'Water', '水', '水系'],
-                                    'EARTH': ['EARTH', 'Earth', '土', '土系'],
+                                    'EARTH': ['EARTH', 'Earth', 'earth', '土', '土系', '地系'],
                                     'AIR': ['AIR', 'Air', '风', '风系']
                                 };
 
+                                // 首先在括号内的修饰符中检测元素
                                 for (const [key, values] of Object.entries(elementMap)) {
                                     if (modifiers.some(m => values.some(value => m.includes(value)))) {
                                         damageElement = getElementName(key);
                                         break;
                                     }
+                                }
+
+                                // 如果在修饰符中没找到元素，则在整个behavior字符串中检测
+                                if (damageElement === 'Neutral') {
+                                    for (const [key, values] of Object.entries(elementMap)) {
+                                        if (values.some(value => behavior.toLowerCase().includes(value.toLowerCase()))) {
+                                            damageElement = getElementName(key);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // 如果仍然没有找到元素，使用施法时记录的元素
+                                if (damageElement === 'Neutral') {
+                                    damageElement = recentSpellElement;
                                 }
 
                                 // 判断格挡
