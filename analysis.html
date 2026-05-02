@@ -1,7 +1,8 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>汪汪队出击 - Wakfu Combat Logs Analysis</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -17,7 +18,14 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    html > body, body {
       font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
       background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
       background-attachment: fixed;
@@ -25,6 +33,8 @@
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     .bg-glow {
@@ -48,20 +58,35 @@
       height: 60vh;
     }
 
+    .navbar, .navbar * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar .nav-links,
+    .navbar .nav-links * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     .navbar {
       position: sticky;
       top: 0;
-      width: 100%;
+      width: 100% !important;
+      max-width: 100% !important;
       z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 5%;
+      padding: 1rem 5% !important;
       background: rgba(18, 20, 30, 0.65);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      margin: 0 !important;
     }
 
     .navbar .logo {
@@ -95,15 +120,21 @@
       letter-spacing: 0;
     }
 
-    ul.nav-links {
-      display: flex;
+    ul.nav-links, .navbar ul.nav-links, .nav-links {
+      display: flex !important;
       gap: 2.2rem;
-      list-style: none;
-      padding: 0;
-      margin: 0;
+      list-style: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
 
-    ul.nav-links a {
+    ul.nav-links li, .navbar ul.nav-links li, .nav-links li {
+      list-style: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    ul.nav-links a, .navbar ul.nav-links a, .nav-links a {
       color: #b9c2d9;
       text-decoration: none;
       font-weight: 500;
@@ -112,7 +143,7 @@
       position: relative;
     }
 
-    ul.nav-links a::after {
+    .nav-links a::after {
       content: '';
       position: absolute;
       bottom: -4px;
@@ -124,16 +155,16 @@
       border-radius: 2px;
     }
 
-    ul.nav-links a:hover {
+    .nav-links a:hover {
       color: #fff;
       text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
     }
 
-    ul.nav-links a:hover::after {
+    .nav-links a:hover::after {
       width: 100%;
     }
 
-    ul.nav-links li {
+    .nav-links li {
       list-style: none;
       margin: 0;
       padding: 0;
@@ -144,6 +175,8 @@
             grid-template-columns: 350px 1fr;
             gap: 0;
             min-height: calc(100vh - 220px);
+            margin: 0;
+            padding: 0;
         }
 
         .sidebar {
@@ -782,6 +815,7 @@
             .navbar {
                 flex-direction: column;
                 gap: 0.5rem;
+                padding: 1rem 5%;
             }
         }
     </style>
