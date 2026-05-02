@@ -2,8 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新手入门 · Wakfu攻略站</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>新手入门 - Wakfu 攻略站</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -28,6 +29,7 @@
       z-index: 0;
       filter: blur(80px);
     }
+
     .bg-glow.bottom {
       top: auto;
       bottom: -15%;
@@ -121,30 +123,208 @@
       width: 100%;
     }
 
-    .container { max-width: 900px; margin: 3rem auto; padding: 0 5%; position: relative; z-index: 1; }
-    .page-title {
-      font-size: 2.5rem; font-weight: 700;
-      background: linear-gradient(to right, #60a5fa, #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
+    .hero {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1300px;
+      margin: 1rem auto 0;
+      padding: 1rem 5%;
+      text-align: center;
     }
+
+    .hero h1 {
+      font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #e2e8ff, #c7b9ff, #f5c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 20px rgba(130, 100, 250, 0.5));
+    }
+
+    .hero .subtitle {
+      font-size: 1rem;
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+
+    .main-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto 4rem;
+      padding: 0 5%;
+    }
+
     .section {
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.08);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 20px;
       padding: 2rem;
       margin-bottom: 1.5rem;
     }
-    .section h2 { color: #f1f5f9; margin-bottom: 1rem; font-size: 1.3rem; }
-    .section p { color: #9ca3c0; line-height: 1.6; }
-    .section ul { color: #9ca3c0; margin-left: 1.5rem; line-height: 1.8; }
+
+    .section h2 {
+      color: #e2e8ff;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section h2::before {
+      content: '';
+      width: 4px;
+      height: 1.2rem;
+      background: linear-gradient(180deg, #2dd4bf, #818cf8);
+      border-radius: 2px;
+    }
+
+    .section p {
+      color: #9ca3c0;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .section p:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .info-card {
+      background: rgba(45, 212, 191, 0.05);
+      border: 1px solid rgba(45, 212, 191, 0.15);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .info-card:hover {
+      background: rgba(45, 212, 191, 0.08);
+      border-color: rgba(45, 212, 191, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .info-card h3 {
+      color: #2dd4bf;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .info-card p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 0;
+    }
+
+    .info-card a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .info-card a:hover {
+      color: #a78bfa;
+      text-decoration: underline;
+    }
+
+    .server-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .server-card {
+      background: rgba(129, 140, 248, 0.05);
+      border: 1px solid rgba(129, 140, 248, 0.15);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .server-card:hover {
+      background: rgba(129, 140, 248, 0.08);
+      border-color: rgba(129, 140, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .server-card h3 {
+      color: #818cf8;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .server-card p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 0;
+    }
+
     .footer {
-      text-align: center; padding: 2rem; color: #6b7280;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      margin-top: 3rem;
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       position: relative;
       z-index: 1;
+    }
+
+    .footer a {
+      color: #818cf8;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem 5%;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+      }
+
+      .hero {
+        padding: 1rem 5%;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .section {
+        padding: 1.5rem;
+      }
+
+      .info-grid,
+      .server-cards {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -154,63 +334,82 @@
 
   <nav class="navbar">
     <a href="index.html" class="logo">
-      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
+      <img src="logo.webp" alt="logo">
+      Wakfu·攻略 <span>Beta</span>
     </a>
     <ul class="nav-links">
-            <li><a href="index.html">首页</a></li>
-            <li><a href="beginner.html">新手入门</a></li>
-            <li><a href="analysis.html">战斗分析</a></li>
-            <li><a href="dungeon.html">副本攻略</a></li>
-            <li><a href="class.html">职业攻略</a></li>
-        </ul>
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="analysis.html">战斗分析</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
+    </ul>
   </nav>
 
-  <div class="container">
-    <h1 class="page-title">新手入门</h1>
-    <p style="color:#9ca3c0; margin-bottom: 2rem;">阵营、界面与操作指南</p>
+  <section class="hero">
+    <h1>新手入门</h1>
+    <p class="subtitle">快速上手 Wakfu 开启你的冒险之旅</p>
+  </section>
 
+  <main class="main-content">
     <div class="section">
-      <h2>🌍 选择你的阵营</h2>
-      <p>Wakfu 中有多个阵营可供选择，每个阵营都有独特的背景故事和特色：</p>
-      <ul>
-        <li><strong>光明阵营</strong> - 崇尚正义与秩序，适合喜欢正面角色的玩家</li>
-        <li><strong>暗影阵营</strong> - 神秘而强大，适合追求力量的玩家</li>
-        <li><strong>中立阵营</strong> - 自由不羁，适合探索型玩家</li>
-      </ul>
+      <h2>官网</h2>
+      <p>访问 Wakfu 官方网站获取最新资讯、下载游戏客户端：</p>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>🌐 官方网站</h3>
+          <p><a href="https://www.wakfu.com/" target="_blank">https://www.wakfu.com/</a></p>
+        </div>
+      </div>
     </div>
 
     <div class="section">
-      <h2>🎮 界面介绍</h2>
-      <p>游戏界面主要分为以下几个区域：</p>
-      <ul>
-        <li><strong>技能栏</strong> - 位于底部，放置你的主动技能</li>
-        <li><strong>角色面板</strong> - 显示生命值、能量值和状态效果</li>
-        <li><strong>地图导航</strong> - 右上角的迷你地图</li>
-        <li><strong>社交面板</strong> - 好友列表和公会信息</li>
-      </ul>
+      <h2>社区交流</h2>
+      <p>加入社区与其他玩家交流，获取最新攻略和帮助：</p>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>💬 QQ 交流群</h3>
+          <p>群号：<strong>663439038</strong></p>
+        </div>
+        <div class="info-card">
+          <h3>📱 微信公众号</h3>
+          <p>搜索关注：<strong>Wakfu 真好玩</strong></p>
+        </div>
+      </div>
     </div>
 
     <div class="section">
-      <h2>⚡ 操作指南</h2>
-      <p>掌握基本操作是成为高手的第一步：</p>
-      <ul>
-        <li><strong>移动</strong> - 使用 WASD 或方向键</li>
-        <li><strong>攻击</strong> - 点击目标或按空格键</li>
-        <li><strong>技能</strong> - 使用数字键 1-0 释放技能</li>
-        <li><strong>交互</strong> - 靠近NPC或物品按 E 键</li>
-      </ul>
+      <h2>游戏汉化</h2>
+      <p>想要中文游戏界面？前往 QQ 群空间下载汉化器。</p>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>🔧 汉化器下载</h3>
+          <p>在 QQ 群空间下载汉化器，按说明安装即可</p>
+        </div>
+      </div>
     </div>
 
     <div class="section">
-      <h2>💡 新手小贴士</h2>
-      <ul>
-        <li>完成新手教程可以获得丰厚奖励</li>
-        <li>加入一个公会可以获得更多帮助</li>
-        <li>定期检查邮件获取系统奖励</li>
-        <li>合理分配属性点提升角色能力</li>
-      </ul>
+      <h2>服务器选择</h2>
+      <p>根据你的游戏习惯选择合适的服务器类型：</p>
+      <div class="server-cards">
+        <div class="server-card">
+          <h3>👤 单人服</h3>
+          <p>
+            只能控制一个角色，需要组队玩<br>
+            账号需要绑定手机号
+          </p>
+        </div>
+        <div class="server-card">
+          <h3>👥 多人服</h3>
+          <p>
+            可以双开 6 角色<br>
+            适合喜欢单机的玩家
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 
   <footer class="footer">
     <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
