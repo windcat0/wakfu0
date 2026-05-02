@@ -1569,7 +1569,7 @@
                             }
 
                             recentCaster = caster;
-                            console.log('施法:', caster, '技能:', spell, '暴击:', isCritic, '元素:', recentSpellElement);
+                            console.log('施法:', caster, '->', spell, '暴击:', isCritic, '元素:', recentSpellElement, 'recentCaster设置为了:', recentCaster);
                             
                             if (!recentNamedEffectApply[spell]) {
                                 recentNamedEffectApply[spell] = caster;
@@ -1586,6 +1586,7 @@
                         if (colonMatch) {
                             let caster = colonMatch[1].trim();
                             let behavior = colonMatch[2].trim();
+                            console.log('冒号解析:', caster, '->', behavior, '当前recentCaster:', recentCaster);
 
                             if (recentNamedSummonApply[caster]) {
                                 caster = `${caster} (${recentNamedSummonApply[caster]})`;
