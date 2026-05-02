@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>职业攻略 · Wakfu攻略站</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
+      background-attachment: fixed;
+      color: #e6e9f0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 70vw;
+      height: 70vh;
+      background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+    .bg-glow.bottom {
+      top: auto;
+      bottom: -15%;
+      left: auto;
+      right: -5%;
+      background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
+      width: 60vw;
+      height: 60vh;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      background: rgba(18, 20, 30, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .navbar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .logo img {
+      height: 2.5rem;
+      vertical-align: middle;
+    }
+
+    .navbar .logo span {
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-weight: 400;
+      -webkit-text-fill-color: #ccc;
+      background-clip: unset;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #b9c2d9;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.2s, text-shadow 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, #818cf8, #c084fc);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .container { max-width: 900px; margin: 3rem auto; padding: 0 5%; position: relative; z-index: 1; }
+    .page-title {
+      font-size: 2.5rem; font-weight: 700;
+      background: linear-gradient(to right, #a78bfa, #c4b5fd);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .section {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 { color: #f1f5f9; margin-bottom: 1rem; font-size: 1.3rem; }
+    .section p { color: #9ca3c0; line-height: 1.6; }
+    .section ul { color: #9ca3c0; margin-left: 1.5rem; line-height: 1.8; }
+    .class-card {
+      display: inline-block;
+      width: calc(50% - 0.75rem);
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      vertical-align: top;
+    }
+    .class-card:nth-child(odd) { margin-right: 1.5rem; }
+    .class-card h3 { color: #f1f5f9; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .class-card p { color: #9ca3c0; font-size: 0.9rem; }
+    .class-card .role {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .role.tank { background: rgba(239,68,68,0.2); color: #f87171; }
+    .role.dps { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .role.healer { background: rgba(34,197,94,0.2); color: #4ade80; }
+    .role.support { background: rgba(59,130,246,0.2); color: #60a5fa; }
+    .footer {
+      text-align: center; padding: 2rem; color: #6b7280;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 3rem;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow bottom"></div>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">职业攻略</h1>
+    <p style="color:#9ca3c0; margin-bottom: 2rem;">18职业构筑与强度解析</p>
+
+    <div class="section">
+      <h2>⚔️ 战士系职业</h2>
+
+      <div class="class-card">
+        <h3>狂战士</h3>
+        <p>高爆发近战职业，擅长单体输出和范围攻击</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>圣骑士</h3>
+        <p>攻防兼备的坦克，可治疗队友</p>
+        <span class="role tank">坦克</span>
+      </div>
+      <div class="class-card">
+        <h3>刺客</h3>
+        <p>高机动性近战，擅长暗杀和暴击</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>武僧</h3>
+        <p>灵活的近战职业，可切换攻击和防御姿态</p>
+        <span class="role dps">输出</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔮 法师系职业</h2>
+
+      <div class="class-card">
+        <h3>元素师</h3>
+        <p>操控火、冰、雷三系元素，强大的范围伤害</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>召唤师</h3>
+        <p>召唤各种元素生物协助战斗</p>
+        <span class="role support">辅助</span>
+      </div>
+      <div class="class-card">
+        <h3>咒术师</h3>
+        <p>使用黑暗魔法，擅长控制和诅咒</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>时间法师</h3>
+        <p>操控时间，可加速或减速敌人</p>
+        <span class="role support">辅助</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🏹 射手系职业</h2>
+
+      <div class="class-card">
+        <h3>弓箭手</h3>
+        <p>远程物理输出，高攻速和暴击</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>猎人</h3>
+        <p>召唤宠物战斗，可布置陷阱</p>
+        <span class="role dps">输出</span>
+      </div>
+      <div class="class-card">
+        <h3>炮手</h3>
+        <p>使用重火器，范围AOE伤害</p>
+        <span class="role dps">输出</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>💚 治疗系职业</h2>
+
+      <div class="class-card">
+        <h3>牧师</h3>
+        <p>神圣治疗者，群体治疗和驱散</p>
+        <span class="role healer">治疗</span>
+      </div>
+      <div class="class-card">
+        <h3>德鲁伊</h3>
+        <p>自然守护者，可治疗也可输出</p>
+        <span class="role healer">治疗</span>
+      </div>
+      <div class="class-card">
+        <h3>巫医</h3>
+        <p>使用草药和图腾，持续治疗</p>
+        <span class="role healer">治疗</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>💡 职业选择建议</h2>
+      <ul>
+        <li><strong>新手推荐：</strong>圣骑士、元素师、牧师</li>
+        <li><strong>团队核心：</strong>坦克和治疗永远受欢迎</li>
+        <li><strong>高操作：</strong>刺客、时间法师需要精准操作</li>
+        <li><strong>休闲玩家：</strong>召唤师、猎人适合挂机</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
+  </footer>
+</body>
+</html>

@@ -12,15 +12,12 @@
     }
 
     body {
-      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', system-ui, sans-serif;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
       background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
       background-attachment: fixed;
       color: #e6e9f0;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      line-height: 1.5;
+      position: relative;
       overflow-x: hidden;
     }
 
@@ -45,7 +42,6 @@
       height: 60vh;
     }
 
-    /* 导航栏 - 毛玻璃 */
     .navbar {
       position: sticky;
       top: 0;
@@ -62,9 +58,8 @@
       box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
 
-    .logo {
-      font-size: 2.2rem;
-      font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+    .navbar .logo {
+      font-size: 1.8rem;
       font-weight: 700;
       letter-spacing: 1px;
       background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
@@ -77,7 +72,13 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .logo span {
+
+    .navbar .logo img {
+      height: 2.5rem;
+      vertical-align: middle;
+    }
+
+    .navbar .logo span {
       font-size: 0.9rem;
       background: rgba(255, 255, 255, 0.1);
       padding: 0.2rem 0.8rem;
@@ -93,6 +94,7 @@
       gap: 2.2rem;
       list-style: none;
     }
+
     .nav-links a {
       color: #b9c2d9;
       text-decoration: none;
@@ -101,6 +103,7 @@
       transition: color 0.2s, text-shadow 0.2s;
       position: relative;
     }
+
     .nav-links a::after {
       content: '';
       position: absolute;
@@ -112,10 +115,12 @@
       transition: width 0.3s ease;
       border-radius: 2px;
     }
+
     .nav-links a:hover {
       color: #fff;
       text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
     }
+
     .nav-links a:hover::after {
       width: 100%;
     }
@@ -316,31 +321,26 @@
   <div class="bg-glow"></div>
   <div class="bg-glow bottom"></div>
 
-  <!-- 导航栏 -->
   <nav class="navbar">
-    <a href="#" class="logo">
-      <img src="logo.webp" alt="logo" style="height: 3.5rem; vertical-align: middle;">
-      Wakfu·攻略 <span>Beta</span>
+    <a href="index.html" class="logo">
+      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
     </a>
     <ul class="nav-links">
-      <li><a href="#">首页</a></li>
-      <li><a href="#">资料库</a></li>
-      <li><a href="#">配装器</a></li>
-      <li><a href="#">社区</a></li>
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
     </ul>
   </nav>
 
-  <!-- 主视觉区 -->
   <section class="hero">
     <h1>探索十二世界 · 掌握奥古之秘</h1>
     <div class="accent-line"></div>
   </section>
 
-  <!-- 卡片区域：每行4个 -->
   <main class="cards-section">
     <div class="cards-grid">
-      <!-- 卡片1：新手入门 -->
-      <div class="card">
+      <a href="beginner.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
@@ -353,17 +353,15 @@
         </div>
         <h3>新手入门</h3>
         <p>阵营、界面与操作指南</p>
-      </div>
+      </a>
 
-      <!-- 卡片2：战斗日志分析 -->
       <a href="log-analysis.html" class="card" style="text-decoration: none;">
         <div class="card-icon" style="font-size: 2rem; background: linear-gradient(135deg, #b3cdff 0%, #a78bfa 60%, #f0abfc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.6));">⚔️</div>
         <h3>战斗日志分析</h3>
         <p>伤害拆解与行动轴优化</p>
       </a>
 
-      <!-- 卡片3：副本攻略 -->
-      <div class="card">
+      <a href="dungeon.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#f9a8d4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2 C10 6 8 8 6 8 C3 8 3 11 5 12 C2 12 2 15 5 16 C4 18 6 21 9 20 C11 22 13 22 15 20 C18 21 20 18 19 16 C22 15 22 12 19 12 C21 11 21 8 18 8 C16 8 14 6 12 2Z" />
@@ -374,10 +372,9 @@
         </div>
         <h3>副本攻略</h3>
         <p>全地下城机制与站位</p>
-      </div>
+      </a>
 
-      <!-- 卡片4：任务攻略 -->
-      <div class="card">
+      <a href="quest.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" />
@@ -389,10 +386,9 @@
         </div>
         <h3>任务攻略</h3>
         <p>主线支线及隐藏成就</p>
-      </div>
+      </a>
 
-      <!-- 卡片5：职业攻略 -->
-      <div class="card">
+      <a href="class.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <line x1="17" y1="3" x2="17" y2="21" />
@@ -404,17 +400,15 @@
         </div>
         <h3>职业攻略</h3>
         <p>18职业构筑与强度解析</p>
-      </div>
+      </a>
 
-      <!-- 卡片6：生活攻略 -->
-      <div class="card">
+      <a href="crafting.html" class="card" style="text-decoration: none;">
         <div class="card-icon" style="font-size: 2rem; background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));">🌱</div>
         <h3>生活攻略</h3>
         <p>14种专业技能与配方大全</p>
-      </div>
+      </a>
 
-      <!-- 卡片7：图鉴与收藏 -->
-      <div class="card">
+      <a href="collection.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <ellipse cx="12" cy="14" rx="7" ry="5" />
@@ -426,10 +420,9 @@
         </div>
         <h3>图鉴与收藏</h3>
         <p>宠物坐骑时装全收录</p>
-      </div>
+      </a>
 
-      <!-- 卡片8：装备数据库 -->
-      <div class="card">
+      <a href="equipment.html" class="card" style="text-decoration: none;">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#f0abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2 L4 5v6.5C4 17 8 21 12 22c4-1 8-5 8-10.5V5l-8-3z" />
@@ -440,13 +433,12 @@
         </div>
         <h3>装备数据库</h3>
         <p>全装备筛选与配装模拟</p>
-      </div>
+      </a>
     </div>
   </main>
 
-  <!-- 页脚 -->
   <footer class="footer">
-    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生 · 非官方玩家攻略站</p>
+    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
   </footer>
 </body>
 </html>

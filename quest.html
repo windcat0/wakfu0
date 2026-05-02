@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务攻略 · Wakfu攻略站</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
+      background-attachment: fixed;
+      color: #e6e9f0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 70vw;
+      height: 70vh;
+      background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+    .bg-glow.bottom {
+      top: auto;
+      bottom: -15%;
+      left: auto;
+      right: -5%;
+      background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
+      width: 60vw;
+      height: 60vh;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      background: rgba(18, 20, 30, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .navbar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .logo img {
+      height: 2.5rem;
+      vertical-align: middle;
+    }
+
+    .navbar .logo span {
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-weight: 400;
+      -webkit-text-fill-color: #ccc;
+      background-clip: unset;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #b9c2d9;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.2s, text-shadow 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, #818cf8, #c084fc);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .container { max-width: 900px; margin: 3rem auto; padding: 0 5%; position: relative; z-index: 1; }
+    .page-title {
+      font-size: 2.5rem; font-weight: 700;
+      background: linear-gradient(to right, #34d399, #10b981);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .section {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 { color: #f1f5f9; margin-bottom: 1rem; font-size: 1.3rem; }
+    .section p { color: #9ca3c0; line-height: 1.6; }
+    .section ul { color: #9ca3c0; margin-left: 1.5rem; line-height: 1.8; }
+    .quest-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border-left: 3px solid #34d399;
+    }
+    .quest-card h3 { color: #f1f5f9; margin-bottom: 0.5rem; }
+    .quest-card p { color: #9ca3c0; }
+    .footer {
+      text-align: center; padding: 2rem; color: #6b7280;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 3rem;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow bottom"></div>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">任务攻略</h1>
+    <p style="color:#9ca3c0; margin-bottom: 2rem;">主线支线及隐藏成就</p>
+
+    <div class="section">
+      <h2>📜 任务类型</h2>
+      <ul>
+        <li><strong>主线任务</strong> - 推进剧情，解锁新区域</li>
+        <li><strong>支线任务</strong> - 丰富剧情，获得额外奖励</li>
+        <li><strong>日常任务</strong> - 每日刷新，稳定收益</li>
+        <li><strong>隐藏任务</strong> - 需要特定条件触发</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>🎯 主线任务流程</h2>
+
+      <div class="quest-card">
+        <h3>第一章：觉醒</h3>
+        <p>从新手村开始，了解游戏基本操作和世界观。</p>
+        <p><strong>奖励：</strong>基础装备套装</p>
+      </div>
+
+      <div class="quest-card">
+        <h3>第二章：启程</h3>
+        <p>离开新手村，前往主城，选择你的职业方向。</p>
+        <p><strong>奖励：</strong>职业专属技能</p>
+      </div>
+
+      <div class="quest-card">
+        <h3>第三章：抉择</h3>
+        <p>面对重要抉择，选择你的阵营立场。</p>
+        <p><strong>奖励：</strong>阵营专属称号</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🏆 隐藏成就</h2>
+      <ul>
+        <li><strong>「暗影猎手」</strong> - 在夜晚完成10次暗杀任务</li>
+        <li><strong>「神龙之友」</strong> - 成功驯服传说中的神龙</li>
+        <li><strong>「时间旅行者」</strong> - 完成所有时间线任务</li>
+        <li><strong>「全图鉴收集者」</strong> - 收集所有图鉴卡片</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>💡 任务小贴士</h2>
+      <ul>
+        <li>使用任务追踪功能方便导航</li>
+        <li>注意任务中的时间限制</li>
+        <li>组队完成任务效率更高</li>
+        <li>定期检查任务日志更新</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
+  </footer>
+</body>
+</html>

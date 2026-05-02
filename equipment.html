@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>装备数据库 · Wakfu攻略站</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
+      background-attachment: fixed;
+      color: #e6e9f0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 70vw;
+      height: 70vh;
+      background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+    .bg-glow.bottom {
+      top: auto;
+      bottom: -15%;
+      left: auto;
+      right: -5%;
+      background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
+      width: 60vw;
+      height: 60vh;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      background: rgba(18, 20, 30, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .navbar .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar .logo img {
+      height: 2.5rem;
+      vertical-align: middle;
+    }
+
+    .navbar .logo span {
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-weight: 400;
+      -webkit-text-fill-color: #ccc;
+      background-clip: unset;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #b9c2d9;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.2s, text-shadow 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, #818cf8, #c084fc);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .container { max-width: 900px; margin: 3rem auto; padding: 0 5%; position: relative; z-index: 1; }
+    .page-title {
+      font-size: 2.5rem; font-weight: 700;
+      background: linear-gradient(to right, #f0abfc, #d946ef);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .search-bar {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex; gap: 1rem;
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #e6e9f0;
+      font-size: 1rem;
+    }
+    .search-bar input:focus { outline: none; }
+    .search-bar select {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #e6e9f0;
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+    .section {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 { color: #f1f5f9; margin-bottom: 1rem; font-size: 1.3rem; }
+    .section ul { color: #9ca3c0; margin-left: 1.5rem; line-height: 1.8; }
+    .equip-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border-left: 3px solid #f0abfc;
+    }
+    .equip-card h3 { color: #f1f5f9; margin-bottom: 0.5rem; }
+    .equip-card .stats { color: #9ca3c0; font-size: 0.9rem; }
+    .equip-card .source { color: #6b7280; font-size: 0.8rem; margin-top: 0.5rem; }
+    .footer {
+      text-align: center; padding: 2rem; color: #6b7280;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 3rem;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow bottom"></div>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.webp" alt="logo"> Wakfu·攻略 <span>Beta</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="beginner.html">新手入门</a></li>
+      <li><a href="dungeon.html">副本攻略</a></li>
+      <li><a href="class.html">职业攻略</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">装备数据库</h1>
+    <p style="color:#9ca3c0; margin-bottom: 2rem;">全装备筛选与配装模拟</p>
+
+    <div class="search-bar">
+      <input type="text" placeholder="搜索装备名称...">
+      <select>
+        <option>全部类型</option>
+        <option>武器</option>
+        <option>护甲</option>
+        <option>饰品</option>
+        <option>首饰</option>
+      </select>
+      <select>
+        <option>全部品质</option>
+        <option>普通</option>
+        <option>优秀</option>
+        <option>稀有</option>
+        <option>史诗</option>
+        <option>传说</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h2>⚔️ 武器</h2>
+
+      <div class="equip-card">
+        <h3>暗影之刃</h3>
+        <div class="stats">攻击力 +150 | 暴击率 +10% | 暗影伤害 +20%</div>
+        <div class="source">来源：暗影神殿副本</div>
+      </div>
+
+      <div class="equip-card">
+        <h3>圣光之剑</h3>
+        <div class="stats">攻击力 +130 | 治疗加成 +15% | 神圣伤害 +15%</div>
+        <div class="source">来源：光明阵营声望兑换</div>
+      </div>
+
+      <div class="equip-card">
+        <h3>元素法杖</h3>
+        <div class="stats">法术强度 +180 | 元素精通 +25 | 法力恢复 +10%</div>
+        <div class="source">来源：元素风暴副本</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🛡️ 护甲</h2>
+
+      <div class="equip-card">
+        <h3>巨龙铠甲</h3>
+        <div class="stats">防御力 +200 | 生命值 +500 | 抗打击 +15%</div>
+        <div class="source">来源：龙穴副本</div>
+      </div>
+
+      <div class="equip-card">
+        <h3>暗影皮甲</h3>
+        <div class="stats">防御力 +80 | 敏捷 +30 | 闪避率 +15%</div>
+        <div class="source">来源：盗贼公会任务</div>
+      </div>
+
+      <div class="equip-card">
+        <h3>法师长袍</h3>
+        <div class="stats">防御力 +50 | 法术强度 +100 | 法力上限 +300</div>
+        <div class="source">来源：魔法学院奖励</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>💍 饰品</h2>
+
+      <div class="equip-card">
+        <h3>时光沙漏</h3>
+        <div class="stats">所有属性 +15 | 冷却缩减 +10%</div>
+        <div class="source">来源：限时活动</div>
+      </div>
+
+      <div class="equip-card">
+        <h3>幸运戒指</h3>
+        <div class="stats">暴击率 +5% | 掉落率 +10%</div>
+        <div class="source">来源：商城购买</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>💡 装备小贴士</h2>
+      <ul>
+        <li>根据职业选择合适的装备属性</li>
+        <li>套装效果通常比单件更强</li>
+        <li>注意装备的等级要求</li>
+        <li>定期检查装备耐久度</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
+  </footer>
+</body>
+</html>
