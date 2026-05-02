@@ -2513,6 +2513,13 @@
 
         // 显示玩家详情
         function showPlayerDetail(combat, playerName) {
+            // 切换到详细数据标签
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="details"]').classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('details').classList.add('active');
+
             selectedPlayer = playerName;
             const detail = combat.getPlayerDetail(playerName);
 
