@@ -2628,12 +2628,20 @@
                     easing: 'easeOutQuart'
                 }
             });
+
+            // 更新伤害表格
+            updateDamageTable(combat);
         }
 
         // 更新伤害表格
         function updateDamageTable(combat) {
             const tbody = document.getElementById('damageTableBody');
-            const data = combat.data; // 显示所有伤害记录
+            let data = combat.data;
+
+            // 如果已选择玩家，则过滤只显示该玩家的记录
+            if (selectedPlayer) {
+                data = data.filter(entry => entry.caster === selectedPlayer);
+            }
 
             tbody.innerHTML = data.map(entry => {
                 const dmg = parseInt(entry.damage) || 0;
