@@ -849,7 +849,7 @@
                     </div>
 
                     <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" multiple accept=".log,.log.1,.log.2,.log.3,.txt">
+                        <input type="file" id="fileInput" multiple>
                         <label for="fileInput" class="file-input-label">
                             点击选择日志文件<br>
                             <small>支持 wakfu.log, wakfu.log.1 等</small>
@@ -2797,25 +2797,41 @@
             const files = document.getElementById('fileInput').files;
             if (files.length === 0) return;
 
+            const validFiles = Array.from(files).filter(file => {
+                const name = file.name.toLowerCase();
+                return name.endsWith('.log') || name.endsWith('.log.1') ||
+                       name.endsWith('.log.2') || name.endsWith('.log.3') ||
+                       name.endsWith('.txt');
+            });
+
+            if (validFiles.length === 0) {
+                alert('请选择有效的日志文件（wakfu.log, wakfu.log.1 等）');
+                return;
+            }
+
+            validFiles.sort((a, b) => {
+                const getSuffix = name => {
+                    const match = name.toLowerCase().match(/\.log\.(\d+)$/);
+                    return match ? parseInt(match[1], 10) : 0;
+                };
+                return getSuffix(b.name) - getSuffix(a.name);
+            });
+
             this.disabled = true;
             this.textContent = '分析中...';
 
             try {
                 let fullText = '';
 
-                // 读取所有文件
-                for (const file of files) {
+                for (const file of validFiles) {
                     const text = await readFileAsText(file);
                     fullText += text + '\n';
                 }
 
-                // 解析数据
                 const combatDict = parseCombatData(fullText);
 
-                // 筛选最近5场战斗
                 combatDataDict = filterRecentCombats(combatDict, MAX_COMBATS);
 
-                // 更新UI（带渐变提示）
                 updateCombatListWithHighlight();
 
             } catch (error) {
