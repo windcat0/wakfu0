@@ -1,0 +1,85 @@
+/* 战斗分析页面专属优化样式 */
+.analysis-page {
+  background: var(--bg-primary) !important;
+}
+
+.analysis-page .content-area {
+  background: rgba(10, 12, 22, 0.85) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.analysis-page .stat-card,
+.analysis-page .player-card,
+.analysis-page .combat-item {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.analysis-page .stat-card:hover,
+.analysis-page .player-card:hover,
+.analysis-page .combat-item:hover {
+  border-color: var(--border-hover) !important;
+  background: var(--bg-card-hover) !important;
+}
+
+.analysis-page .tab {
+  color: var(--text-secondary) !important;
+}
+
+.analysis-page .tab.active {
+  color: var(--accent-primary) !important;
+}
+
+.analysis-page .table {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.analysis-page .table th,
+.analysis-page .table td {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.analysis-page .table tr:hover {
+  background: var(--bg-card-hover) !important;
+}
+
+.analysis-page .progress {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.analysis-page .progress-bar {
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)) !important;
+}
+
+.analysis-page .card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.analysis-page .card-header {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.analysis-page .card-body {
+  color: var(--text-primary) !important;
+}
+
+.analysis-page .form-control,
+.analysis-page .form-select {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.analysis-page .form-control:focus,
+.analysis-page .form-select:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25) !important;
+}

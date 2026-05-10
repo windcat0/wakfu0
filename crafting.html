@@ -11,7 +11,7 @@
       font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
       background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
       background-attachment: fixed;
-      color: #e6e9f0;
+      color: var(--text-primary);
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
@@ -47,10 +47,10 @@
       justify-content: space-between;
       align-items: center;
       padding: 1rem 5%;
-      background: rgba(18, 20, 30, 0.65);
+      background: var(--bg-secondary);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid var(--border-color);
       box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
 
@@ -92,7 +92,7 @@
     }
 
     .nav-links a {
-      color: #b9c2d9;
+      color: var(--text-secondary);
       text-decoration: none;
       font-weight: 700;
       font-size: 1rem;
@@ -155,6 +155,7 @@
       z-index: 1;
     }
   </style>
+  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
   <div class="bg-glow"></div>
@@ -269,5 +270,6 @@
   <footer class="footer">
     <p>© 2026 Wakfu Guide · 万象之扉 — 为冒险者而生</p>
   </footer>
+  <script src="theme.js"></script>
 </body>
 </html>

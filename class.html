@@ -5,127 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Wakfu 攻略站 · 万象之扉</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+  <link rel="stylesheet" href="theme.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      background: radial-gradient(ellipse at 20% 30%, #1a1e2f 0%, #0b0d17 70%);
-      background-attachment: fixed;
-      color: #e6e9f0;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    .bg-glow {
-      position: fixed;
-      top: -10%;
-      left: -10%;
-      width: 70vw;
-      height: 70vh;
-      background: radial-gradient(circle at 50% 40%, rgba(90, 130, 255, 0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-      filter: blur(80px);
-    }
-    .bg-glow.bottom {
-      top: auto;
-      bottom: -15%;
-      left: auto;
-      right: -5%;
-      background: radial-gradient(circle at 50% 50%, rgba(210, 80, 180, 0.1) 0%, transparent 70%);
-      width: 60vw;
-      height: 60vh;
-    }
-
-    .navbar {
-      position: sticky;
-      top: 0;
-      width: 100%;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 5%;
-      background: rgba(18, 20, 30, 0.65);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    }
-
-    .navbar .logo {
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      background: linear-gradient(to bottom, #2dd4bf 0%, #ffffff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .navbar .logo img {
-      height: 2.5rem;
-      vertical-align: middle;
-    }
-
-    .navbar .logo span {
-      font-size: 0.9rem;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 0.2rem 0.8rem;
-      border-radius: 30px;
-      font-weight: 400;
-      -webkit-text-fill-color: #ccc;
-      background-clip: unset;
-      letter-spacing: 0;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2.2rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: #b9c2d9;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1rem;
-      transition: color 0.2s, text-shadow 0.2s;
-      position: relative;
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0%;
-      height: 2px;
-      background: linear-gradient(90deg, #818cf8, #c084fc);
-      transition: width 0.3s ease;
-      border-radius: 2px;
-    }
-
-    .nav-links a:hover {
-      color: #fff;
-      text-shadow: 0 0 10px rgba(200, 180, 255, 0.7);
-    }
-
-    .nav-links a:hover::after {
-      width: 100%;
-    }
-
     main {
       position: relative;
       z-index: 2;
@@ -143,10 +24,10 @@
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg-card);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 1.5rem;
       transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s, border-color 0.3s, background 0.3s;
@@ -154,7 +35,7 @@
       position: relative;
       overflow: hidden;
       display: block;
-      box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 15px 35px -15px var(--card-shadow-hover);
       text-decoration: none;
     }
 
@@ -176,9 +57,9 @@
 
     .card:hover {
       transform: translateY(-12px) scale(1.02);
-      border-color: rgba(180, 140, 255, 0.5);
-      box-shadow: 0 28px 45px -12px rgba(120, 80, 220, 0.5), 0 0 0 1px rgba(200, 150, 255, 0.2) inset;
-      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--border-hover);
+      box-shadow: 0 28px 45px -12px var(--card-shadow), 0 0 0 1px var(--border-hover) inset;
+      background: var(--bg-card-hover);
     }
 
     .card-icon {
@@ -207,94 +88,57 @@
       font-size: 1.125rem;
       font-weight: 700;
       letter-spacing: 0.3px;
-      color: #f1f5f9;
+      color: var(--text-primary);
       z-index: 1;
       transition: color 0.2s;
       margin: 0;
     }
     .card:hover h3 {
-      color: #ffffff;
+      color: var(--nav-link-hover);
     }
 
     .card p {
       font-size: 0.875rem;
-      color: #9ca3c0;
+      color: var(--text-dim);
       z-index: 1;
       transition: color 0.3s;
       margin: 0;
       line-height: 1.4;
     }
     .card:hover p {
-      color: #d1d5e6;
+      color: var(--text-secondary);
     }
-
-    .card:nth-child(1):hover { border-color: #60a5fa; box-shadow: 0 28px 45px -12px #3b82f6; }
-    .card:nth-child(2):hover { border-color: #f472b6; box-shadow: 0 28px 45px -12px #ec4899; }
-    .card:nth-child(3):hover { border-color: #fbbf24; box-shadow: 0 28px 45px -12px #f59e0b; }
-    .card:nth-child(4):hover { border-color: #34d399; box-shadow: 0 28px 45px -12px #10b981; }
-    .card:nth-child(5):hover { border-color: #a78bfa; box-shadow: 0 28px 45px -12px #8b5cf6; }
-    .card:nth-child(6):hover { border-color: #fb923c; box-shadow: 0 28px 45px -12px #f97316; }
-    .card:nth-child(7):hover { border-color: #38bdf8; box-shadow: 0 28px 45px -12px #0ea5e9; }
-    .card:nth-child(8):hover { border-color: #e879f9; box-shadow: 0 28px 45px -12px #d946ef; }
 
     .page-title {
       font-family: 'KaiTi', 'STKaiti', '楷体', serif;
       font-size: clamp(2rem, 5vw, 3.5rem);
       font-weight: 800;
       letter-spacing: -0.5px;
-      background: linear-gradient(to right, #e2e8ff, #c7b9ff, #f5c8ff);
+      background: linear-gradient(to right, var(--text-primary), var(--accent-glow), var(--text-muted));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 2rem;
-      filter: drop-shadow(0 0 20px rgba(130, 100, 250, 0.5));
+      filter: drop-shadow(0 0 20px var(--accent-glow));
       text-align: center;
     }
 
     .section-title {
       font-size: 1.8rem;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-primary);
       margin: 2rem 0 1.5rem;
       padding-left: 1rem;
-      border-left: 4px solid #818cf8;
+      border-left: 4px solid var(--accent-primary);
     }
 
     .detail-box {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg-card);
       backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
       border-radius: 20px;
       padding: 2rem;
       margin-bottom: 2rem;
-    }
-
-    .footer {
-      width: 100%;
-      text-align: center;
-      padding: 2.5rem 1rem;
-      color: #6b7280;
-      font-size: 0.9rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      background: rgba(10, 12, 22, 0.6);
-      backdrop-filter: blur(8px);
-      margin-top: auto;
-      z-index: 2;
-    }
-
-    @media (max-width: 900px) {
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    @media (max-width: 500px) {
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
-      .navbar {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
     }
   </style>
 </head>
@@ -481,6 +325,7 @@
       window.addEventListener('DOMContentLoaded', handleRoute);
     })();
   </script>
+  <script src="theme.js"></script>
 </body>
 
 </html>
