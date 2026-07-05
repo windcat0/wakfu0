@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>激活函数 · 公式 / 曲线 / 导数可视化</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ===== 顶部 ===== */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      transition: var(--transition);
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 .icon {
+      font-size: 1.5rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      color: var(--text-light);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    /* ===== 控制栏 ===== */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-group label {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .control-group input[type="range"] {
+      width: 130px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .control-group input[type="number"] {
+      width: 64px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .val-tag {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      min-width: 38px;
+      text-align: right;
+    }
+
+    /* ===== 函数卡片 ===== */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow var(--transition), border-color var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      border-color: var(--accent);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .card-title .en {
+      color: var(--text-light);
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-left: 6px;
+    }
+
+    .card-tag {
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* 公式块 */
+    .formula-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .formula-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .formula-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .formula-label.fn { background: rgba(199, 91, 57, 0.14); color: var(--accent); }
+    .formula-label.dv { background: rgba(75, 130, 182, 0.14); color: var(--blue); }
+
+    .formula-text {
+      font-family: 'Cambria Math', 'Georgia', 'Times New Roman', serif;
+      font-size: 1.02rem;
+    }
+
+    /* 图表 */
+    .chart {
+      width: 100%;
+      height: 240px;
+      display: block;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    /* 特性说明 */
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.84rem;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    .meta .pros { color: var(--green); }
+    .meta .cons { color: var(--accent); }
+    .meta .key { font-weight: 600; color: var(--text); }
+
+    footer.bottom {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.82rem;
+      padding-top: 4px;
+    }
+
+    @media (max-width: 520px) {
+      .cards { grid-template-columns: 1fr; }
+      h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="top-bar">
+        <a href="../func.html" class="back-link">← 返回功能列表</a>
+        <h1><span class="icon">⚡</span>激活函数可视化</h1>
+        <span class="badge">5 个常用函数</span>
+      </div>
+      <p class="subtitle">展示 Sigmoid、Tanh、ReLU、Leaky ReLU、GeLU 五个常用激活函数的公式、函数曲线与导数曲线。可调整坐标范围与 Leaky ReLU 的负半轴斜率。</p>
+    </header>
+
+    <!-- 控制栏 -->
+    <div class="controls">
+      <div class="control-group">
+        <label>X 范围 ±</label>
+        <input type="range" id="xRange" min="2" max="10" step="1" value="6">
+        <span class="val-tag" id="xRangeVal">6</span>
+      </div>
+      <div class="control-group">
+        <label>采样点</label>
+        <input type="number" id="samples" min="100" max="1000" step="50" value="400">
+      </div>
+      <div class="control-group">
+        <label>Leaky α</label>
+        <input type="range" id="alpha" min="0.01" max="0.5" step="0.01" value="0.1">
+        <span class="val-tag" id="alphaVal">0.10</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="showGrid" checked> 网格
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="showDeriv" checked> 导数曲线
+      </label>
+    </div>
+
+    <!-- 函数卡片（JS 动态生成） -->
+    <div class="cards" id="cards"></div>
+
+    <footer class="bottom">悬停曲线查看坐标 · 拖动滑块实时重绘</footer>
+  </div>
+
+  <script>
+    // ============================================================
+    //  激活函数定义：fn = 函数本体，deriv = 解析导数，maxAbs = 控制画图缩放
+    // ============================================================
+    const functions = [
+      {
+        key: 'sigmoid',
+        name: 'Sigmoid',
+        en: 'Logistic',
+        tag: '平滑 / 概率',
+        formula: 'σ(x) = 1 / (1 + e⁻ˣ)',
+        dFormula: "σ'(x) = σ(x) · (1 − σ(x))",
+        fn: x => 1 / (1 + Math.exp(-x)),
+        deriv: x => { const s = 1 / (1 + Math.exp(-x)); return s * (1 - s); },
+        maxAbs: 1,
+        pros: '输出 (0,1)，可解释为概率；处处可导、平滑',
+        cons: '易饱和、梯度消失；输出非零均值；计算含 exp 较慢',
+        use: '二分类输出层、门控'
+      },
+      {
+        key: 'tanh',
+        name: 'Tanh',
+        en: '双曲正切',
+        tag: '零均值',
+        formula: 'tanh(x) = (eˣ − e⁻ˣ) / (eˣ + e⁻ˣ)',
+        dFormula: "tanh'(x) = 1 − tanh²(x)",
+        fn: x => Math.tanh(x),
+        deriv: x => 1 - Math.tanh(x) ** 2,
+        maxAbs: 1,
+        pros: '输出 (−1,1)，零均值；比 Sigmoid 梯度更大',
+        cons: '仍有饱和、梯度消失问题',
+        use: 'RNN / LSTM 隐藏状态、注意力'
+      },
+      {
+        key: 'relu',
+        name: 'ReLU',
+        en: 'Rectified Linear Unit',
+        tag: '稀疏 / 默认首选',
+        formula: 'ReLU(x) = max(0, x)',
+        dFormula: "ReLU'(x) = 1 if x>0 else 0",
+        fn: x => Math.max(0, x),
+        deriv: x => x > 0 ? 1 : 0,
+        maxAbs: null, // 按当前 x 范围自适应
+        pros: '计算极快；缓解梯度消失；稀疏激活',
+        cons: '负区"死亡 ReLU"不再更新；非零中心',
+        use: 'MLP / CNN 隐藏层默认选择'
+      },
+      {
+        key: 'leaky',
+        name: 'Leaky ReLU',
+        en: 'Parametric',
+        tag: '修复死亡 ReLU',
+        formula: 'LeakyReLU(x) = x if x>0 else αx',
+        dFormula: "LeakyReLU'(x) = 1 if x>0 else α",
+        fn: (x, a) => x > 0 ? x : a * x,
+        deriv: (x, a) => x > 0 ? 1 : a,
+        maxAbs: null,
+        pros: '负区有微小梯度，避免神经元死亡',
+        cons: 'α 需调参；效果提升通常不显著',
+        use: 'GAN、对死亡 ReLU 敏感的场景'
+      },
+      {
+        key: 'gelu',
+        name: 'GeLU',
+        en: 'Gaussian Error Linear Unit',
+        tag: 'Transformer 标配',
+        formula: 'GeLU(x) ≈ 0.5x·(1 + tanh[√(2/π)·(x + 0.044715x³)])',
+        dFormula: "GeLU'(x) ≈ Φ(x) + x·φ(x)  (Φ 标准正态 CDF)",
+        fn: x => 0.5 * x * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * x ** 3))),
+        // 数值导数（GeLU 解析导数含 CDF，这里用中心差分以保证视觉准确）
+        deriv: (x) => {
+          const f = t => 0.5 * t * (1 + Math.tanh(Math.sqrt(2 / Math.PI) * (t + 0.044715 * t ** 3)));
+          const h = 1e-4;
+          return (f(x + h) - f(x - h)) / (2 * h);
+        },
+        maxAbs: null,
+        pros: '处处平滑可导；似 ReLU 但负端更软；Transformer 表现佳',
+        cons: '计算比 ReLU 复杂（含 tanh/cubic）',
+        use: 'BERT / GPT / ViT 等 Transformer'
+      }
+    ];
+
+    // ============================================================
+    //  绘图引擎：单 canvas 双曲线（函数 + 导数）+ 坐标轴 + 鼠标悬停
+    // ============================================================
+    const state = { xRange: 6, samples: 400, alpha: 0.1, showGrid: true, showDeriv: true };
+
+    function drawChart(canvas, f) {
+      const ctx = canvas.getContext('2d');
+      // 高分屏适配
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const W = rect.width, H = rect.height;
+      const pad = { l: 40, r: 14, t: 14, b: 28 };
+      const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+      const xMin = -state.xRange, xMax = state.xRange;
+
+      // 计算 y 范围：函数本体范围 + 导数范围（导数大多在 [-0.5, 1.2]）
+      let yAbs = f.maxAbs;
+      if (yAbs === null) {
+        // 用数据自适应（ReLU/Leaky 的 y 跟 x 走）
+        let m = 1;
+        const step = (xMax - xMin) / 200;
+        for (let x = xMin; x <= xMax; x += step) {
+          m = Math.max(m, Math.abs(f.fn(x, state.alpha)));
+        }
+        yAbs = Math.min(state.xRange, m); // 与 x 范围对齐，保证线性 y=x 可见
+      }
+      // 导数可能超出函数范围（如 ReLU 导数=1），统一纳入
+      const yMax = yAbs * 1.15;
+      const yMin = -yAbs * 1.15;
+
+      const X = x => pad.l + (x - xMin) / (xMax - xMin) * pw;
+      const Y = y => pad.t + (yMax - y) / (yMax - yMin) * ph;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // ---- 网格 ----
+      if (state.showGrid) {
+        ctx.strokeStyle = '#e3dbd0';
+        ctx.lineWidth = 1;
+        ctx.font = '10px Inter, system-ui';
+        ctx.fillStyle = '#9a9088';
+        // 竖线
+        const xStep = niceStep(xMax - xMin);
+        for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+          ctx.beginPath(); ctx.moveTo(X(x), pad.t); ctx.lineTo(X(x), pad.t + ph); ctx.stroke();
+          ctx.textAlign = 'center';
+          ctx.fillText(formatNum(x), X(x), H - pad.b + 14);
+        }
+        // 横线
+        const yStep = niceStep(yMax - yMin);
+        for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+          ctx.beginPath(); ctx.moveTo(pad.l, Y(y)); ctx.lineTo(pad.l + pw, Y(y)); ctx.stroke();
+          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(formatNum(y), pad.l - 6, Y(y));
+        }
+      }
+
+      // ---- 坐标轴 ----
+      ctx.strokeStyle = '#6b6358';
+      ctx.lineWidth = 1.4;
+      // x 轴（y=0）
+      if (0 >= yMin && 0 <= yMax) {
+        ctx.beginPath(); ctx.moveTo(pad.l, Y(0)); ctx.lineTo(pad.l + pw, Y(0)); ctx.stroke();
+      }
+      // y 轴（x=0）
+      ctx.beginPath(); ctx.moveTo(X(0), pad.t); ctx.lineTo(X(0), pad.t + ph); ctx.stroke();
+
+      // ---- 导数曲线（先画，置于底层）----
+      if (state.showDeriv) {
+        ctx.strokeStyle = '#4b82b6'; // --blue
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        const N = state.samples;
+        for (let i = 0; i <= N; i++) {
+          const x = xMin + (xMax - xMin) * i / N;
+          let y;
+          try { y = f.deriv(x, state.alpha); } catch (e) { y = NaN; }
+          if (!isFinite(y)) continue;
+          // 导数超出范围时裁剪到画布内，避免尖刺
+          y = Math.max(yMin, Math.min(yMax, y));
+          if (i === 0) ctx.moveTo(X(x), Y(y)); else ctx.lineTo(X(x), Y(y));
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // ---- 函数曲线 ----
+      ctx.strokeStyle = '#c75b39'; // --accent
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      const N = state.samples;
+      let started = false;
+      for (let i = 0; i <= N; i++) {
+        const x = xMin + (xMax - xMin) * i / N;
+        let y;
+        try { y = f.fn(x, state.alpha); } catch (e) { y = NaN; }
+        if (!isFinite(y)) { started = false; continue; }
+        y = Math.max(yMin, Math.min(yMax, y));
+        if (!started) { ctx.moveTo(X(x), Y(y)); started = true; }
+        else ctx.lineTo(X(x), Y(y));
+      }
+      ctx.stroke();
+
+      // ---- 图例 ----
+      drawLegend(ctx, pad.l + 10, pad.t + 8, f);
+
+      // ---- 鼠标悬停十字 + 数值（挂到 canvas 上）----
+      attachHover(canvas, f, { xMin, xMax, yMin, yMax, pad, pw, ph, X, Y });
+    }
+
+    function drawLegend(ctx, x, y, f) {
+      ctx.font = '11px Inter, system-ui';
+      ctx.textBaseline = 'middle';
+      // 函数
+      ctx.strokeStyle = '#c75b39'; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 18, y); ctx.stroke();
+      ctx.fillStyle = '#2d2a24'; ctx.textAlign = 'left';
+      ctx.fillText('f(x)', x + 23, y);
+      // 导数
+      if (state.showDeriv) {
+        ctx.strokeStyle = '#4b82b6'; ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(x, y + 16); ctx.lineTo(x + 18, y + 16); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2d2a24';
+        ctx.fillText("f'(x)", x + 23, y + 16);
+      }
+    }
+
+    // 鼠标悬停：显示该 x 处的函数值与导数值
+    function attachHover(canvas, f, coord) {
+      if (canvas._hoverHandler) canvas.removeEventListener('mousemove', canvas._hoverHandler);
+      if (canvas._leaveHandler) canvas.removeEventListener('mouseleave', canvas._leaveHandler);
+
+      const handler = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        // 把像素 x 反推回数据 x
+        const x = coord.xMin + (px - coord.pad.l) / coord.pw * (coord.xMax - coord.xMin);
+        if (x < coord.xMin || x > coord.xMax) { redrawCard(f); return; }
+
+        let fv, dv;
+        try { fv = f.fn(x, state.alpha); } catch (_) { fv = NaN; }
+        try { dv = f.deriv(x, state.alpha); } catch (_) { dv = NaN; }
+
+        redrawCard(f, { x, fv, dv });
+      };
+      const leave = () => redrawCard(f);
+      canvas._hoverHandler = handler;
+      canvas._leaveHandler = leave;
+      canvas.addEventListener('mousemove', handler);
+      canvas.addEventListener('mouseleave', leave);
+    }
+
+    // 重绘单个卡片（含 hover 信息）
+    function redrawCard(f, hover) {
+      const card = document.querySelector(`.card[data-key="${f.key}"]`);
+      if (!card) return;
+      const canvas = card.querySelector('.chart');
+
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // 先正常重绘
+      drawChart(canvas, f);
+
+      // 叠加 hover 标记
+      if (hover && isFinite(hover.fv)) {
+        const pad = { l: 40, r: 14, t: 14, b: 28 };
+        const W = rect.width, H = rect.height;
+        const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+        const xMin = -state.xRange, xMax = state.xRange;
+        // y 范围需与 drawChart 一致
+        let yAbs = f.maxAbs;
+        if (yAbs === null) {
+          let m = 1; const step = (xMax - xMin) / 200;
+          for (let x = xMin; x <= xMax; x += step) m = Math.max(m, Math.abs(f.fn(x, state.alpha)));
+          yAbs = Math.min(state.xRange, m);
+        }
+        const yMax = yAbs * 1.15, yMin = -yAbs * 1.15;
+        const X = x => pad.l + (x - xMin) / (xMax - xMin) * pw;
+        const Y = y => pad.t + (yMax - y) / (yMax - yMin) * ph;
+
+        // 竖虚线
+        ctx.strokeStyle = 'rgba(45,42,36,0.4)';
+        ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(X(hover.x), pad.t); ctx.lineTo(X(hover.x), pad.t + ph); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 函数值点
+        const fy = Math.max(yMin, Math.min(yMax, hover.fv));
+        ctx.fillStyle = '#c75b39';
+        ctx.beginPath(); ctx.arc(X(hover.x), Y(fy), 4, 0, Math.PI * 2); ctx.fill();
+
+        // 导数值点
+        if (state.showDeriv && isFinite(hover.dv)) {
+          const dy = Math.max(yMin, Math.min(yMax, hover.dv));
+          ctx.fillStyle = '#4b82b6';
+          ctx.beginPath(); ctx.arc(X(hover.x), Y(dy), 4, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // 文本框
+        const lines = [
+          `x = ${formatNum(hover.x, 3)}`,
+          `f(x) = ${formatNum(hover.fv, 4)}`,
+        ];
+        if (state.showDeriv && isFinite(hover.dv)) lines.push(`f'(x) = ${formatNum(hover.dv, 4)}`);
+        const boxX = X(hover.x) + 8;
+        const boxY = pad.t + 6;
+        ctx.font = '11px Inter, system-ui';
+        const tw = Math.max(...lines.map(l => ctx.measureText(l).width)) + 14;
+        const th = lines.length * 15 + 8;
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.strokeStyle = '#e3dbd0';
+        ctx.fillRect(boxX, boxY, tw, th);
+        ctx.strokeRect(boxX, boxY, tw, th);
+        ctx.fillStyle = '#2d2a24'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        lines.forEach((l, i) => ctx.fillText(l, boxX + 7, boxY + 5 + i * 15));
+      }
+    }
+
+    // ---- 工具函数 ----
+    function niceStep(range) {
+      const raw = range / 8;
+      const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+      const n = raw / pow;
+      const nice = n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10;
+      return nice * pow;
+    }
+
+    function formatNum(n, digits = 2) {
+      if (Math.abs(n) < 1e-9) n = 0;
+      if (Math.abs(n) >= 1000) return n.toExponential(1);
+      return parseFloat(n.toFixed(digits)).toString();
+    }
+
+    // ============================================================
+    //  渲染所有卡片
+    // ============================================================
+    function renderCards() {
+      const wrap = document.getElementById('cards');
+      wrap.innerHTML = functions.map(f => `
+        <div class="card" data-key="${f.key}">
+          <div class="card-head">
+            <div class="card-title">${f.name}<span class="en">${f.en}</span></div>
+            <span class="card-tag">${f.tag}</span>
+          </div>
+          <div class="formula-box">
+            <div class="formula-line"><span class="formula-label fn">f</span><span class="formula-text">${f.formula}</span></div>
+            <div class="formula-line"><span class="formula-label dv">f'</span><span class="formula-text">${f.dFormula}</span></div>
+          </div>
+          <canvas class="chart"></canvas>
+          <div class="meta">
+            <div><span class="key">优点：</span><span class="pros">${f.pros}</span></div>
+            <div><span class="key">缺点：</span><span class="cons">${f.cons}</span></div>
+            <div><span class="key">常用：</span>${f.use}</div>
+          </div>
+        </div>
+      `).join('');
+      functions.forEach(f => drawChart(document.querySelector(`.card[data-key="${f.key}"] .chart`), f));
+    }
+
+    // ============================================================
+    //  事件绑定
+    // ============================================================
+    const xRangeEl = document.getElementById('xRange');
+    const xRangeVal = document.getElementById('xRangeVal');
+    const samplesEl = document.getElementById('samples');
+    const alphaEl = document.getElementById('alpha');
+    const alphaVal = document.getElementById('alphaVal');
+    const showGridEl = document.getElementById('showGrid');
+    const showDerivEl = document.getElementById('showDeriv');
+
+    function redrawAll() {
+      functions.forEach(f => drawChart(document.querySelector(`.card[data-key="${f.key}"] .chart`), f));
+    }
+
+    xRangeEl.addEventListener('input', () => {
+      state.xRange = +xRangeEl.value;
+      xRangeVal.textContent = state.xRange;
+      redrawAll();
+    });
+    samplesEl.addEventListener('input', () => {
+      state.samples = +samplesEl.value || 400;
+      redrawAll();
+    });
+    alphaEl.addEventListener('input', () => {
+      state.alpha = +alphaEl.value;
+      alphaVal.textContent = state.alpha.toFixed(2);
+      redrawAll();
+    });
+    showGridEl.addEventListener('change', () => { state.showGrid = showGridEl.checked; redrawAll(); });
+    showDerivEl.addEventListener('change', () => { state.showDeriv = showDeriv.checked; redrawAll(); });
+
+    window.addEventListener('resize', redrawAll);
+
+    // 初始化
+    renderCards();
+  </script>
+</body>
+</html>
