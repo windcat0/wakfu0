@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>线性拟合 · 参数学习过程可视化</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1320px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: #2d2a24;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header h1 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #e88b64, #c75b39);
+      color: #fff;
+      font-size: 1.2rem;
+    }
+
+    .badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #efe8de;
+      color: #7b6e56;
+      padding: 6px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+
+    @media (max-width: 950px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid var(--border);
+      transition: box-shadow var(--transition);
+    }
+
+    .panel:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .panel.scatter-panel {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      min-height: 520px;
+    }
+
+    .panel.contour-panel {
+      grid-column: 2;
+      grid-row: 1;
+      min-height: 340px;
+    }
+
+    .panel.loss-panel {
+      grid-column: 2;
+      grid-row: 2;
+      min-height: 220px;
+    }
+
+    @media (max-width: 950px) {
+      .panel.scatter-panel {
+        grid-column: 1;
+        grid-row: 1;
+        min-height: 380px;
+      }
+      .panel.contour-panel {
+        grid-column: 1;
+        grid-row: 2;
+        min-height: 300px;
+      }
+      .panel.loss-panel {
+        grid-column: 1;
+        grid-row: 3;
+        min-height: 200px;
+      }
+    }
+
+    .panel-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot.scatter {
+      background: var(--blue);
+    }
+    .dot.contour {
+      background: var(--gold);
+    }
+    .dot.loss {
+      background: var(--green);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      background: #fdfdf9;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .equation-display {
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      padding: 8px 16px;
+      background: #fcf7f2;
+      border-radius: 20px;
+      color: #8b4e2f;
+      letter-spacing: 0.01em;
+      border: 1px solid #f1e2d3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .param-w {
+      color: #c75b39;
+      font-weight: 700;
+    }
+    .param-b {
+      color: #4b82b6;
+      font-weight: 700;
+    }
+    .loss-val {
+      color: #7b6e56;
+      font-size: 0.85em;
+      margin-left: 6px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      background: var(--panel-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .controls label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .controls input[type="range"] {
+      width: 90px;
+      accent-color: #c75b39;
+      cursor: pointer;
+    }
+
+    .val-tag {
+      display: inline-block;
+      min-width: 42px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #2d2a24;
+      background: #f2ede6;
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 24px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: all var(--transition);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      color: #4a4238;
+      border: 2px solid #d9cfc0;
+    }
+
+    button:hover {
+      background: #f4efe8;
+      border-color: #b9a990;
+    }
+
+    .btn-play {
+      background: #c75b39;
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 10px rgba(199, 91, 57, 0.25);
+    }
+
+    .btn-play:hover {
+      background: #b04d2e;
+      box-shadow: 0 6px 16px rgba(199, 91, 57, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-play.paused {
+      background: #4f8c63;
+      box-shadow: 0 4px 10px rgba(79, 140, 99, 0.25);
+    }
+
+    .btn-play.paused:hover {
+      background: #3f7450;
+      box-shadow: 0 6px 16px rgba(79, 140, 99, 0.35);
+    }
+
+    .info-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-left: auto;
+    }
+
+    .info-row span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .highlight {
+      font-weight: 700;
+      color: #2d2a24;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+      .controls {
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .controls input[type="range"] {
+        width: 60px;
+      }
+      button {
+        padding: 7px 12px;
+        font-size: 0.78rem;
+      }
+      header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>
+      <span class="icon">📐</span>线性拟合 · 参数学习
+    </h1>
+    <span class="badge">梯度下降可视化</span>
+  </header>
+
+  <div class="main-grid">
+    <!-- 散点图 + 拟合线 -->
+    <div class="panel scatter-panel" id="scatterPanel">
+      <div class="panel-title"><span class="dot scatter"></span>数据点 & 拟合线 <span style="font-weight:400; margin-left:auto; font-size:0.7rem;">y = w·x + b</span></div>
+      <canvas id="scatterCanvas" aria-label="散点图和拟合线"></canvas>
+      <div class="equation-display" id="equationDisplay">
+        y = <span class="param-w">0.0000</span>·x + <span class="param-b">0.0000</span>
+        <span class="loss-val">| Loss: —</span>
+      </div>
+    </div>
+
+    <!-- 参数空间等高线图 -->
+    <div class="panel contour-panel" id="contourPanel">
+      <div class="panel-title"><span class="dot contour"></span>参数空间 (w, b) — 损失景观</div>
+      <canvas id="contourCanvas" aria-label="参数空间损失等高线图"></canvas>
+    </div>
+
+    <!-- 损失曲线 -->
+    <div class="panel loss-panel" id="lossPanel">
+      <div class="panel-title"><span class="dot loss"></span>损失随迭代变化</div>
+      <canvas id="lossCanvas" aria-label="损失曲线"></canvas>
+    </div>
+  </div>
+
+  <!-- 控制面板 -->
+  <div class="controls" id="controls">
+    <button class="btn-play" id="btnPlay" title="开始/暂停自动训练">▶ 开始训练</button>
+    <button id="btnStep" title="手动执行一次梯度更新">⏭ 单步</button>
+    <button id="btnReset" title="重置参数到初始值 (w=0, b=0)">↺ 重置</button>
+
+    <label>学习率 <input type="range" id="lrSlider" min="0.0001" max="0.05" step="0.0001" value="0.003"><span class="val-tag" id="lrVal">0.0030</span></label>
+    <label>动量 <input type="range" id="momentumSlider" min="0" max="0.95" step="0.05" value="0"><span class="val-tag" id="momentumVal">0.00</span></label>
+    <label>速度 <input type="range" id="speedSlider" min="10" max="200" step="10" value="50"><span class="val-tag" id="speedVal">50ms</span></label>
+
+    <div class="info-row">
+      <span>迭代: <span class="highlight" id="epochDisplay">0</span></span>
+      <span>|</span>
+      <span>最优 w ≈ <span class="highlight" id="optWDisplay">—</span></span>
+      <span>最优 b ≈ <span class="highlight" id="optBDisplay">—</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- DOM 元素 ----------
+    const scatterCanvas = document.getElementById('scatterCanvas');
+    const contourCanvas = document.getElementById('contourCanvas');
+    const lossCanvas = document.getElementById('lossCanvas');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const lrSlider = document.getElementById('lrSlider');
+    const momentumSlider = document.getElementById('momentumSlider');
+    const speedSlider = document.getElementById('speedSlider');
+    const lrValEl = document.getElementById('lrVal');
+    const momentumValEl = document.getElementById('momentumVal');
+    const speedValEl = document.getElementById('speedVal');
+    const epochDisplay = document.getElementById('epochDisplay');
+    const optWDisplay = document.getElementById('optWDisplay');
+    const optBDisplay = document.getElementById('optBDisplay');
+    const equationDisplay = document.getElementById('equationDisplay');
+
+    // ---------- 数据生成 (y = 2x + 1 + noise) ----------
+    function seededRandom(seed) {
+      let s = seed;
+      return function() {
+        s = (s * 1664525 + 1013904223) & 0xFFFFFFFF;
+        return (s >>> 0) / 0xFFFFFFFF;
+      };
+    }
+    const rng = seededRandom(42);
+    const TRUE_W = 2.0;
+    const TRUE_B = 1.0;
+    const N_POINTS = 22;
+    const dataPoints = [];
+    for (let i = 0; i < N_POINTS; i++) {
+      const x = (i / (N_POINTS - 1)) * 5.0 + rng() * 0.35 - 0.15;
+      const noise = (rng() - 0.5) * 2.8;
+      const y = TRUE_W * x + TRUE_B + noise;
+      dataPoints.push({ x, y });
+    }
+    dataPoints.sort((a, b) => a.x - b.x);
+
+    // 解析最优参数
+    const n = dataPoints.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    for (const p of dataPoints) {
+      sumX += p.x;
+      sumY += p.y;
+      sumXY += p.x * p.y;
+      sumX2 += p.x * p.x;
+    }
+    const OPT_W = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const OPT_B = (sumY - OPT_W * sumX) / n;
+    optWDisplay.textContent = OPT_W.toFixed(4);
+    optBDisplay.textContent = OPT_B.toFixed(4);
+
+    // 数据范围 (用于散点图)
+    const xMin = -0.2;
+    const xMax = 5.4;
+    // 动态计算 y 范围，确保包含所有数据点、真实线、以及当前拟合线 (初始 y=0 也会被考虑)
+    function computeYRange() {
+      let minY = Infinity, maxY = -Infinity;
+      for (const p of dataPoints) {
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+      // 包含真实直线在 xMin 和 xMax 处的值
+      const trueYMin = TRUE_W * xMin + TRUE_B;
+      const trueYMax = TRUE_W * xMax + TRUE_B;
+      minY = Math.min(minY, trueYMin);
+      maxY = Math.max(maxY, trueYMax);
+      // 包含当前拟合线 (也许多余，但保证范围)
+      const fitYMin = currentW * xMin + currentB;
+      const fitYMax = currentW * xMax + currentB;
+      minY = Math.min(minY, fitYMin);
+      maxY = Math.max(maxY, fitYMax);
+      // 始终包含 y=0 以显示基线
+      minY = Math.min(minY, 0);
+      maxY = Math.max(maxY, 0);
+      // 添加内边距
+      const pad = (maxY - minY) * 0.15 || 1.5;
+      return { yMin: minY - pad, yMax: maxY + pad };
+    }
+
+    // 漂亮的刻度生成函数，确保包含0
+    function niceTicks(min, max, maxTicks = 6) {
+      const range = niceRange(min, max);
+      const rawStep = range / maxTicks;
+      const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const residual = rawStep / magnitude;
+      let step;
+      if (residual < 1.5) step = magnitude;
+      else if (residual < 3) step = 2 * magnitude;
+      else if (residual < 7) step = 5 * magnitude;
+      else step = 10 * magnitude;
+
+      const niceMin = Math.floor(min / step) * step;
+      const niceMax = Math.ceil(max / step) * step;
+      const ticks = [];
+      for (let v = niceMin; v <= niceMax + step * 0.5; v += step) {
+        ticks.push(parseFloat(v.toFixed(10)));
+      }
+      return ticks;
+    }
+
+    function niceRange(min, max) {
+      return max - min;
+    }
+
+    // ---------- 状态 ----------
+    let currentW = 0.0;
+    let currentB = 0.0;
+    let velocityW = 0.0;
+    let velocityB = 0.0;
+    let epoch = 0;
+    let history = []; // {w, b, loss}
+    let isRunning = false;
+    let animationTimer = null;
+    let learningRate = parseFloat(lrSlider.value);
+    let momentum = parseFloat(momentumSlider.value);
+    let speedMs = parseInt(speedSlider.value);
+
+    // 损失景观预计算
+    const contourWMin = -1.5, contourWMax = 5.5;
+    const contourBMin = -3.5, contourBMax = 5.5;
+    const contourGridW = 100, contourGridB = 80;
+    let lossLandscape = null;
+    let lossLandscapeMin = Infinity, lossLandscapeMax = -Infinity;
+
+    function computeMSE(w, b) {
+      let total = 0;
+      for (const p of dataPoints) {
+        const err = w * p.x + b - p.y;
+        total += err * err;
+      }
+      return total / n;
+    }
+
+    function precomputeLossLandscape() {
+      lossLandscape = new Array(contourGridB);
+      lossLandscapeMin = Infinity;
+      lossLandscapeMax = -Infinity;
+      for (let bi = 0; bi < contourGridB; bi++) {
+        lossLandscape[bi] = new Array(contourGridW);
+        const b = contourBMin + (bi / (contourGridB - 1)) * (contourBMax - contourBMin);
+        for (let wi = 0; wi < contourGridW; wi++) {
+          const w = contourWMin + (wi / (contourGridW - 1)) * (contourWMax - contourWMin);
+          const loss = computeMSE(w, b);
+          lossLandscape[bi][wi] = loss;
+          if (loss < lossLandscapeMin) lossLandscapeMin = loss;
+          if (loss > lossLandscapeMax) lossLandscapeMax = loss;
+        }
+      }
+    }
+    precomputeLossLandscape();
+
+    let heatmapImageData = null;
+
+    function createHeatmapImageData(canvasW, canvasH) {
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = canvasW;
+      offCanvas.height = canvasH;
+      const offCtx = offCanvas.getContext('2d');
+      const imgData = offCtx.createImageData(canvasW, canvasH);
+
+      const logMin = Math.log(lossLandscapeMin + 1e-8);
+      const logMax = Math.log(lossLandscapeMax + 1e-8);
+      const logRange = logMax - logMin || 1;
+
+      for (let py = 0; py < canvasH; py++) {
+        for (let px = 0; px < canvasW; px++) {
+          const w = contourWMin + (px / (canvasW - 1)) * (contourWMax - contourWMin);
+          const b = contourBMax - (py / (canvasH - 1)) * (contourBMax - contourBMin);
+          const wiFrac = (w - contourWMin) / (contourWMax - contourWMin) * (contourGridW - 1);
+          const biFrac = (contourBMax - b) / (contourBMax - contourBMin) * (contourGridB - 1);
+          const wi0 = Math.max(0, Math.min(contourGridW - 2, Math.floor(wiFrac)));
+          const bi0 = Math.max(0, Math.min(contourGridB - 2, Math.floor(biFrac)));
+          const wi1 = wi0 + 1, bi1 = bi0 + 1;
+          const fracW = wiFrac - wi0, fracB = biFrac - bi0;
+          const loss00 = lossLandscape[bi0][wi0];
+          const loss10 = lossLandscape[bi0][wi1];
+          const loss01 = lossLandscape[bi1][wi0];
+          const loss11 = lossLandscape[bi1][wi1];
+          const loss = (1 - fracB) * ((1 - fracW) * loss00 + fracW * loss10) +
+                       fracB * ((1 - fracW) * loss01 + fracW * loss11);
+          const logLoss = Math.log(loss + 1e-8);
+          const t = Math.max(0, Math.min(1, (logLoss - logMin) / logRange));
+          const color = hslToRgb(0.62 - t * 0.62, 0.75, 0.25 + t * 0.45);
+          const idx = (py * canvasW + px) * 4;
+          imgData.data[idx] = color.r;
+          imgData.data[idx+1] = color.g;
+          imgData.data[idx+2] = color.b;
+          imgData.data[idx+3] = 255;
+        }
+      }
+      return { offCanvas, imgData };
+    }
+
+    function hslToRgb(h, s, l) {
+      h = Math.max(0, Math.min(1, h));
+      s = Math.max(0, Math.min(1, s));
+      l = Math.max(0, Math.min(1, l));
+      let r, g, b;
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      return { r: Math.round(r*255), g: Math.round(g*255), b: Math.round(b*255) };
+    }
+
+    // ---------- Canvas 尺寸与缩放 ----------
+    function getCanvasDisplaySize(canvas) {
+      return {
+        width: canvas.clientWidth || canvas.parentElement.clientWidth - 36,
+        height: canvas.clientHeight || 300
+      };
+    }
+
+    function setupCanvas(canvas, idealW, idealH) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const displayW = Math.max(idealW, canvas.clientWidth || idealW);
+      const displayH = Math.max(idealH, canvas.clientHeight || idealH);
+      canvas.style.width = displayW + 'px';
+      canvas.style.height = displayH + 'px';
+      canvas.width = Math.floor(displayW * dpr);
+      canvas.height = Math.floor(displayH * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      return { ctx, displayW, displayH, dpr };
+    }
+
+    let scatterInfo, contourInfo, lossInfo;
+
+    function resizeAllCanvases() {
+      scatterInfo = setupCanvas(scatterCanvas, 560, 420);
+      contourInfo = setupCanvas(contourCanvas, 420, 310);
+      lossInfo = setupCanvas(lossCanvas, 420, 200);
+      heatmapImageData = createHeatmapImageData(
+        Math.floor(contourInfo.displayW * contourInfo.dpr),
+        Math.floor(contourInfo.displayH * contourInfo.dpr)
+      );
+    }
+
+    window.addEventListener('resize', () => {
+      resizeAllCanvases();
+      drawAll();
+    });
+
+    // ---------- 绘制函数 ----------
+    function drawScatterPlot() {
+      const { ctx, displayW, displayH } = scatterInfo;
+      const margin = { top: 25, right: 25, bottom: 45, left: 55 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+
+      const { yMin, yMax } = computeYRange();
+      const yTicks = niceTicks(yMin, yMax, 6);
+
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fdfdf9';
+      ctx.fillRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fafaf7';
+      ctx.fillRect(margin.left, margin.top, plotW, plotH);
+
+      // 网格
+      ctx.strokeStyle = '#e8e4db';
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i <= 6; i++) {
+        const x = margin.left + (i / 6) * plotW;
+        ctx.beginPath();
+        ctx.moveTo(x, margin.top);
+        ctx.lineTo(x, margin.top + plotH);
+        ctx.stroke();
+      }
+      for (const tick of yTicks) {
+        const y = margin.top + ((yMax - tick) / (yMax - yMin)) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(margin.left + plotW, y);
+        ctx.stroke();
+      }
+
+      // 坐标轴
+      ctx.strokeStyle = '#c5bdaa';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, margin.top + plotH);
+      ctx.lineTo(margin.left + plotW, margin.top + plotH);
+      ctx.stroke();
+
+      // 强调 y=0 线
+      if (yMin <= 0 && yMax >= 0) {
+        const y0 = margin.top + ((yMax - 0) / (yMax - yMin)) * plotH;
+        ctx.strokeStyle = '#d0c8b8';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y0);
+        ctx.lineTo(margin.left + plotW, y0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 标签
+      ctx.fillStyle = '#6b6358';
+      ctx.font = '600 11px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 6; i++) {
+        const val = xMin + (i / 6) * (xMax - xMin);
+        const x = margin.left + (i / 6) * plotW;
+        ctx.fillText(val.toFixed(1), x, margin.top + plotH + 16);
+      }
+      ctx.fillText('x', margin.left + plotW/2, margin.top + plotH + 34);
+
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (const tick of yTicks) {
+        const y = margin.top + ((yMax - tick) / (yMax - yMin)) * plotH;
+        ctx.fillText(tick.toFixed(1), margin.left - 8, y);
+      }
+      ctx.save();
+      ctx.translate(margin.left - 38, margin.top + plotH/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.textAlign = 'center';
+      ctx.fillText('y', 0, 0);
+      ctx.restore();
+      ctx.textBaseline = 'alphabetic';
+
+      // 裁剪
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, plotW, plotH);
+      ctx.clip();
+
+      // 真实关系虚线 (y=2x+1)
+      ctx.strokeStyle = 'rgba(160,140,120,0.5)';
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      const tx0 = margin.left;
+      const tx1 = margin.left + plotW;
+      const ty0 = margin.top + ((yMax - (TRUE_W * xMin + TRUE_B)) / (yMax - yMin)) * plotH;
+      const ty1 = margin.top + ((yMax - (TRUE_W * xMax + TRUE_B)) / (yMax - yMin)) * plotH;
+      ctx.moveTo(tx0, ty0);
+      ctx.lineTo(tx1, ty1);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 残差虚线
+      for (const p of dataPoints) {
+        const sx = margin.left + ((p.x - xMin) / (xMax - xMin)) * plotW;
+        const syPred = margin.top + ((yMax - (currentW * p.x + currentB)) / (yMax - yMin)) * plotH;
+        const syTrue = margin.top + ((yMax - p.y) / (yMax - yMin)) * plotH;
+        ctx.strokeStyle = 'rgba(180,160,140,0.3)';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        ctx.moveTo(sx, syPred);
+        ctx.lineTo(sx, syTrue);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 拟合线
+      const fitY0 = currentW * xMin + currentB;
+      const fitY1 = currentW * xMax + currentB;
+      const fy0 = margin.top + ((yMax - fitY0) / (yMax - yMin)) * plotH;
+      const fy1 = margin.top + ((yMax - fitY1) / (yMax - yMin)) * plotH;
+      ctx.strokeStyle = 'rgba(199,91,57,0.2)';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(margin.left, fy0);
+      ctx.lineTo(margin.left + plotW, fy1);
+      ctx.stroke();
+      ctx.strokeStyle = '#c75b39';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, fy0);
+      ctx.lineTo(margin.left + plotW, fy1);
+      ctx.stroke();
+
+      // 数据点
+      for (const p of dataPoints) {
+        const sx = margin.left + ((p.x - xMin) / (xMax - xMin)) * plotW;
+        const sy = margin.top + ((yMax - p.y) / (yMax - yMin)) * plotH;
+        const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, 7);
+        grad.addColorStop(0, 'rgba(75,130,182,0.5)');
+        grad.addColorStop(0.5, 'rgba(75,130,182,0.2)');
+        grad.addColorStop(1, 'rgba(75,130,182,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 7, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#4b82b6';
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 5, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      // 图例
+      const lx = margin.left + plotW - 150, ly = margin.top + 6;
+      ctx.fillStyle = '#4b82b6';
+      ctx.beginPath();
+      ctx.arc(lx+6, ly+6, 5, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.fillStyle = '#4a4238';
+      ctx.font = '11px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('数据点', lx+18, ly+10);
+      ctx.strokeStyle = '#c75b39';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(lx, ly+24);
+      ctx.lineTo(lx+28, ly+24);
+      ctx.stroke();
+      ctx.fillText('拟合线', lx+34, ly+28);
+      ctx.strokeStyle = 'rgba(160,140,120,0.7)';
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.moveTo(lx, ly+42);
+      ctx.lineTo(lx+28, ly+42);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillText('真实 y=2x+1', lx+34, ly+46);
+    }
+
+    function drawContourPlot() {
+      const { ctx, displayW, displayH } = contourInfo;
+      const margin = { top: 20, right: 20, bottom: 38, left: 48 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fdfdf9';
+      ctx.fillRect(0, 0, displayW, displayH);
+
+      if (heatmapImageData && heatmapImageData.offCanvas) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(margin.left, margin.top, plotW, plotH);
+        ctx.clip();
+        ctx.drawImage(heatmapImageData.offCanvas, 0, 0,
+          heatmapImageData.offCanvas.width, heatmapImageData.offCanvas.height,
+          margin.left, margin.top, plotW, plotH);
+        ctx.restore();
+      }
+
+      ctx.strokeStyle = '#c5bdaa';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(margin.left, margin.top, plotW, plotH);
+
+      ctx.fillStyle = '#6b6358';
+      ctx.font = '600 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 7; i++) {
+        const val = contourWMin + (i/7)*(contourWMax - contourWMin);
+        const x = margin.left + (i/7)*plotW;
+        ctx.fillText(val.toFixed(1), x, margin.top + plotH + 16);
+      }
+      ctx.fillText('w (斜率)', margin.left+plotW/2, margin.top+plotH+34);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 6; i++) {
+        const val = contourBMax - (i/6)*(contourBMax - contourBMin);
+        const y = margin.top + (i/6)*plotH;
+        ctx.fillText(val.toFixed(1), margin.left-7, y);
+      }
+      ctx.textBaseline = 'alphabetic';
+      ctx.save();
+      ctx.translate(margin.left-34, margin.top+plotH/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.textAlign = 'center';
+      ctx.fillText('b (截距)', 0, 0);
+      ctx.restore();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, plotW, plotH);
+      ctx.clip();
+
+      if (history.length >= 2) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+          const hx = margin.left + ((history[i].w - contourWMin)/(contourWMax-contourWMin))*plotW;
+          const hy = margin.top + ((contourBMax - history[i].b)/(contourBMax-contourBMin))*plotH;
+          if (i===0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+          const hx = margin.left + ((history[i].w - contourWMin)/(contourWMax-contourWMin))*plotW;
+          const hy = margin.top + ((contourBMax - history[i].b)/(contourBMax-contourBMin))*plotH;
+          if (i===0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.stroke();
+      }
+
+      if (history.length > 0) {
+        const sx = margin.left + ((history[0].w - contourWMin)/(contourWMax-contourWMin))*plotW;
+        const sy = margin.top + ((contourBMax - history[0].b)/(contourBMax-contourBMin))*plotH;
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 6, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#555';
+        ctx.font = 'bold 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('起点', sx+10, sy-8);
+      }
+
+      const cx = margin.left + ((currentW - contourWMin)/(contourWMax-contourWMin))*plotW;
+      const cy = margin.top + ((contourBMax - currentB)/(contourBMax-contourBMin))*plotH;
+      const glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, 14);
+      glow.addColorStop(0, 'rgba(255,200,60,0.9)');
+      glow.addColorStop(0.4, 'rgba(255,160,40,0.5)');
+      glow.addColorStop(1, 'rgba(255,100,20,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 14, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.fillStyle = '#ffb833';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 7, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#2d2a24';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2.5, 0, 2*Math.PI);
+      ctx.fill();
+
+      const optX = margin.left + ((OPT_W - contourWMin)/(contourWMax-contourWMin))*plotW;
+      const optY = margin.top + ((contourBMax - OPT_B)/(contourBMax-contourBMin))*plotH;
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#c8963f';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const starR = 8;
+      for (let i = 0; i < 10; i++) {
+        const angle = -Math.PI/2 + (i*Math.PI)/5;
+        const r = i%2===0 ? starR : starR*0.4;
+        const sx = optX + Math.cos(angle)*r;
+        const sy = optY + Math.sin(angle)*r;
+        if (i===0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#8b6914';
+      ctx.font = 'bold 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillText('最优', optX+12, optY-4);
+      ctx.restore();
+    }
+
+    function drawLossCurve() {
+      const { ctx, displayW, displayH } = lossInfo;
+      const margin = { top: 15, right: 20, bottom: 35, left: 50 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fdfdf9';
+      ctx.fillRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fafaf7';
+      ctx.fillRect(margin.left, margin.top, plotW, plotH);
+
+      const maxEpoch = Math.max(epoch, 10);
+      const maxLoss = history.length > 0 ? Math.max(...history.map(h=>h.loss)) * 1.1 : 5;
+
+      ctx.strokeStyle = '#e8e4db';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 5; i++) {
+        const y = margin.top + (i/5)*plotH;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(margin.left+plotW, y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#c5bdaa';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(margin.left, margin.top, plotW, plotH);
+
+      ctx.fillStyle = '#6b6358';
+      ctx.font = '600 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 6; i++) {
+        const val = Math.round((i/6)*maxEpoch);
+        const x = margin.left + (i/6)*plotW;
+        ctx.fillText(val, x, margin.top+plotH+16);
+      }
+      ctx.fillText('迭代次数', margin.left+plotW/2, margin.top+plotH+32);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 5; i++) {
+        const val = maxLoss * (1 - i/5);
+        const y = margin.top + (i/5)*plotH;
+        ctx.fillText(val.toFixed(2), margin.left-7, y);
+      }
+      ctx.textBaseline = 'alphabetic';
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, plotW, plotH);
+      ctx.clip();
+
+      if (history.length >= 2) {
+        ctx.fillStyle = 'rgba(79,140,99,0.12)';
+        ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+          const sx = margin.left + (i / Math.max(history.length-1,1)) * plotW;
+          const sy = margin.top + ((maxLoss - history[i].loss) / maxLoss) * plotH;
+          if (i===0) ctx.moveTo(sx, margin.top+plotH);
+          ctx.lineTo(sx, sy);
+        }
+        ctx.lineTo(margin.left + ((history.length-1)/Math.max(history.length-1,1))*plotW, margin.top+plotH);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#4f8c63';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+          const sx = margin.left + (i / Math.max(history.length-1,1)) * plotW;
+          const sy = margin.top + ((maxLoss - history[i].loss) / maxLoss) * plotH;
+          if (i===0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+
+        const last = history[history.length-1];
+        const lx = margin.left + ((history.length-1)/Math.max(history.length-1,1))*plotW;
+        const ly = margin.top + ((maxLoss - last.loss)/maxLoss)*plotH;
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#4f8c63';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 6, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawAll() {
+      drawScatterPlot();
+      drawContourPlot();
+      drawLossCurve();
+      updateEquationDisplay();
+      updateUIState();
+    }
+
+    function updateEquationDisplay() {
+      const loss = computeMSE(currentW, currentB);
+      equationDisplay.innerHTML = `y = <span class="param-w">${currentW.toFixed(4)}</span>·x + <span class="param-b">${currentB.toFixed(4)}</span> <span class="loss-val">| Loss: ${loss.toFixed(4)}</span>`;
+      epochDisplay.textContent = epoch;
+    }
+
+    function updateUIState() {
+      lrValEl.textContent = learningRate.toFixed(4);
+      momentumValEl.textContent = momentum.toFixed(2);
+      speedValEl.textContent = speedMs + 'ms';
+      if (isRunning) {
+        btnPlay.textContent = '⏸ 暂停';
+        btnPlay.classList.add('paused');
+      } else {
+        btnPlay.textContent = '▶ 开始训练';
+        btnPlay.classList.remove('paused');
+      }
+    }
+
+    // ---------- 梯度下降步骤 ----------
+    function gradientStep() {
+      let dw = 0, db = 0;
+      for (const p of dataPoints) {
+        const err = currentW * p.x + currentB - p.y;
+        dw += err * p.x;
+        db += err;
+      }
+      dw = (2 / n) * dw;
+      db = (2 / n) * db;
+      velocityW = momentum * velocityW + dw;
+      velocityB = momentum * velocityB + db;
+      currentW -= learningRate * velocityW;
+      currentB -= learningRate * velocityB;
+      epoch++;
+      history.push({ w: currentW, b: currentB, loss: computeMSE(currentW, currentB) });
+      if (isRunning && (Math.sqrt(dw*dw+db*db) < 1e-6 || epoch >= 500)) {
+        pauseAnimation();
+      }
+    }
+
+    function startAnimation() {
+      if (isRunning) return;
+      if (history.length === 0) history.push({ w: currentW, b: currentB, loss: computeMSE(currentW, currentB) });
+      isRunning = true;
+      updateUIState();
+      scheduleNextStep();
+    }
+
+    function pauseAnimation() {
+      isRunning = false;
+      if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+      updateUIState();
+    }
+
+    function scheduleNextStep() {
+      if (!isRunning) return;
+      animationTimer = setTimeout(() => {
+        gradientStep();
+        drawAll();
+        scheduleNextStep();
+      }, speedMs);
+    }
+
+    function toggleAnimation() { isRunning ? pauseAnimation() : startAnimation(); }
+    function stepOnce() {
+      if (isRunning) pauseAnimation();
+      if (history.length === 0) history.push({ w: currentW, b: currentB, loss: computeMSE(currentW, currentB) });
+      gradientStep();
+      drawAll();
+    }
+    function resetAll() {
+      pauseAnimation();
+      currentW = 0; currentB = 0;
+      velocityW = 0; velocityB = 0;
+      epoch = 0;
+      history = [{ w: 0, b: 0, loss: computeMSE(0,0) }];
+      drawAll();
+    }
+
+    // ---------- 事件绑定 ----------
+    btnPlay.addEventListener('click', toggleAnimation);
+    btnStep.addEventListener('click', stepOnce);
+    btnReset.addEventListener('click', resetAll);
+    lrSlider.addEventListener('input', () => { learningRate = +lrSlider.value; updateUIState(); });
+    momentumSlider.addEventListener('input', () => { momentum = +momentumSlider.value; updateUIState(); });
+    speedSlider.addEventListener('input', () => {
+      speedMs = +speedSlider.value;
+      updateUIState();
+      if (isRunning) { clearTimeout(animationTimer); scheduleNextStep(); }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ') { e.preventDefault(); toggleAnimation(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); stepOnce(); }
+      else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); resetAll(); }
+    });
+
+    contourCanvas.addEventListener('click', (e) => {
+      const rect = contourCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      const margin = { top:20, right:20, bottom:38, left:48 };
+      const plotW = contourInfo.displayW - margin.left - margin.right;
+      const plotH = contourInfo.displayH - margin.top - margin.bottom;
+      const px = clickX - margin.left, py = clickY - margin.top;
+      if (px>=0 && px<=plotW && py>=0 && py<=plotH) {
+        pauseAnimation();
+        currentW = contourWMin + (px/plotW)*(contourWMax-contourWMin);
+        currentB = contourBMax - (py/plotH)*(contourBMax-contourBMin);
+        velocityW = 0; velocityB = 0;
+        epoch = 0;
+        history = [{ w: currentW, b: currentB, loss: computeMSE(currentW, currentB) }];
+        drawAll();
+      }
+    });
+
+    // 初始化
+    resizeAllCanvases();
+    history.push({ w: currentW, b: currentB, loss: computeMSE(currentW, currentB) });
+    drawAll();
+    console.log('✅ 线性拟合可视化已启动 | 真实关系 y=2x+1 | 初始 w=0 b=0');
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>多段线性组合 · 非线性拟合可视化</title>
+  <style>
+    :root {
+      --bg: #f5f2ed;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e0d9ce;
+      --shadow: 0 4px 14px rgba(0,0,0,0.05);
+      --shadow-hover: 0 8px 28px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;
+    }
+    .container { width: 100%; max-width: 1400px; display: flex; flex-direction: column; gap: 18px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    header h1 { font-size: 1.8rem; font-weight: 650; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    header h1 .icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(145deg, #c8963f, #a67c30); color: #fff; font-size: 1.2rem;
+    }
+    .badge {
+      font-size: 0.8rem; font-weight: 600; background: #efe8de; color: #7b6e56;
+      padding: 6px 14px; border-radius: 20px; letter-spacing: 0.02em;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+    @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+      border: 1px solid var(--border); transition: box-shadow 0.2s;
+    }
+    .panel:hover { box-shadow: var(--shadow-hover); }
+    .panel.fit-panel { grid-column: 1; grid-row: 1 / 3; min-height: 480px; }
+    .panel.weight-panel { grid-column: 2; grid-row: 1; min-height: 280px; }
+    .panel.loss-panel { grid-column: 2; grid-row: 2; min-height: 220px; }
+    @media (max-width: 1000px) {
+      .panel.fit-panel { grid-column: 1; grid-row: 1; min-height: 380px; }
+      .panel.weight-panel { grid-column: 1; grid-row: 2; min-height: 250px; }
+      .panel.loss-panel { grid-column: 1; grid-row: 3; min-height: 200px; }
+    }
+    .panel-title {
+      font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--text-light); display: flex; align-items: center; gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.fit { background: var(--accent); }
+    .dot.weight { background: var(--purple); }
+    .dot.loss { background: var(--green); }
+    canvas { display: block; width: 100%; height: auto; border-radius: var(--radius-sm); background: #fdfdf9; flex: 1; }
+    .equation-display {
+      font-size: 0.9rem; font-weight: 600; text-align: center; padding: 8px 16px;
+      background: #fcf7f2; border-radius: 20px; color: #8b4e2f; border: 1px solid #f1e2d3;
+    }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+      padding: 16px 18px; background: var(--panel-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+    }
+    .controls label { font-size: 0.8rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .controls input[type="range"] { width: 80px; accent-color: #c75b39; }
+    .controls input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1f77b4; cursor: pointer; }
+    .val-tag { min-width: 42px; text-align: center; font-weight: 700; font-size: 0.85rem; background: #f2ede6; border-radius: 6px; padding: 2px 6px; }
+    button {
+      font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 9px 18px; border-radius: 24px;
+      border: none; cursor: pointer; letter-spacing: 0.03em; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px; background: white; color: #4a4238; border: 2px solid #d9cfc0;
+    }
+    button:hover { background: #f4efe8; border-color: #b9a990; }
+    .btn-play { background: #c75b39; color: #fff; border: none; box-shadow: 0 4px 10px rgba(199,91,57,0.25); }
+    .btn-play:hover { background: #b04d2e; }
+    .btn-play.paused { background: #4f8c63; box-shadow: 0 4px 10px rgba(79,140,99,0.25); }
+    .btn-play.paused:hover { background: #3f7450; }
+    .info-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-light); margin-left: auto; }
+    .highlight { font-weight: 700; color: #2d2a24; }
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .controls { gap: 8px; padding: 10px 12px; }
+      .controls input[type="range"] { width: 60px; }
+      button { padding: 7px 12px; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span class="icon">📈</span>多段线性 · 非线性拟合</h1>
+    <span class="badge">ReLU基函数组合</span>
+  </header>
+
+  <div class="main-grid">
+    <div class="panel fit-panel" id="fitPanel">
+      <div class="panel-title"><span class="dot fit"></span>数据点 & 分段线性组合</div>
+      <canvas id="fitCanvas" aria-label="拟合曲线和基函数分量"></canvas>
+      <div class="equation-display" id="equationDisplay">
+        <span id="lossText">Loss: —</span>
+      </div>
+    </div>
+    <div class="panel weight-panel" id="weightPanel">
+      <div class="panel-title"><span class="dot weight"></span>权重随时间变化</div>
+      <canvas id="weightCanvas" aria-label="权重变化轨迹"></canvas>
+    </div>
+    <div class="panel loss-panel" id="lossPanel">
+      <div class="panel-title"><span class="dot loss"></span>损失随迭代变化</div>
+      <canvas id="lossCanvas" aria-label="损失曲线"></canvas>
+    </div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="btn-play" id="btnPlay">▶ 开始训练</button>
+    <button id="btnStep">⏭ 单步</button>
+    <button id="btnReset">↺ 重置</button>
+    
+    <label>
+      <input type="checkbox" id="includeXCheckbox" checked> 包含 x 项 (从0开始)
+    </label>
+    
+    <label>断点个数 <input type="range" id="basisSlider" min="2" max="10" step="1" value="6"><span class="val-tag" id="basisVal">6</span></label>
+    <label>学习率 <input type="range" id="lrSlider" min="0.001" max="0.3" step="0.001" value="0.02"><span class="val-tag" id="lrVal">0.020</span></label>
+    <label>动量 <input type="range" id="momentumSlider" min="0" max="0.95" step="0.05" value="0.7"><span class="val-tag" id="momentumVal">0.70</span></label>
+    <label>速度 <input type="range" id="speedSlider" min="10" max="200" step="10" value="60"><span class="val-tag" id="speedVal">60ms</span></label>
+    
+    <div class="info-row">
+      <span>迭代: <span class="highlight" id="epochDisplay">0</span></span>
+      <span>| 总基函数: <span class="highlight" id="totalBasisDisplay">7</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- DOM ----------
+    const fitCanvas = document.getElementById('fitCanvas');
+    const weightCanvas = document.getElementById('weightCanvas');
+    const lossCanvas = document.getElementById('lossCanvas');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const includeXCheckbox = document.getElementById('includeXCheckbox');
+    const basisSlider = document.getElementById('basisSlider');
+    const lrSlider = document.getElementById('lrSlider');
+    const momentumSlider = document.getElementById('momentumSlider');
+    const speedSlider = document.getElementById('speedSlider');
+    const basisValEl = document.getElementById('basisVal');
+    const lrValEl = document.getElementById('lrVal');
+    const momentumValEl = document.getElementById('momentumVal');
+    const speedValEl = document.getElementById('speedVal');
+    const epochDisplay = document.getElementById('epochDisplay');
+    const totalBasisDisplay = document.getElementById('totalBasisDisplay');
+    const lossText = document.getElementById('lossText');
+
+    // ---------- 数据生成 ----------
+    const N_POINTS = 30;
+    const dataPoints = [];
+    const xMinData = 0, xMaxData = 2 * Math.PI;
+    for (let i = 0; i < N_POINTS; i++) {
+      const x = xMinData + (i / (N_POINTS - 1)) * (xMaxData - xMinData);
+      const noise = (Math.random() - 0.5) * 0.25;
+      const y = Math.sin(x) + noise;
+      dataPoints.push({ x, y });
+    }
+
+    // ---------- 模型参数 ----------
+    let includeXBasis = true;          // 是否包含 x 项
+    let numKnots = 6;                 // 断点个数（均匀分布）
+    let knots = [];
+    let weights = [];                 // [w0, (w_x if includeXBasis), w1...w_knots]
+    let velocities = [];
+
+    // 调色板
+    const palette = [
+      '#e15759', '#f28e2b', '#4e79a7', '#59a14f', '#b07aa1',
+      '#ff9d76', '#9c755f', '#bab0ac', '#76b7b2', '#edc948'
+    ];
+    const xColor = '#1f77b4';          // x项专属颜色
+
+    // 生成断点
+    function generateKnots() {
+      knots = [];
+      for (let i = 0; i < numKnots; i++) {
+        knots.push(xMinData + (i + 1) * (xMaxData - xMinData) / (numKnots + 1));
+      }
+    }
+
+    // 初始化权重数组和速度
+    function initWeights() {
+      const totalWeights = 1 + (includeXBasis ? 1 : 0) + numKnots;
+      weights = new Array(totalWeights).fill(0);
+      velocities = new Array(totalWeights).fill(0);
+    }
+
+    // 模型预测
+    function predict(x, w) {
+      let y = w[0];
+      let idx = 1;
+      if (includeXBasis) {
+        y += w[idx] * x;
+        idx++;
+      }
+      for (let i = 0; i < numKnots; i++) {
+        y += w[idx + i] * Math.max(0, x - knots[i]);
+      }
+      return y;
+    }
+
+    function computeMSE(w) {
+      let total = 0;
+      for (const p of dataPoints) {
+        const err = predict(p.x, w) - p.y;
+        total += err * err;
+      }
+      return total / dataPoints.length;
+    }
+
+    // ---------- 状态 ----------
+    let epoch = 0;
+    let history = [];
+    let isRunning = false;
+    let animationTimer = null;
+    let learningRate = parseFloat(lrSlider.value);
+    let momentum = parseFloat(momentumSlider.value);
+    let speedMs = parseInt(speedSlider.value);
+
+    // 完全重置模型
+    function fullReset() {
+      pauseAnimation();
+      generateKnots();
+      initWeights();
+      epoch = 0;
+      history = [{ weights: [...weights], loss: computeMSE(weights) }];
+      drawAll();
+    }
+
+    // 初始构建
+    generateKnots();
+    initWeights();
+    history.push({ weights: [...weights], loss: computeMSE(weights) });
+
+    // ---------- 梯度下降 ----------
+    function gradientStep() {
+      const n = dataPoints.length;
+      const totalWeights = weights.length;
+      const grad = new Array(totalWeights).fill(0);
+      
+      for (const p of dataPoints) {
+        const yPred = predict(p.x, weights);
+        const error = yPred - p.y;
+        grad[0] += error;
+        let idx = 1;
+        if (includeXBasis) {
+          grad[idx] += error * p.x;
+          idx++;
+        }
+        for (let i = 0; i < numKnots; i++) {
+          grad[idx + i] += error * Math.max(0, p.x - knots[i]);
+        }
+      }
+      
+      for (let i = 0; i < totalWeights; i++) {
+        grad[i] = (2 / n) * grad[i];
+        velocities[i] = momentum * velocities[i] + grad[i];
+        weights[i] -= learningRate * velocities[i];
+      }
+      
+      epoch++;
+      history.push({ weights: [...weights], loss: computeMSE(weights) });
+
+      const gradNorm = Math.sqrt(grad.reduce((sum, g) => sum + g * g, 0));
+      if (isRunning && (gradNorm < 1e-5 || epoch >= 800)) {
+        pauseAnimation();
+      }
+    }
+
+    // ---------- 动画控制 ----------
+    function startAnimation() {
+      if (isRunning) return;
+      isRunning = true;
+      updateUIState();
+      scheduleNextStep();
+    }
+    function pauseAnimation() {
+      isRunning = false;
+      if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+      updateUIState();
+    }
+    function scheduleNextStep() {
+      if (!isRunning) return;
+      animationTimer = setTimeout(() => {
+        gradientStep();
+        drawAll();
+        scheduleNextStep();
+      }, speedMs);
+    }
+    function toggleAnimation() { isRunning ? pauseAnimation() : startAnimation(); }
+    function stepOnce() {
+      if (isRunning) pauseAnimation();
+      gradientStep();
+      drawAll();
+    }
+    function resetAll() { fullReset(); }
+
+    // ---------- UI更新 ----------
+    function updateUIState() {
+      lrValEl.textContent = learningRate.toFixed(3);
+      momentumValEl.textContent = momentum.toFixed(2);
+      speedValEl.textContent = speedMs + 'ms';
+      basisValEl.textContent = numKnots;
+      const totalBasis = (includeXBasis ? 1 : 0) + numKnots;
+      totalBasisDisplay.textContent = totalBasis;
+      epochDisplay.textContent = epoch;
+      const currentLoss = history.length > 0 ? history[history.length-1].loss : computeMSE(weights);
+      lossText.textContent = `Loss: ${currentLoss.toFixed(5)}`;
+      if (isRunning) {
+        btnPlay.textContent = '⏸ 暂停';
+        btnPlay.classList.add('paused');
+      } else {
+        btnPlay.textContent = '▶ 开始训练';
+        btnPlay.classList.remove('paused');
+      }
+    }
+
+    // ---------- Canvas尺寸 ----------
+    function setupCanvas(canvas, idealW, idealH) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const displayW = Math.max(idealW, canvas.clientWidth || idealW);
+      const displayH = Math.max(idealH, canvas.clientHeight || idealH);
+      canvas.style.width = displayW + 'px';
+      canvas.style.height = displayH + 'px';
+      canvas.width = Math.floor(displayW * dpr);
+      canvas.height = Math.floor(displayH * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      return { ctx, displayW, displayH, dpr };
+    }
+
+    let fitInfo, weightInfo, lossInfo;
+    function resizeAll() {
+      fitInfo = setupCanvas(fitCanvas, 600, 420);
+      weightInfo = setupCanvas(weightCanvas, 500, 240);
+      lossInfo = setupCanvas(lossCanvas, 500, 200);
+    }
+    window.addEventListener('resize', () => { resizeAll(); drawAll(); });
+
+    // ---------- 绘制函数 ----------
+    function drawFitPanel() {
+      const { ctx, displayW, displayH } = fitInfo;
+      const margin = { top: 25, right: 25, bottom: 45, left: 55 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+
+      const yDataMin = Math.min(...dataPoints.map(p => p.y));
+      const yDataMax = Math.max(...dataPoints.map(p => p.y));
+      const pad = 0.3;
+      const yMin = yDataMin - pad;
+      const yMax = yDataMax + pad;
+
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fdfdf9';
+      ctx.fillRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fafaf7';
+      ctx.fillRect(margin.left, margin.top, plotW, plotH);
+
+      // 网格和坐标轴
+      ctx.strokeStyle = '#e8e4db';
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i <= 6; i++) {
+        const x = margin.left + (i / 6) * plotW;
+        ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, margin.top + plotH); ctx.stroke();
+      }
+      for (let i = 0; i <= 6; i++) {
+        const y = margin.top + (i / 6) * plotH;
+        ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + plotW, y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#c5bdaa';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top); ctx.lineTo(margin.left, margin.top + plotH);
+      ctx.lineTo(margin.left + plotW, margin.top + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = '#6b6358';
+      ctx.font = '600 11px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 6; i++) {
+        const val = xMinData + (i / 6) * (xMaxData - xMinData);
+        ctx.fillText(val.toFixed(2), margin.left + (i / 6) * plotW, margin.top + plotH + 16);
+      }
+      ctx.fillText('x', margin.left + plotW/2, margin.top + plotH + 34);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 6; i++) {
+        const val = yMax - (i / 6) * (yMax - yMin);
+        ctx.fillText(val.toFixed(2), margin.left - 8, margin.top + (i / 6) * plotH);
+      }
+      ctx.textBaseline = 'alphabetic';
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(margin.left, margin.top, plotW, plotH);
+      ctx.clip();
+
+      const currentWeights = history.length > 0 ? history[history.length-1].weights : weights;
+      const baselineY = margin.top + ((yMax - currentWeights[0]) / (yMax - yMin)) * plotH;
+
+      // 绘制基函数分量 (先画 x 项，再画 ReLU 项)
+      if (includeXBasis) {
+        const wx = currentWeights[1];
+        if (Math.abs(wx) > 1e-5) {
+          ctx.fillStyle = xColor + '40';
+          ctx.beginPath();
+          // 从 x=0 开始
+          const startX = margin.left;
+          const startY = baselineY;
+          ctx.moveTo(startX, startY);
+          const steps = 80;
+          for (let j = 0; j <= steps; j++) {
+            const xVal = xMinData + (j / steps) * (xMaxData - xMinData);
+            const yVal = currentWeights[0] + wx * xVal;
+            const sx = margin.left + ((xVal - xMinData) / (xMaxData - xMinData)) * plotW;
+            const sy = margin.top + ((yMax - yVal) / (yMax - yMin)) * plotH;
+            ctx.lineTo(sx, sy);
+          }
+          ctx.lineTo(margin.left + plotW, startY);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      let idx = includeXBasis ? 2 : 1;
+      for (let i = 0; i < numKnots; i++) {
+        const wi = currentWeights[idx + i];
+        if (Math.abs(wi) < 1e-5) continue;
+        const knot = knots[i];
+        const color = palette[i % palette.length];
+        ctx.fillStyle = color + '40';
+        ctx.beginPath();
+        const startX = margin.left + ((knot - xMinData) / (xMaxData - xMinData)) * plotW;
+        const startY = baselineY;
+        ctx.moveTo(startX, startY);
+        const steps = 80;
+        for (let j = 0; j <= steps; j++) {
+          const xVal = knot + (j / steps) * (xMaxData - knot);
+          const yVal = currentWeights[0] + wi * (xVal - knot);
+          const sx = margin.left + ((xVal - xMinData) / (xMaxData - xMinData)) * plotW;
+          const sy = margin.top + ((yMax - yVal) / (yMax - yMin)) * plotH;
+          ctx.lineTo(sx, sy);
+        }
+        ctx.lineTo(margin.left + plotW, startY);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 拟合曲线
+      ctx.strokeStyle = '#c75b39';
+      ctx.lineWidth = 2.8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let i = 0; i <= 150; i++) {
+        const xVal = xMinData + (i / 150) * (xMaxData - xMinData);
+        const yVal = predict(xVal, currentWeights);
+        const sx = margin.left + ((xVal - xMinData) / (xMaxData - xMinData)) * plotW;
+        const sy = margin.top + ((yMax - yVal) / (yMax - yMin)) * plotH;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+
+      // 断点竖线
+      ctx.strokeStyle = '#aaaaaa';
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([3, 4]);
+      for (const knot of knots) {
+        const kx = margin.left + ((knot - xMinData) / (xMaxData - xMinData)) * plotW;
+        ctx.beginPath();
+        ctx.moveTo(kx, margin.top);
+        ctx.lineTo(kx, margin.top + plotH);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // 数据点
+      for (const p of dataPoints) {
+        const sx = margin.left + ((p.x - xMinData) / (xMaxData - xMinData)) * plotW;
+        const sy = margin.top + ((yMax - p.y) / (yMax - yMin)) * plotH;
+        ctx.fillStyle = '#4b82b6';
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 图例
+      const legendX = margin.left + plotW - 200, legendY = margin.top + 8;
+      ctx.fillStyle = '#4b82b6';
+      ctx.beginPath(); ctx.arc(legendX+6, legendY+6, 5, 0, 2*Math.PI); ctx.fill();
+      ctx.fillStyle = '#4a4238'; ctx.font = '11px "Inter","PingFang SC","Microsoft YaHei",sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('数据点', legendX+18, legendY+10);
+      ctx.strokeStyle = '#c75b39'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(legendX, legendY+24); ctx.lineTo(legendX+28, legendY+24); ctx.stroke();
+      ctx.fillText('拟合曲线', legendX+34, legendY+28);
+      
+      let legendOffset = 0;
+      if (includeXBasis) {
+        ctx.fillStyle = xColor + '90';
+        ctx.fillRect(legendX, legendY+38, 12, 10);
+        ctx.fillStyle = '#4a4238';
+        ctx.fillText('wₓ·x', legendX+18, legendY+48);
+        legendOffset = 20;
+      }
+      const maxLegend = Math.min(numKnots, 6);
+      for (let i = 0; i < maxLegend; i++) {
+        const color = palette[i % palette.length];
+        ctx.fillStyle = color + '90';
+        ctx.fillRect(legendX, legendY+38+legendOffset + i*16, 12, 10);
+        ctx.fillStyle = '#4a4238';
+        ctx.fillText(`w${i+1}·ReLU(x-${knots[i].toFixed(2)})`, legendX+18, legendY+48+legendOffset + i*16);
+      }
+      if (numKnots > 6) {
+        ctx.fillText('...', legendX+18, legendY+48+legendOffset + 6*16);
+      }
+    }
+
+    function drawWeightPanel() {
+      const { ctx, displayW, displayH } = weightInfo;
+      const margin = { top: 20, right: 25, bottom: 35, left: 45 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.fillStyle = '#fdfdf9'; ctx.fillRect(0,0,displayW,displayH);
+      ctx.fillStyle = '#fafaf7'; ctx.fillRect(margin.left, margin.top, plotW, plotH);
+
+      let minW = Infinity, maxW = -Infinity;
+      for (const h of history) {
+        for (const w of h.weights) {
+          if (w < minW) minW = w;
+          if (w > maxW) maxW = w;
+        }
+      }
+      if (minW === maxW) { minW -= 1; maxW += 1; }
+      const padW = (maxW - minW) * 0.2 || 0.5;
+      const wMin = minW - padW;
+      const wMax = maxW + padW;
+
+      ctx.strokeStyle = '#e8e4db'; ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 5; i++) {
+        const y = margin.top + (i/5)*plotH;
+        ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left+plotW, y); ctx.stroke();
+      }
+      const maxEpoch = Math.max(epoch, 10);
+      for (let i = 0; i <= 6; i++) {
+        const x = margin.left + (i/6)*plotW;
+        ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, margin.top+plotH); ctx.stroke();
+      }
+      ctx.strokeStyle = '#c5bdaa'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(margin.left, margin.top, plotW, plotH);
+
+      ctx.fillStyle = '#6b6358'; ctx.font = '600 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 6; i++) {
+        ctx.fillText(Math.round((i/6)*maxEpoch), margin.left + (i/6)*plotW, margin.top+plotH+16);
+      }
+      ctx.fillText('迭代', margin.left+plotW/2, margin.top+plotH+32);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 5; i++) {
+        const val = wMax - (i/5)*(wMax - wMin);
+        ctx.fillText(val.toFixed(2), margin.left-7, margin.top + (i/5)*plotH);
+      }
+      ctx.textBaseline = 'alphabetic';
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(margin.left, margin.top, plotW, plotH); ctx.clip();
+
+      // 权重线条颜色
+      const weightColors = ['#2d2a24']; // w0 黑色
+      if (includeXBasis) weightColors.push(xColor);
+      weightColors.push(...palette);
+
+      for (let p = 0; p < weights.length; p++) {
+        ctx.strokeStyle = weightColors[p % weightColors.length];
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+          const x = margin.left + (i / Math.max(history.length-1, 1)) * plotW;
+          const y = margin.top + ((wMax - history[i].weights[p]) / (wMax - wMin)) * plotH;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 图例
+      ctx.font = '10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      const legendStartY = margin.top;
+      let labelIdx = 0;
+      const drawLegendItem = (color, label) => {
+        const lx = margin.left + plotW + 5;
+        const ly = legendStartY + labelIdx * 14;
+        ctx.fillStyle = color;
+        ctx.fillRect(lx, ly, 8, 8);
+        ctx.fillStyle = '#4a4238'; ctx.textAlign = 'left';
+        ctx.fillText(label, lx+12, ly+8);
+        labelIdx++;
+      };
+      drawLegendItem('#2d2a24', 'w0(偏置)');
+      if (includeXBasis) drawLegendItem(xColor, 'wₓ (x)');
+      for (let i = 0; i < Math.min(numKnots, 8); i++) {
+        drawLegendItem(palette[i % palette.length], `w${i+1}`);
+      }
+      if (numKnots > 8) {
+        ctx.fillStyle = '#4a4238';
+        ctx.fillText('...', margin.left + plotW + 17, legendStartY + labelIdx * 14);
+      }
+    }
+
+    function drawLossPanel() {
+      const { ctx, displayW, displayH } = lossInfo;
+      const margin = { top: 15, right: 20, bottom: 35, left: 50 };
+      const plotW = displayW - margin.left - margin.right;
+      const plotH = displayH - margin.top - margin.bottom;
+
+      ctx.clearRect(0,0,displayW,displayH);
+      ctx.fillStyle = '#fdfdf9'; ctx.fillRect(0,0,displayW,displayH);
+      ctx.fillStyle = '#fafaf7'; ctx.fillRect(margin.left, margin.top, plotW, plotH);
+
+      const maxEpoch = Math.max(epoch, 10);
+      const maxLoss = history.length > 0 ? Math.max(...history.map(h=>h.loss)) * 1.1 : 5;
+
+      ctx.strokeStyle = '#e8e4db'; ctx.lineWidth=0.5;
+      for (let i=0;i<=5;i++) {
+        const y = margin.top + (i/5)*plotH;
+        ctx.beginPath(); ctx.moveTo(margin.left,y); ctx.lineTo(margin.left+plotW,y); ctx.stroke();
+      }
+      ctx.strokeStyle = '#c5bdaa'; ctx.lineWidth=1.5;
+      ctx.strokeRect(margin.left, margin.top, plotW, plotH);
+
+      ctx.fillStyle = '#6b6358'; ctx.font='600 10px "Inter","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign='center';
+      for (let i=0;i<=6;i++) {
+        ctx.fillText(Math.round((i/6)*maxEpoch), margin.left+(i/6)*plotW, margin.top+plotH+16);
+      }
+      ctx.fillText('迭代', margin.left+plotW/2, margin.top+plotH+32);
+      ctx.textAlign='right'; ctx.textBaseline='middle';
+      for (let i=0;i<=5;i++) {
+        ctx.fillText((maxLoss*(1-i/5)).toFixed(3), margin.left-7, margin.top+(i/5)*plotH);
+      }
+      ctx.textBaseline='alphabetic';
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(margin.left, margin.top, plotW, plotH); ctx.clip();
+
+      if (history.length >= 2) {
+        ctx.fillStyle = 'rgba(79,140,99,0.12)';
+        ctx.beginPath();
+        for (let i=0;i<history.length;i++) {
+          const sx = margin.left + (i/Math.max(history.length-1,1))*plotW;
+          const sy = margin.top + ((maxLoss - history[i].loss)/maxLoss)*plotH;
+          if (i===0) ctx.moveTo(sx, margin.top+plotH);
+          ctx.lineTo(sx, sy);
+        }
+        ctx.lineTo(margin.left+((history.length-1)/Math.max(history.length-1,1))*plotW, margin.top+plotH);
+        ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#4f8c63'; ctx.lineWidth=2.2;
+        ctx.beginPath();
+        for (let i=0;i<history.length;i++) {
+          const sx = margin.left + (i/Math.max(history.length-1,1))*plotW;
+          const sy = margin.top + ((maxLoss - history[i].loss)/maxLoss)*plotH;
+          if (i===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawAll() {
+      drawFitPanel();
+      drawWeightPanel();
+      drawLossPanel();
+      updateUIState();
+    }
+
+    // ---------- 事件绑定 ----------
+    btnPlay.addEventListener('click', toggleAnimation);
+    btnStep.addEventListener('click', stepOnce);
+    btnReset.addEventListener('click', resetAll);
+
+    includeXCheckbox.addEventListener('change', () => {
+      includeXBasis = includeXCheckbox.checked;
+      fullReset();
+    });
+
+    basisSlider.addEventListener('input', () => {
+      const newKnots = parseInt(basisSlider.value);
+      if (newKnots !== numKnots) {
+        numKnots = newKnots;
+        fullReset();
+      }
+    });
+
+    lrSlider.addEventListener('input', () => { learningRate = +lrSlider.value; updateUIState(); });
+    momentumSlider.addEventListener('input', () => { momentum = +momentumSlider.value; updateUIState(); });
+    speedSlider.addEventListener('input', () => {
+      speedMs = +speedSlider.value;
+      updateUIState();
+      if (isRunning) { clearTimeout(animationTimer); scheduleNextStep(); }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ') { e.preventDefault(); toggleAnimation(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); stepOnce(); }
+      else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); resetAll(); }
+    });
+
+    // 初始化
+    resizeAll();
+    drawAll();
+    console.log('📈 多段线性非线性拟合已启动 | x项:' + includeXBasis + ' | 断点:' + numKnots);
+  })();
+</script>
+</body>
+</html>
