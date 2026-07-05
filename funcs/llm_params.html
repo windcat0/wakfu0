@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LLM 参数计算器</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      transition: var(--transition);
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 .icon {
+      font-size: 1.5rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      color: var(--text-light);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-group label {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .control-group input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--bg);
+      font-weight: 600;
+    }
+
+    .control-group input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(199, 91, 57, 0.1);
+    }
+
+    .control-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--bg);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .control-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(199, 91, 57, 0.1);
+    }
+
+    .control-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .control-group .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .control-group .desc {
+      font-size: 0.76rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    .preset-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--panel-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .preset-btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .tag {
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .card-title .total {
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background: rgba(79, 140, 99, 0.14);
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--bg);
+    }
+
+    td {
+      font-size: 0.88rem;
+    }
+
+    td.param-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    td.formula {
+      font-family: 'Cambria Math', 'Georgia', 'Times New Roman', serif;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    td.value {
+      font-weight: 700;
+      color: var(--accent);
+      text-align: right;
+    }
+
+    td.percent {
+      font-weight: 600;
+      color: var(--blue);
+      text-align: right;
+    }
+
+    tr:hover {
+      background: rgba(199, 91, 57, 0.03);
+    }
+
+    tr.total-row {
+      background: var(--accent-soft);
+    }
+
+    tr.total-row td {
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .summary-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .summary-item {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .summary-item .label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .summary-item .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .summary-item .unit {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    .breakdown-bar {
+      display: flex;
+      height: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .breakdown-segment {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: white;
+      transition: width 0.3s ease;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-light);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .formula-note {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      background: var(--bg);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--gold);
+      line-height: 1.6;
+    }
+
+    .formula-note strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .arch-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      background: rgba(199, 91, 57, 0.04);
+      border: 1px solid rgba(199, 91, 57, 0.15);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.4rem; }
+      .controls { grid-template-columns: 1fr; }
+      .arch-options { grid-template-columns: 1fr; }
+      th, td { padding: 8px 6px; font-size: 0.8rem; }
+      .summary-box { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="top-bar">
+        <a href="../func.html" class="back-link">← 返回功能列表</a>
+        <h1><span class="icon">🧮</span>LLM 参数计算器</h1>
+        <span class="badge">Transformer 架构</span>
+      </div>
+      <p class="subtitle">输入 Transformer 模型参数，自动计算各组件的参数量及总参数量。支持常见模型预设（GPT-2、GPT-3、Llama、Mistral 等）。</p>
+    </header>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>词表大小 (V)</label>
+        <input type="number" id="vocabSize" value="32000" min="1000" max="200000">
+        <span class="desc">tokenizer 的词汇表大小</span>
+      </div>
+      <div class="control-group">
+        <label>隐藏层维度 (d_model)</label>
+        <input type="number" id="hiddenSize" value="4096" min="64" max="100000" step="64">
+        <span class="desc">Transformer 隐藏层维度</span>
+      </div>
+      <div class="control-group">
+        <label>注意力头数 (n_heads)</label>
+        <input type="number" id="numHeads" value="32" min="1" max="128" step="1">
+        <span class="desc">多头注意力的头数</span>
+      </div>
+      <div class="control-group">
+        <label>前馈维度 (d_ff)</label>
+        <input type="number" id="ffnSize" value="11008" min="128" max="500000" step="128">
+        <span class="desc">前馈网络中间层维度</span>
+      </div>
+      <div class="control-group">
+        <label>层数 (n_layers)</label>
+        <input type="number" id="numLayers" value="32" min="1" max="200">
+        <span class="desc">Transformer 块数量</span>
+      </div>
+      <div class="control-group">
+        <label>最大序列长度 (max_seq_len)</label>
+        <input type="number" id="maxSeqLen" value="2048" min="128" max="100000" step="128">
+        <span class="desc">位置编码长度</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🏗️ 架构选项</span>
+      </div>
+      <div class="arch-options">
+        <div class="control-group">
+          <label>FFN 类型</label>
+          <select id="ffnType">
+            <option value="standard">标准 (2层线性)</option>
+            <option value="swiglu" selected>SwiGLU (3层线性)</option>
+          </select>
+          <span class="desc">标准: d_model→d_ff→d_model | SwiGLU: 3×d_model×d_ff</span>
+        </div>
+        <div class="control-group">
+          <label>位置编码</label>
+          <select id="posEncoding">
+            <option value="learned">学习型位置编码</option>
+            <option value="rope" selected>RoPE (无需参数)</option>
+            <option value="none">无位置编码</option>
+          </select>
+          <span class="desc">RoPE 为旋转位置编码，无学习参数</span>
+        </div>
+        <div class="control-group">
+          <label>归一化类型</label>
+          <select id="normType">
+            <option value="layernorm">LayerNorm (2×d_model/层)</option>
+            <option value="rmsnorm" selected>RMSNorm (d_model/层)</option>
+          </select>
+          <span class="desc">LayerNorm 含 γ 和 β，RMSNorm 仅含 γ</span>
+        </div>
+        <div class="control-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="weightTying" checked> 权重共享 (Embedding = LM Head)
+          </label>
+          <span class="desc">输出层与嵌入层共享权重，减少 V×d_model 参数</span>
+        </div>
+        <div class="control-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="useBiases"> 偏置参数
+          </label>
+          <span class="desc">线性层是否包含偏置项</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📋 参数预设</span>
+        <div class="preset-buttons">
+          <button class="preset-btn" data-preset="gpt2">GPT-2 Small</button>
+          <button class="preset-btn" data-preset="gpt2-medium">GPT-2 Medium</button>
+          <button class="preset-btn" data-preset="gpt3-125m">GPT-3 125M</button>
+          <button class="preset-btn" data-preset="gpt3-1.3b">GPT-3 1.3B</button>
+          <button class="preset-btn" data-preset="gpt3-6.7b">GPT-3 6.7B</button>
+          <button class="preset-btn" data-preset="llama7b">Llama 7B</button>
+          <button class="preset-btn" data-preset="llama13b">Llama 13B</button>
+          <button class="preset-btn" data-preset="llama33b">Llama 33B</button>
+          <button class="preset-btn" data-preset="llama65b">Llama 65B</button>
+          <button class="preset-btn" data-preset="mistral7b">Mistral 7B</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📊 参数量明细</span>
+        <span class="total">总计: <span id="totalParamsDisplay">0</span></span>
+      </div>
+      <div class="table-wrapper">
+        <table id="paramsTable">
+          <thead>
+            <tr>
+              <th>参数组件</th>
+              <th>计算公式</th>
+              <th>数量</th>
+              <th>占比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="param-name">嵌入层 (Embedding)</td>
+              <td class="formula" id="formula-embedding">V × d_model</td>
+              <td class="value" id="val-embedding">0</td>
+              <td class="percent" id="pct-embedding">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">位置编码 (Positional Encoding)</td>
+              <td class="formula" id="formula-position">max_seq_len × d_model</td>
+              <td class="value" id="val-position">0</td>
+              <td class="percent" id="pct-position">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">Q/K/V 投影 (每层)</td>
+              <td class="formula" id="formula-qkv">3 × d_model²</td>
+              <td class="value" id="val-qkv">0</td>
+              <td class="percent" id="pct-qkv">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">注意力输出投影 (每层)</td>
+              <td class="formula" id="formula-attn-out">d_model²</td>
+              <td class="value" id="val-attn-out">0</td>
+              <td class="percent" id="pct-attn-out">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">前馈网络 (每层)</td>
+              <td class="formula" id="formula-ffn">2 × d_model × d_ff</td>
+              <td class="value" id="val-ffn">0</td>
+              <td class="percent" id="pct-ffn">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">归一化层 (每层)</td>
+              <td class="formula" id="formula-norm">4 × d_model</td>
+              <td class="value" id="val-norm">0</td>
+              <td class="percent" id="pct-norm">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">偏置参数 (每层)</td>
+              <td class="formula" id="formula-biases">-</td>
+              <td class="value" id="val-biases">0</td>
+              <td class="percent" id="pct-biases">0%</td>
+            </tr>
+            <tr>
+              <td class="param-name">输出层 (LM Head)</td>
+              <td class="formula" id="formula-lm-head">d_model × V</td>
+              <td class="value" id="val-lm-head">0</td>
+              <td class="percent" id="pct-lm-head">0%</td>
+            </tr>
+            <tr class="total-row">
+              <td class="param-name">总参数量</td>
+              <td class="formula">-</td>
+              <td class="value" id="val-total">0</td>
+              <td class="percent">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📈 参数分布</span>
+      </div>
+      <div class="breakdown-bar" id="breakdownBar"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>💡 计算公式说明</span>
+      </div>
+      <div class="formula-note">
+        <strong>符号说明:</strong><br>
+        V = 词表大小, d_model = 隐藏层维度, n_heads = 注意力头数, d_ff = 前馈维度, n_layers = 层数, max_seq_len = 最大序列长度
+        <br><br>
+        <strong>各组件计算:</strong><br>
+        • <strong>嵌入层</strong>: 每个词对应一个 d_model 维度的向量，共 V 个词<br>
+        • <strong>位置编码</strong>: 学习型位置编码有 max_seq_len×d_model 参数；RoPE 无学习参数<br>
+        • <strong>Q/K/V 投影</strong>: 每层有 3 个线性层（Q、K、V），每个维度为 d_model×d_model<br>
+        • <strong>注意力输出投影</strong>: 合并多头输出的线性层，维度为 d_model×d_model<br>
+        • <strong>前馈网络</strong>: 标准 FFN 含 2 个线性层；SwiGLU 含 3 个线性层<br>
+        • <strong>归一化层</strong>: LayerNorm 每层有 2 个（γ 和 β），共 4×d_model；RMSNorm 仅 γ，共 2×d_model<br>
+        • <strong>偏置参数</strong>: 每个线性层可包含偏置向量，偏置项数量等于输出维度<br>
+        • <strong>输出层</strong>: 将隐藏状态映射到词表，维度为 d_model×V；权重共享时不重复计算
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📐 模型规模统计</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-item">
+          <div class="label">总参数量</div>
+          <div class="value" id="summary-total">0</div>
+          <div class="unit">参数</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">每层参数量</div>
+          <div class="value" id="summary-per-layer">0</div>
+          <div class="unit">参数/层</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">注意力层占比</div>
+          <div class="value" id="summary-attn-ratio">0%</div>
+          <div class="unit">of total</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">前馈层占比</div>
+          <div class="value" id="summary-ffn-ratio">0%</div>
+          <div class="unit">of total</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">嵌入层占比</div>
+          <div class="value" id="summary-emb-ratio">0%</div>
+          <div class="unit">of total</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">头维度</div>
+          <div class="value" id="summary-head-dim">0</div>
+          <div class="unit">d_model/n_heads</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bottom">输入参数后自动计算 · 点击预设快速加载常见模型配置</footer>
+  </div>
+
+  <script>
+    const presets = {
+      'gpt2': { vocabSize: 50257, hiddenSize: 768, numHeads: 12, ffnSize: 3072, numLayers: 12, maxSeqLen: 1024, ffnType: 'standard', posEncoding: 'learned', normType: 'layernorm', weightTying: true, useBiases: true },
+      'gpt2-medium': { vocabSize: 50257, hiddenSize: 1024, numHeads: 16, ffnSize: 4096, numLayers: 24, maxSeqLen: 1024, ffnType: 'standard', posEncoding: 'learned', normType: 'layernorm', weightTying: true, useBiases: true },
+      'gpt3-125m': { vocabSize: 50257, hiddenSize: 768, numHeads: 12, ffnSize: 3072, numLayers: 12, maxSeqLen: 2048, ffnType: 'standard', posEncoding: 'learned', normType: 'layernorm', weightTying: true, useBiases: true },
+      'gpt3-1.3b': { vocabSize: 50257, hiddenSize: 2048, numHeads: 16, ffnSize: 8192, numLayers: 24, maxSeqLen: 2048, ffnType: 'standard', posEncoding: 'learned', normType: 'layernorm', weightTying: true, useBiases: true },
+      'gpt3-6.7b': { vocabSize: 50257, hiddenSize: 4096, numHeads: 32, ffnSize: 16384, numLayers: 32, maxSeqLen: 2048, ffnType: 'standard', posEncoding: 'learned', normType: 'layernorm', weightTying: true, useBiases: true },
+      'llama7b': { vocabSize: 32000, hiddenSize: 4096, numHeads: 32, ffnSize: 11008, numLayers: 32, maxSeqLen: 2048, ffnType: 'swiglu', posEncoding: 'rope', normType: 'rmsnorm', weightTying: true, useBiases: false },
+      'llama13b': { vocabSize: 32000, hiddenSize: 5120, numHeads: 40, ffnSize: 13824, numLayers: 40, maxSeqLen: 2048, ffnType: 'swiglu', posEncoding: 'rope', normType: 'rmsnorm', weightTying: true, useBiases: false },
+      'llama33b': { vocabSize: 32000, hiddenSize: 6656, numHeads: 52, ffnSize: 17920, numLayers: 60, maxSeqLen: 2048, ffnType: 'swiglu', posEncoding: 'rope', normType: 'rmsnorm', weightTying: true, useBiases: false },
+      'llama65b': { vocabSize: 32000, hiddenSize: 8192, numHeads: 64, ffnSize: 22016, numLayers: 80, maxSeqLen: 2048, ffnType: 'swiglu', posEncoding: 'rope', normType: 'rmsnorm', weightTying: true, useBiases: false },
+      'mistral7b': { vocabSize: 32000, hiddenSize: 4096, numHeads: 32, ffnSize: 14336, numLayers: 32, maxSeqLen: 8192, ffnType: 'swiglu', posEncoding: 'rope', normType: 'rmsnorm', weightTying: true, useBiases: false }
+    };
+
+    const vocabSizeEl = document.getElementById('vocabSize');
+    const hiddenSizeEl = document.getElementById('hiddenSize');
+    const numHeadsEl = document.getElementById('numHeads');
+    const ffnSizeEl = document.getElementById('ffnSize');
+    const numLayersEl = document.getElementById('numLayers');
+    const maxSeqLenEl = document.getElementById('maxSeqLen');
+    const ffnTypeEl = document.getElementById('ffnType');
+    const posEncodingEl = document.getElementById('posEncoding');
+    const normTypeEl = document.getElementById('normType');
+    const weightTyingEl = document.getElementById('weightTying');
+    const useBiasesEl = document.getElementById('useBiases');
+
+    const colorPalette = {
+      embedding: '#c75b39',
+      position: '#4b82b6',
+      qkv: '#4f8c63',
+      attnOut: '#8b6b9e',
+      ffn: '#c8963f',
+      norm: '#76b7b2',
+      biases: '#bab0ac',
+      lmHead: '#e15759'
+    };
+
+    function formatNumber(n) {
+      if (n < 1000) return n.toString();
+      if (n < 1000000) return (n / 1000).toFixed(1) + 'K';
+      if (n < 1000000000) return (n / 1000000).toFixed(2) + 'M';
+      return (n / 1000000000).toFixed(2) + 'B';
+    }
+
+    function formatNumberFull(n) {
+      if (n >= 1000000000) return (n / 1000000000).toFixed(3) + 'B';
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return n.toString();
+    }
+
+    function calculate() {
+      const V = parseInt(vocabSizeEl.value) || 32000;
+      const d_model = parseInt(hiddenSizeEl.value) || 4096;
+      const n_heads = parseInt(numHeadsEl.value) || 32;
+      const d_ff = parseInt(ffnSizeEl.value) || 11008;
+      const n_layers = parseInt(numLayersEl.value) || 32;
+      const max_seq_len = parseInt(maxSeqLenEl.value) || 2048;
+      const ffn_type = ffnTypeEl.value;
+      const pos_encoding = posEncodingEl.value;
+      const norm_type = normTypeEl.value;
+      const weight_tying = weightTyingEl.checked;
+      const use_biases = useBiasesEl.checked;
+
+      const embedding = V * d_model;
+
+      let position = 0;
+      if (pos_encoding === 'learned') {
+        position = max_seq_len * d_model;
+      }
+
+      const qkv_per_layer = 3 * d_model * d_model;
+      const qkv = qkv_per_layer * n_layers;
+
+      const attn_out_per_layer = d_model * d_model;
+      const attn_out = attn_out_per_layer * n_layers;
+
+      let ffn_per_layer;
+      if (ffn_type === 'swiglu') {
+        ffn_per_layer = 3 * d_model * d_ff;
+      } else {
+        ffn_per_layer = 2 * d_model * d_ff;
+      }
+      const ffn = ffn_per_layer * n_layers;
+
+      let norm_per_layer;
+      if (norm_type === 'layernorm') {
+        norm_per_layer = 4 * d_model;
+      } else {
+        norm_per_layer = 2 * d_model;
+      }
+      const norm = norm_per_layer * n_layers;
+
+      let biases = 0;
+      if (use_biases) {
+        const qkv_biases = 3 * d_model * n_layers;
+        const attn_out_biases = d_model * n_layers;
+        let ffn_biases;
+        if (ffn_type === 'swiglu') {
+          ffn_biases = (2 * d_ff + d_model) * n_layers;
+        } else {
+          ffn_biases = (d_ff + d_model) * n_layers;
+        }
+        const lm_head_biases = weight_tying ? 0 : V;
+        biases = qkv_biases + attn_out_biases + ffn_biases + lm_head_biases;
+      }
+
+      const lm_head = weight_tying ? 0 : d_model * V;
+
+      const total = embedding + position + qkv + attn_out + ffn + norm + biases + lm_head;
+
+      const attn_total = qkv + attn_out;
+
+      function updateCell(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = formatNumber(value);
+        }
+      }
+
+      function updatePercent(id, value, total) {
+        const el = document.getElementById(id);
+        if (el) {
+          const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+          el.textContent = pct + '%';
+        }
+      }
+
+      function updateFormula(id, formula, value) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = `${formula} = ${formatNumberFull(value)}`;
+        }
+      }
+
+      updateFormula('formula-embedding', `V × d_model = ${V} × ${d_model}`, embedding);
+      updateCell('val-embedding', embedding);
+      updatePercent('pct-embedding', embedding, total);
+
+      const posFormula = pos_encoding === 'learned' ? `max_seq_len × d_model = ${max_seq_len} × ${d_model}` : 'RoPE (无参数)';
+      updateFormula('formula-position', posFormula, position);
+      updateCell('val-position', position);
+      updatePercent('pct-position', position, total);
+
+      updateFormula('formula-qkv', `n_layers × 3 × d_model² = ${n_layers} × 3 × ${d_model}²`, qkv);
+      updateCell('val-qkv', qkv);
+      updatePercent('pct-qkv', qkv, total);
+
+      updateFormula('formula-attn-out', `n_layers × d_model² = ${n_layers} × ${d_model}²`, attn_out);
+      updateCell('val-attn-out', attn_out);
+      updatePercent('pct-attn-out', attn_out, total);
+
+      const ffnFormula = ffn_type === 'swiglu' 
+        ? `n_layers × 3 × d_model × d_ff = ${n_layers} × 3 × ${d_model} × ${d_ff}`
+        : `n_layers × 2 × d_model × d_ff = ${n_layers} × 2 × ${d_model} × ${d_ff}`;
+      updateFormula('formula-ffn', ffnFormula, ffn);
+      updateCell('val-ffn', ffn);
+      updatePercent('pct-ffn', ffn, total);
+
+      const normFormula = norm_type === 'layernorm'
+        ? `n_layers × 4 × d_model = ${n_layers} × 4 × ${d_model}`
+        : `n_layers × 2 × d_model = ${n_layers} × 2 × ${d_model}`;
+      updateFormula('formula-norm', normFormula, norm);
+      updateCell('val-norm', norm);
+      updatePercent('pct-norm', norm, total);
+
+      const biasFormula = use_biases ? '各线性层偏置项之和' : '无偏置';
+      updateFormula('formula-biases', biasFormula, biases);
+      updateCell('val-biases', biases);
+      updatePercent('pct-biases', biases, total);
+
+      const lmHeadFormula = weight_tying ? '与嵌入层共享' : `d_model × V = ${d_model} × ${V}`;
+      updateFormula('formula-lm-head', lmHeadFormula, lm_head);
+      updateCell('val-lm-head', lm_head);
+      updatePercent('pct-lm-head', lm_head, total);
+
+      const totalEl = document.getElementById('val-total');
+      if (totalEl) totalEl.textContent = formatNumber(total);
+
+      const totalDisplay = document.getElementById('totalParamsDisplay');
+      if (totalDisplay) totalDisplay.textContent = formatNumber(total);
+
+      document.getElementById('summary-total').textContent = formatNumber(total);
+      document.getElementById('summary-per-layer').textContent = formatNumber((total - embedding - position - lm_head) / n_layers);
+      document.getElementById('summary-attn-ratio').textContent = total > 0 ? ((attn_total / total) * 100).toFixed(1) + '%' : '0%';
+      document.getElementById('summary-ffn-ratio').textContent = total > 0 ? ((ffn / total) * 100).toFixed(1) + '%' : '0%';
+      document.getElementById('summary-emb-ratio').textContent = total > 0 ? (((embedding + position + lm_head) / total) * 100).toFixed(1) + '%' : '0%';
+      document.getElementById('summary-head-dim').textContent = d_model / n_heads;
+
+      const breakdownItems = [
+        { label: '嵌入层', value: embedding, color: colorPalette.embedding },
+        { label: '位置编码', value: position, color: colorPalette.position },
+        { label: 'Q/K/V', value: qkv, color: colorPalette.qkv },
+        { label: '注意力输出', value: attn_out, color: colorPalette.attnOut },
+        { label: '前馈网络', value: ffn, color: colorPalette.ffn },
+        { label: '归一化', value: norm, color: colorPalette.norm },
+        { label: '偏置', value: biases, color: colorPalette.biases },
+        { label: '输出层', value: lm_head, color: colorPalette.lmHead }
+      ].filter(item => item.value > 0);
+
+      updateBreakdown(breakdownItems, total);
+    }
+
+    function updateBreakdown(items, total) {
+      const bar = document.getElementById('breakdownBar');
+      const legend = document.getElementById('legend');
+
+      bar.innerHTML = items.map(item => {
+        const width = total > 0 ? ((item.value / total) * 100).toFixed(2) : 0;
+        return `<div class="breakdown-segment" style="width: ${width}%; background: ${item.color};" title="${item.label}: ${formatNumber(item.value)} (${((item.value / total) * 100).toFixed(1)}%)">${width > 5 ? formatNumber(item.value) : ''}</div>`;
+      }).join('');
+
+      legend.innerHTML = items.map(item => {
+        const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+        return `<div class="legend-item"><div class="legend-dot" style="background: ${item.color};"></div><span>${item.label} (${pct}%)</span></div>`;
+      }).join('');
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const preset = presets[btn.dataset.preset];
+        if (preset) {
+          vocabSizeEl.value = preset.vocabSize;
+          hiddenSizeEl.value = preset.hiddenSize;
+          numHeadsEl.value = preset.numHeads;
+          ffnSizeEl.value = preset.ffnSize;
+          numLayersEl.value = preset.numLayers;
+          maxSeqLenEl.value = preset.maxSeqLen;
+          ffnTypeEl.value = preset.ffnType;
+          posEncodingEl.value = preset.posEncoding;
+          normTypeEl.value = preset.normType;
+          weightTyingEl.checked = preset.weightTying;
+          useBiasesEl.checked = preset.useBiases;
+          calculate();
+        }
+      });
+    });
+
+    [vocabSizeEl, hiddenSizeEl, numHeadsEl, ffnSizeEl, numLayersEl, maxSeqLenEl, ffnTypeEl, posEncodingEl, normTypeEl].forEach(el => {
+      el.addEventListener('input', calculate);
+    });
+
+    [weightTyingEl, useBiasesEl].forEach(el => {
+      el.addEventListener('change', calculate);
+    });
+
+    calculate();
+  </script>
+</body>
+</html>

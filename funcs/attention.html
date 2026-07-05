@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>注意力机制 · Scaled Dot-Product Attention 可视化</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ===== 顶部 ===== */
+    header.top { display: flex; flex-direction: column; gap: 10px; }
+    .top-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none; color: var(--text-light);
+      font-size: 0.9rem; padding: 6px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--panel-bg); transition: var(--transition);
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    h1 { font-size: 1.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+    h1 .icon { font-size: 1.5rem; }
+
+    .badge {
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 0.78rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+
+    .subtitle { color: var(--text-light); font-size: 0.98rem; line-height: 1.6; }
+
+    /* 公式块 */
+    .formula-box {
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+    .formula-label {
+      font-size: 0.74rem; font-weight: 700; padding: 2px 9px;
+      border-radius: 8px; background: rgba(199,91,57,0.14); color: var(--accent);
+      flex-shrink: 0;
+    }
+    .formula-text {
+      font-family: 'Cambria Math', 'Georgia', 'Times New Roman', serif;
+      font-size: 1.18rem; line-height: 1.4;
+    }
+    .formula-text .hot { color: var(--accent); font-weight: 700; }
+    .formula-text .blue { color: var(--blue); font-weight: 700; }
+
+    /* ===== 控制栏 ===== */
+    .controls {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px; box-shadow: var(--shadow);
+    }
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    .control-group label { font-size: 0.88rem; color: var(--text-light); font-weight: 500; }
+    .control-group input[type="range"] { width: 130px; accent-color: var(--accent); cursor: pointer; }
+    .control-group select {
+      padding: 5px 10px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.85rem; color: var(--text); background: var(--panel-bg);
+      cursor: pointer;
+    }
+    .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--text); cursor: pointer; user-select: none; }
+    .toggle input { accent-color: var(--accent); cursor: pointer; }
+    .val-tag { font-size: 0.78rem; color: var(--accent); font-weight: 600; min-width: 38px; text-align: right; }
+
+    /* ===== 主网格 ===== */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 12px;
+      transition: box-shadow var(--transition);
+    }
+    .panel:hover { box-shadow: var(--shadow-hover); }
+    .panel.heatmap-panel { grid-column: 1; grid-row: 1 / 3; }
+    .panel.steps-panel  { grid-column: 2; grid-row: 1; }
+    .panel.arrows-panel { grid-column: 1; grid-row: 3; }
+    .panel.input-panel  { grid-column: 2; grid-row: 2 / 4; }
+
+    .panel-title {
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.07em;
+      color: var(--text-light); text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.heat { background: var(--accent); }
+    .dot.step { background: var(--blue); }
+    .dot.arrow { background: var(--green); }
+    .dot.input { background: var(--gold); }
+
+    .panel-hint { font-size: 0.78rem; color: var(--text-light); margin-top: -4px; line-height: 1.4; }
+
+    /* ===== 热力图 ===== */
+    .heatmap-wrap { display: flex; gap: 6px; align-items: flex-start; }
+    .axis-y, .axis-x { font-size: 0.78rem; color: var(--text-light); }
+    .heatmap {
+      display: grid; gap: 3px; flex: 1;
+    }
+    .hm-cell {
+      aspect-ratio: 1; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 600; color: rgba(45,42,36,0.55);
+      cursor: pointer; transition: outline 0.12s, transform 0.12s;
+      min-width: 38px; min-height: 38px; user-select: none;
+    }
+    .hm-cell:hover { transform: scale(1.06); outline: 2px solid var(--text); }
+    .hm-cell.row-active { outline: 2.5px solid var(--accent); }
+    .hm-cell.col-active { outline: 2.5px solid var(--blue); }
+    .hm-cell.diag-active { outline: 2.5px solid var(--gold); }
+    .axis-row { display: flex; flex-direction: column; gap: 3px; justify-content: center; }
+    .axis-col { display: flex; gap: 3px; margin-top: 4px; justify-content: center; }
+    .axis-label {
+      min-width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; color: var(--text);
+      padding: 0 4px;
+    }
+    .axis-label.active { color: var(--accent); }
+
+    .legend-bar {
+      display: flex; align-items: center; gap: 8px; font-size: 0.74rem; color: var(--text-light);
+    }
+    .legend-grad {
+      width: 120px; height: 10px; border-radius: 5px;
+      background: linear-gradient(90deg, #fdfdf9, #f0c4b0, #c75b39, #7a2a14);
+    }
+
+    /* ===== 步骤矩阵 ===== */
+    .step-matrix { display: flex; flex-direction: column; gap: 4px; }
+    .step-name { font-size: 0.78rem; color: var(--text); font-weight: 600; }
+    .step-name .op { color: var(--blue); font-family: 'Cambria Math','Georgia',serif; }
+    .step-name .out { color: var(--gold); font-family: 'Cambria Math','Georgia',serif; }
+    table.mx { border-collapse: separate; border-spacing: 3px; }
+    table.mx td {
+      min-width: 44px; height: 30px; text-align: center;
+      font-family: 'Inter', system-ui; font-size: 0.76rem; font-weight: 600;
+      border-radius: 4px; background: var(--bg); color: var(--text);
+      transition: outline 0.12s;
+    }
+    table.mx td.row-hi { outline: 2px solid var(--accent); }
+    .step-block { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 1px dashed var(--border); }
+    .step-block:first-child { border-top: none; padding-top: 0; }
+
+    /* ===== 箭头连线图 ===== */
+    canvas.arrows { width: 100%; height: 200px; display: block; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+    /* ===== 输入矩阵编辑 ===== */
+    .input-matrices { display: flex; gap: 14px; flex-wrap: wrap; }
+    .input-mat { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
+    .input-mat-title {
+      font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+    }
+    .input-mat-title .tag-q { color: var(--accent); }
+    .input-mat-title .tag-k { color: var(--blue); }
+    .input-mat-title .tag-v { color: var(--gold); }
+    .input-mat-title .tok { font-size: 0.7rem; color: var(--text-light); font-weight: 500; }
+    table.inp { border-collapse: separate; border-spacing: 3px; }
+    table.inp td {
+      min-width: 38px; height: 28px; text-align: center;
+      font-family: 'Inter', system-ui; font-size: 0.74rem;
+      border-radius: 4px; background: var(--bg); color: var(--text);
+      cursor: text; outline: none; transition: background 0.12s;
+    }
+    table.inp td:focus { background: #fff; outline: 2px solid var(--accent); }
+    table.inp td.q-cell:focus { outline-color: var(--accent); }
+    table.inp td.k-cell:focus { outline-color: var(--blue); }
+    table.inp td.v-cell:focus { outline-color: var(--gold); }
+    .mat-tokens { display: flex; gap: 3px; margin-bottom: 2px; }
+    .mat-tokens span {
+      flex: 1; min-width: 38px; text-align: center; font-size: 0.66rem;
+      color: var(--text-light); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    footer.bottom { text-align: center; color: var(--text-light); font-size: 0.82rem; padding-top: 4px; }
+
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .panel.heatmap-panel { grid-column: 1; grid-row: auto; }
+      .panel.steps-panel { grid-column: 1; grid-row: auto; }
+      .panel.arrows-panel { grid-column: 1; grid-row: auto; }
+      .panel.input-panel { grid-column: 1; grid-row: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="top">
+      <div class="top-bar">
+        <a href="../func.html" class="back-link">← 返回功能列表</a>
+        <h1><span class="icon">⚛️</span>注意力机制</h1>
+        <span class="badge">Scaled Dot-Product</span>
+      </div>
+      <p class="subtitle">可视化 Self-Attention 的完整计算流程。点击热力图某行（Query）查看它如何分配注意力到各 Key，拖动缩放因子感受 softmax 锐度变化。</p>
+    </header>
+
+    <!-- 公式 -->
+    <div class="formula-box">
+      <span class="formula-label">f</span>
+      <span class="formula-text">
+        Attention(Q, K, V) = <span class="blue">softmax</span>(<span class="hot">Q · Kᵀ</span> / √dₖ) · V
+      </span>
+    </div>
+
+    <!-- 控制栏 -->
+    <div class="controls">
+      <div class="control-group">
+        <label>示例</label>
+        <select id="demoSelect"></select>
+      </div>
+      <div class="control-group">
+        <label>缩放 √dₖ</label>
+        <input type="range" id="scaleSlider" min="0.3" max="3" step="0.05" value="1">
+        <span class="val-tag" id="scaleVal">1.00</span>
+      </div>
+      <div class="control-group">
+        <label>维度 dₖ</label>
+        <select id="dimSelect">
+          <option value="4">4</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+        </select>
+      </div>
+      <label class="toggle"><input type="checkbox" id="showValues" checked> 显示数值</label>
+      <label class="toggle"><input type="checkbox" id="showArrows" checked> 箭头图</label>
+      <span style="margin-left:auto; font-size:0.8rem; color:var(--text-light);">
+        当前 Query：<strong id="selInfo" style="color:var(--accent);">—</strong>
+      </span>
+    </div>
+
+    <!-- 主网格 -->
+    <div class="main-grid">
+      <!-- A. 热力图 -->
+      <div class="panel heatmap-panel">
+        <div class="panel-title"><span class="dot heat"></span>注意力权重矩阵 Attention Weights</div>
+        <div class="panel-hint">每行经 softmax 归一化（行和≈1）。行=Query，列=Key。点击某行选中该 Query。</div>
+        <div id="heatmapArea"></div>
+        <div class="legend-bar">
+          <span>低</span><div class="legend-grad"></div><span>高</span>
+        </div>
+      </div>
+
+      <!-- B. 步骤矩阵 -->
+      <div class="panel steps-panel">
+        <div class="panel-title"><span class="dot step"></span>逐步计算 Step-by-Step</div>
+        <div class="panel-hint">缩放因子改变时，scaled 和 softmax 结果实时变化。</div>
+        <div id="stepsArea"></div>
+      </div>
+
+      <!-- C. 箭头图 -->
+      <div class="panel arrows-panel" id="arrowsPanel">
+        <div class="panel-title"><span class="dot arrow"></span>权重连线图 Weight Links</div>
+        <div class="panel-hint">上方 Query 指向下方 Key，线越粗/越红权重越大。</div>
+        <canvas class="arrows" id="arrowsCanvas"></canvas>
+      </div>
+
+      <!-- D. 输入矩阵 -->
+      <div class="panel input-panel">
+        <div class="panel-title"><span class="dot input"></span>输入矩阵 Q / K / V （可编辑）</div>
+        <div class="panel-hint">点击单元格修改数值（范围 -9~9）。修改后全链路自动重算。</div>
+        <div class="input-matrices" id="inputArea"></div>
+      </div>
+    </div>
+
+    <footer class="bottom">提示：缩放因子调到 0.3 以下或 Q/K 数值很大时，softmax 会"尖峰化"——这正是要除以 √dₖ 的原因。</footer>
+  </div>
+
+  <script>
+    // ============================================================
+    //  预设 demo：每个 demo 包含 tokens 与固定的向量种子。
+    //  向量按 dim 通过 hash 投影生成，保证 demo 语义一致 + 可复现。
+    // ============================================================
+    const DEMOS = [
+      {
+        name: 'the cat sat (3 tokens)',
+        tokens: ['the', 'cat', 'sat'],
+        // hand-crafted semantic-ish 8-dim vectors (per-token)
+        base: {
+          'the': [0.9, 0.8, 0.1, 0.1, 0.2, 0.1, 0.3, 0.1],
+          'cat': [0.1, 0.1, 0.9, 0.8, 0.7, 0.2, 0.4, 0.2],
+          'sat': [0.2, 0.3, 0.4, 0.3, 0.5, 0.9, 0.8, 0.6],
+        }
+      },
+      {
+        name: 'I love deep learning (4 tokens)',
+        tokens: ['I', 'love', 'deep', 'learning'],
+        base: {
+          'I':       [0.8, 0.7, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1],
+          'love':    [0.3, 0.4, 0.8, 0.7, 0.6, 0.3, 0.2, 0.4],
+          'deep':    [0.1, 0.2, 0.4, 0.5, 0.6, 0.8, 0.7, 0.5],
+          'learning':[0.2, 0.1, 0.5, 0.6, 0.7, 0.6, 0.9, 0.8],
+        }
+      },
+      {
+        name: 'bank of the river (4 tokens)',
+        tokens: ['bank', 'of', 'the', 'river'],
+        base: {
+          'bank':  [0.7, 0.5, 0.4, 0.3, 0.6, 0.8, 0.5, 0.4],
+          'of':    [0.5, 0.5, 0.1, 0.2, 0.2, 0.1, 0.2, 0.1],
+          'the':   [0.9, 0.8, 0.1, 0.1, 0.2, 0.1, 0.3, 0.1],
+          'river': [0.4, 0.3, 0.6, 0.5, 0.8, 0.9, 0.7, 0.6],
+        }
+      },
+    ];
+
+    // ============================================================
+    //  全局状态
+    // ============================================================
+    const state = {
+      demoIdx: 0,
+      dim: 4,
+      scale: 1.0,       // 对 √dₖ 的额外倍率：实际除以 (√dₖ * scale)
+      selectedQuery: 0,
+      showValues: true,
+      showArrows: true,
+      // 当前矩阵
+      Q: [], K: [], V: [],  // [n][dim]
+      scores: [],           // [n][n]  Q·Kᵀ
+      scaled: [],           // [n][n]  / (√dₖ * scale)
+      weights: [],          // [n][n]  softmax(scaled, row)
+      output: [],           // [n][dim] weights·V
+    };
+
+    // ============================================================
+    //  向量构造：根据 base(8 维) 截断/补齐到当前 dim
+    // ============================================================
+    function buildMatrices() {
+      const demo = DEMOS[state.demoIdx];
+      const tokens = demo.tokens;
+      const dim = state.dim;
+      const toVec = (v8) => {
+        const v = [];
+        for (let i = 0; i < dim; i++) v.push(v8[i % v8.length]);
+        return v;
+      };
+      // Q/K/V 用不同的微扰以体现差异（demo 用，真实场景是 Wq/Wk/Wv 投影）
+      const perturb = (v, seed) => v.map((x, i) => +(x + Math.sin(seed + i * 1.7) * 0.15).toFixed(2));
+      state.Q = tokens.map((t, r) => perturb(toVec(demo.base[t]), r + 0.1));
+      state.K = tokens.map((t, r) => perturb(toVec(demo.base[t]), r + 1.3));
+      state.V = tokens.map((t, r) => perturb(toVec(demo.base[t]), r + 2.5));
+    }
+
+    // ============================================================
+    //  Attention 计算
+    // ============================================================
+    function recompute() {
+      const n = state.Q.length;
+      const dim = state.dim;
+      const divisor = Math.sqrt(dim) * state.scale;
+
+      // scores = Q · Kᵀ
+      state.scores = [];
+      for (let i = 0; i < n; i++) {
+        const row = [];
+        for (let j = 0; j < n; j++) {
+          let s = 0;
+          for (let d = 0; d < dim; d++) s += state.Q[i][d] * state.K[j][d];
+          row.push(s);
+        }
+        state.scores.push(row);
+      }
+      // scaled
+      state.scaled = state.scores.map(r => r.map(v => v / divisor));
+      // softmax per row (numerically stable)
+      state.weights = state.scaled.map(r => softmax(r));
+      // output = weights · V
+      state.output = [];
+      for (let i = 0; i < n; i++) {
+        const o = new Array(dim).fill(0);
+        for (let j = 0; j < n; j++) {
+          for (let d = 0; d < dim; d++) o[d] += state.weights[i][j] * state.V[j][d];
+        }
+        state.output.push(o.map(v => +v.toFixed(3)));
+      }
+    }
+
+    function softmax(arr) {
+      const mx = Math.max(...arr);
+      const exps = arr.map(v => Math.exp(v - mx));
+      const sum = exps.reduce((a, b) => a + b, 0);
+      return exps.map(e => e / sum);
+    }
+
+    // ============================================================
+    //  颜色：把权重 [0,1] 映射为热力图色 (米白→浅橘→赤陶→深棕红)
+    // ============================================================
+    function heatColor(w, vmax) {
+      // w in [0,1]; 用相对值归一（vmax 为该矩阵最大值，避免全暗）
+      const t = Math.min(1, w / (vmax || 1));
+      // 颜色锚点
+      const stops = [
+        [0.00, [253, 253, 249]],
+        [0.30, [240, 196, 176]],
+        [0.65, [199, 91, 57]],
+        [1.00, [122, 42, 20]],
+      ];
+      for (let i = 0; i < stops.length - 1; i++) {
+        if (t <= stops[i + 1][0]) {
+          const [t0, c0] = stops[i];
+          const [t1, c1] = stops[i + 1];
+          const k = (t - t0) / (t1 - t0);
+          const rgb = c0.map((c, idx) => Math.round(c + (c1[idx] - c) * k));
+          return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+        }
+      }
+      return `rgb(122,42,20)`;
+    }
+
+    function textOn(heatRgb) {
+      const m = heatRgb.match(/\d+/g).map(Number);
+      const lum = 0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2];
+      return lum > 150 ? 'rgba(45,42,36,0.6)' : 'rgba(255,255,255,0.92)';
+    }
+
+    // ============================================================
+    //  渲染：A. 热力图
+    // ============================================================
+    function renderHeatmap() {
+      const tokens = DEMOS[state.demoIdx].tokens;
+      const n = tokens.length;
+      const vmax = Math.max(...state.weights.flat());
+      const wrap = document.getElementById('heatmapArea');
+      // 构造：左列 y 标签 + 热力格 + 底部 x 标签
+      let html = '<div class="heatmap-wrap">';
+      // y 轴（Query）标签列
+      html += '<div class="axis-row" style="padding-top:0;">';
+      for (let i = 0; i < n; i++) {
+        html += `<div class="axis-label ${i === state.selectedQuery ? 'active' : ''}" data-q="${i}">${tokens[i]}</div>`;
+      }
+      html += '</div>';
+      // 格子区
+      html += '<div style="flex:1;">';
+      html += `<div class="heatmap" style="grid-template-columns: repeat(${n}, 1fr);">`;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const w = state.weights[i][j];
+          const bg = heatColor(w, vmax);
+          const cls = [];
+          if (i === state.selectedQuery) cls.push('row-active');
+          const txt = state.showValues ? w.toFixed(2) : '';
+          html += `<div class="hm-cell ${cls.join(' ')}" style="background:${bg};color:${textOn(bg)};" data-q="${i}" data-k="${j}">${txt}</div>`;
+        }
+      }
+      html += '</div>';
+      // x 轴（Key）标签
+      html += '<div class="axis-col">';
+      for (let j = 0; j < n; j++) {
+        html += `<div class="axis-label">${tokens[j]}</div>`;
+      }
+      html += '</div>';
+      html += '</div></div>';
+      wrap.innerHTML = html;
+
+      // 事件：点击行选中 Query
+      wrap.querySelectorAll('.hm-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          state.selectedQuery = +cell.dataset.q;
+          redrawAll();
+        });
+      });
+    }
+
+    // ============================================================
+    //  渲染：B. 步骤矩阵
+    // ============================================================
+    function renderSteps() {
+      const area = document.getElementById('stepsArea');
+      const sq = state.selectedQuery;
+      let html = '';
+
+      // 1) Q·Kᵀ
+      html += `<div class="step-block">
+        <div class="step-name">① <span class="op">scores = Q · Kᵀ</span></div>
+        ${matrixTable(state.scores, 'scores', sq)}
+      </div>`;
+      // 2) /√dₖ·scale
+      const divisor = (Math.sqrt(state.dim) * state.scale).toFixed(2);
+      html += `<div class="step-block">
+        <div class="step-name">② <span class="op">scaled = scores / (${divisor})</span> &nbsp;<span style="color:var(--text-light);font-size:0.72rem;">(√dₖ × ${state.scale.toFixed(2)})</span></div>
+        ${matrixTable(state.scaled, 'scaled', sq)}
+      </div>`;
+      // 3) softmax
+      html += `<div class="step-block">
+        <div class="step-name">③ <span class="op">weights = softmax(scaled)</span> &nbsp;<span style="color:var(--text-light);font-size:0.72rem;">每行归一化，行和=1</span></div>
+        ${matrixTable(state.weights, 'weights', sq, true)}
+      </div>`;
+      // 4) output
+      html += `<div class="step-block">
+        <div class="step-name">④ <span class="out">output = weights · V</span></div>
+        ${matrixTable(state.output, 'output', sq)}
+      </div>`;
+      area.innerHTML = html;
+    }
+
+    function matrixTable(M, kind, hiRow, asWeight) {
+      const n = M.length;
+      const cols = M[0].length;
+      // 用于权重矩阵上色
+      let vmax = 1;
+      if (asWeight) vmax = Math.max(...M.flat());
+      let html = `<table class="mx">`;
+      for (let i = 0; i < n; i++) {
+        html += '<tr>';
+        for (let j = 0; j < cols; j++) {
+          const v = M[i][j];
+          let style = '';
+          if (asWeight) {
+            const bg = heatColor(v, vmax);
+            style = `background:${bg};color:${textOn(bg)};`;
+          } else {
+            // 普通矩阵：正负用冷暖浅色
+            if (v > 0) style = `background:rgba(75,130,182,${Math.min(0.18, Math.abs(v) / 12)});`;
+            else if (v < 0) style = `background:rgba(199,91,57,${Math.min(0.18, Math.abs(v) / 12)});`;
+          }
+          const cls = i === hiRow ? 'row-hi' : '';
+          const disp = state.showValues ? (kind === 'output' ? v.toFixed(2) : v.toFixed(2)) : '';
+          html += `<td class="${cls}" style="${style}">${disp}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      return html;
+    }
+
+    // ============================================================
+    //  渲染：C. 箭头连线图
+    // ============================================================
+    function renderArrows() {
+      const canvas = document.getElementById('arrowsCanvas');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const W = rect.width, H = rect.height;
+      ctx.clearRect(0, 0, W, H);
+
+      if (!state.showArrows) {
+        ctx.fillStyle = 'var(--text-light)';
+        ctx.font = '13px Inter, system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText('已隐藏（可在控制栏开启）', W / 2, H / 2);
+        return;
+      }
+
+      const tokens = DEMOS[state.demoIdx].tokens;
+      const n = tokens.length;
+      const margin = 60;
+      const yTop = 28, yBot = H - 28;
+      // 节点 x 坐标
+      const xAt = (i) => margin + i * (W - 2 * margin) / Math.max(1, n - 1);
+
+      // 画底部 Key 节点
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (let j = 0; j < n; j++) {
+        const x = xAt(j);
+        ctx.beginPath();
+        ctx.fillStyle = '#4b82b6';
+        ctx.arc(x, yBot, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '600 10px Inter, system-ui';
+        ctx.fillText('K' + (j + 1), x, yBot);
+        ctx.fillStyle = 'var(--text-light)';
+        ctx.font = '11px Inter, system-ui';
+        ctx.fillText(tokens[j], x, yBot + 22);
+      }
+      // 画顶部 Query 节点（只画选中的，避免过密）
+      const sq = state.selectedQuery;
+      const qx = xAt(sq);
+      ctx.beginPath();
+      ctx.fillStyle = '#c75b39';
+      ctx.arc(qx, yTop, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '600 10px Inter, system-ui';
+      ctx.fillText('Q' + (sq + 1), qx, yTop);
+      ctx.fillStyle = 'var(--text)';
+      ctx.font = '600 11px Inter, system-ui';
+      ctx.fillText(tokens[sq], qx, yTop - 22);
+
+      // 画连线：从 Q[sq] 到每个 K[j]，权重=线宽+不透明度
+      const wmax = Math.max(...state.weights[sq]);
+      for (let j = 0; j < n; j++) {
+        const w = state.weights[sq][j];
+        const kx = xAt(j);
+        const t = wmax > 0 ? w / wmax : 0;
+        const lw = 1 + t * 10;
+        const alpha = 0.15 + t * 0.8;
+        const rgb = `rgb(199,91,57)`;
+        // 用二次曲线略弯，更好看
+        const cx = (qx + kx) / 2;
+        const cy = (yTop + yBot) / 2 + (kx > qx ? -20 : 20) * Math.abs(kx - qx) / 200;
+        ctx.strokeStyle = `rgba(199,91,57,${alpha})`;
+        ctx.lineWidth = lw;
+        ctx.beginPath();
+        ctx.moveTo(qx, yTop + 14);
+        ctx.quadraticCurveTo(cx, cy, kx, yBot - 13);
+        ctx.stroke();
+
+        // 标注权重数值（中等以上才标）
+        if (t > 0.12 && state.showValues) {
+          const lx = qx + (kx - qx) * 0.5;
+          const ly = yTop + (yBot - yTop) * 0.5;
+          ctx.fillStyle = `rgba(45,42,36,${0.4 + t * 0.5})`;
+          ctx.font = `${t > 0.5 ? '700' : '500'} ${10 + t * 3}px Inter, system-ui`;
+          ctx.fillText(w.toFixed(2), lx, ly);
+        }
+      }
+    }
+
+    // ============================================================
+    //  渲染：D. 输入矩阵编辑
+    // ============================================================
+    function renderInputs() {
+      const tokens = DEMOS[state.demoIdx].tokens;
+      const n = tokens.length;
+      const dim = state.dim;
+      const area = document.getElementById('inputArea');
+      const buildMat = (M, key, tagClass, name, tagClass2) => {
+        let h = `<div class="input-mat">
+          <div class="input-mat-title"><span class="${tagClass2}">${name}</span><span class="tok">[${n}×${dim}]</span></div>
+          <div class="mat-tokens">${tokens.map(t => `<span>${t}</span>`).join('')}</div>
+          <table class="inp">`;
+        for (let i = 0; i < n; i++) {
+          h += '<tr>';
+          for (let d = 0; d < dim; d++) {
+            h += `<td class="${tagClass}" contenteditable="true" data-key="${key}" data-r="${i}" data-c="${d}">${M[i][d].toFixed(2)}</td>`;
+          }
+          h += '</tr>';
+        }
+        h += '</table></div>';
+        return h;
+      };
+      area.innerHTML =
+        buildMat(state.Q, 'Q', 'q-cell', 'Q', 'tag-q') +
+        buildMat(state.K, 'K', 'k-cell', 'K', 'tag-k') +
+        buildMat(state.V, 'V', 'v-cell', 'V', 'tag-v');
+
+      // 编辑事件
+      area.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+        td.addEventListener('focus', () => {
+          // 选中全部内容方便改
+          const range = document.createRange();
+          range.selectNodeContents(td);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        });
+        td.addEventListener('blur', () => {
+          const v = parseFloat(td.textContent.replace(/[^\d.\-]/g, ''));
+          const key = td.dataset.key;
+          const r = +td.dataset.r, c = +td.dataset.c;
+          if (!isNaN(v)) {
+            state[key][r][c] = Math.max(-9, Math.min(9, +v.toFixed(2)));
+          }
+          td.textContent = state[key][r][c].toFixed(2);
+          recompute();
+          redrawAll();
+        });
+        td.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); td.blur(); }
+          if (e.key === 'Tab') { e.preventDefault(); td.blur(); }
+        });
+      });
+    }
+
+    // ============================================================
+    //  统一刷新
+    // ============================================================
+    function redrawAll() {
+      document.getElementById('selInfo').textContent =
+        DEMOS[state.demoIdx].tokens[state.selectedQuery] || '—';
+      renderHeatmap();
+      renderSteps();
+      renderArrows();
+      // 输入矩阵只在切换 demo/dim 时重建，编辑时不重建（避免失焦）
+    }
+
+    function fullRebuild() {
+      buildMatrices();
+      recompute();
+      renderInputs();
+      redrawAll();
+    }
+
+    // ============================================================
+    //  控件绑定
+    // ============================================================
+    const demoSelect = document.getElementById('demoSelect');
+    DEMOS.forEach((d, i) => {
+      const opt = document.createElement('option');
+      opt.value = i; opt.textContent = d.name;
+      demoSelect.appendChild(opt);
+    });
+    demoSelect.addEventListener('change', () => {
+      state.demoIdx = +demoSelect.value;
+      state.selectedQuery = 0;
+      fullRebuild();
+    });
+
+    const dimSelect = document.getElementById('dimSelect');
+    dimSelect.value = state.dim;
+    dimSelect.addEventListener('change', () => {
+      state.dim = +dimSelect.value;
+      fullRebuild();
+    });
+
+    const scaleSlider = document.getElementById('scaleSlider');
+    const scaleVal = document.getElementById('scaleVal');
+    scaleSlider.addEventListener('input', () => {
+      state.scale = +scaleSlider.value;
+      scaleVal.textContent = state.scale.toFixed(2);
+      recompute();
+      redrawAll();
+    });
+
+    document.getElementById('showValues').addEventListener('change', (e) => {
+      state.showValues = e.target.checked; redrawAll();
+    });
+    document.getElementById('showArrows').addEventListener('change', (e) => {
+      state.showArrows = e.target.checked; renderArrows();
+    });
+
+    window.addEventListener('resize', () => { renderArrows(); });
+
+    // 初始化
+    fullRebuild();
+  </script>
+</body>
+</html>
