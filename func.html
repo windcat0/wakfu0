@@ -268,166 +268,49 @@
     </header>
 
     <!--
-      功能列表：新增 funcs/ 下的页面时，复制一个 <a class="card">...</a> 块并改 3 处：
-        1. href  → funcs/你的页面.html
-        2. 标题/徽标/描述/标签
-        3. 图标 emoji
-      也可调用下方 renderList() 动态渲染（见脚本）。
+      功能列表由 funcs/manifest.js 动态渲染。
+      新增功能方式（二选一）：
+        A. 在 funcs/manifest.js 追加一条记录（最简单）
+        B. 在 funcs/ 放带 <meta name="func-*"> 的 html，然后运行 `node scripts/gen_manifest.js` 自动重写清单
     -->
     <main class="cards-grid" id="cardsGrid">
-      <a class="card" href="funcs/liner.html">
-        <div class="card-head">
-          <div class="card-icon">📐</div>
-          <div>
-            <div class="card-title">线性拟合 · 参数学习</div>
-            <div class="card-badge">梯度下降可视化</div>
-          </div>
-        </div>
-        <p class="card-desc">通过可视化展示线性回归参数在梯度下降过程中的学习轨迹，直观看到损失曲面与参数收敛的关系。</p>
-        <div class="card-tags">
-          <span class="tag">线性回归</span>
-          <span class="tag">梯度下降</span>
-          <span class="tag">损失函数</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/non-liner.html">
-        <div class="card-head">
-          <div class="card-icon">📈</div>
-          <div>
-            <div class="card-title">多段线性 · 非线性拟合</div>
-            <div class="card-badge">ReLU 基函数组合</div>
-          </div>
-        </div>
-        <p class="card-desc">用多段线性（ReLU 形式的基函数）组合拟合非线性数据，可调断点数量，观察分段线性如何逼近任意曲线。</p>
-        <div class="card-tags">
-          <span class="tag">非线性拟合</span>
-          <span class="tag">ReLU 基函数</span>
-          <span class="tag">分段线性</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/activation.html">
-        <div class="card-head">
-          <div class="card-icon">⚡</div>
-          <div>
-            <div class="card-title">激活函数可视化</div>
-            <div class="card-badge">公式 / 曲线 / 导数</div>
-          </div>
-        </div>
-        <p class="card-desc">对比 Sigmoid、Tanh、ReLU、Leaky ReLU、GeLU 五个常用激活函数的公式、函数曲线与导数曲线，支持悬停查看数值。</p>
-        <div class="card-tags">
-          <span class="tag">Sigmoid</span>
-          <span class="tag">ReLU</span>
-          <span class="tag">GeLU</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/llm_params.html">
-        <div class="card-head">
-          <div class="card-icon">🧮</div>
-          <div>
-            <div class="card-title">LLM 参数计算器</div>
-            <div class="card-badge">Transformer 架构</div>
-          </div>
-        </div>
-        <p class="card-desc">输入 Transformer 模型参数，自动计算各组件的参数量及总参数量。支持 GPT、Llama、Mistral 等常见模型预设。</p>
-        <div class="card-tags">
-          <span class="tag">Transformer</span>
-          <span class="tag">参数量</span>
-          <span class="tag">GPT/Llama</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/attention.html">
-        <div class="card-head">
-          <div class="card-icon">⚛️</div>
-          <div>
-            <div class="card-title">注意力机制</div>
-            <div class="card-badge">Scaled Dot-Product</div>
-          </div>
-        </div>
-        <p class="card-desc">可视化 Self-Attention 完整计算流程：Q·Kᵀ → 缩放 → softmax → ·V。含注意力热力图、逐步矩阵、权重连线图，可编辑 Q/K/V 实时重算。</p>
-        <div class="card-tags">
-          <span class="tag">Self-Attention</span>
-          <span class="tag">Softmax</span>
-          <span class="tag">Q·Kᵀ</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/bpe_visualizer.html">
-        <div class="card-head">
-          <div class="card-icon">🧩</div>
-          <div>
-            <div class="card-title">BPE 可视化器</div>
-            <div class="card-badge">Byte Pair Encoding</div>
-          </div>
-        </div>
-        <p class="card-desc">详细展示 BPE 算法迭代过程：字符对频率统计、最高频对合并、词汇表构建。支持分步查看、历史回溯和 Token 化前后对比。</p>
-        <div class="card-tags">
-          <span class="tag">BPE</span>
-          <span class="tag">Token 化</span>
-          <span class="tag">词汇表</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
-
-      <a class="card" href="funcs/token_training.html">
-        <div class="card-head">
-          <div class="card-icon">🔤</div>
-          <div>
-            <div class="card-title">Token 化与词嵌入</div>
-            <div class="card-badge">BPE + Word2Vec</div>
-          </div>
-        </div>
-        <p class="card-desc">可视化展示 Token 化过程（BPE 算法迭代合并最高频字符对）和 Word2Vec 词嵌入训练（滑动窗口、向量更新、语义空间）。</p>
-        <div class="card-tags">
-          <span class="tag">BPE</span>
-          <span class="tag">Word2Vec</span>
-          <span class="tag">词嵌入</span>
-        </div>
-        <span class="card-enter">进入功能 →</span>
-      </a>
+      <!-- 卡片由脚本渲染 -->
     </main>
 
     <footer class="bottom">点击任意卡片进入对应功能页面</footer>
   </div>
 
+  <script src="funcs/manifest.js"></script>
   <script>
-    // —— 动态列表渲染（可选）：若想让本页自动反映 funcs/ 下的页面，
-    //     可改为在页面加载时调用 renderList([...])，传入功能元数据数组。
-    //     下面仅做计数同步，保留手动卡片作为默认内容。
-    (function syncCount() {
-      const cards = document.querySelectorAll('#cardsGrid .card');
+    // —— 由 funcs/manifest.js 提供的 window.FUNCS 动态渲染功能卡片 ——
+    function renderList(list) {
+      const grid = document.getElementById('cardsGrid');
+      if (!grid) return;
+      if (!Array.isArray(list) || list.length === 0) {
+        grid.innerHTML = '<div class="empty">暂无功能。请在 funcs/manifest.js 中添加，或运行 node scripts/gen_manifest.js 生成。</div>';
+      } else {
+        grid.innerHTML = list.map(f => `
+          <a class="card" href="${f.href}">
+            <div class="card-head">
+              <div class="card-icon">${f.icon || '📄'}</div>
+              <div>
+                <div class="card-title">${f.title || ''}</div>
+                <div class="card-badge">${f.badge || ''}</div>
+              </div>
+            </div>
+            <p class="card-desc">${f.desc || ''}</p>
+            <div class="card-tags">${(f.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+            <span class="card-enter">进入功能 →</span>
+          </a>
+        `).join('');
+      }
       const el = document.getElementById('funcCount');
-      if (el) el.textContent = cards.length;
-    })();
+      if (el) el.textContent = Array.isArray(list) ? list.length : 0;
+    }
 
-    // 动态渲染示例（保留备用，未启用）：
-    // function renderList(list) {
-    //   const grid = document.getElementById('cardsGrid');
-    //   grid.innerHTML = list.map(f => `
-    //     <a class="card" href="${f.href}">
-    //       <div class="card-head">
-    //         <div class="card-icon">${f.icon}</div>
-    //         <div>
-    //           <div class="card-title">${f.title}</div>
-    //           <div class="card-badge">${f.badge}</div>
-    //         </div>
-    //       </div>
-    //       <p class="card-desc">${f.desc}</p>
-    //       <div class="card-tags">${(f.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-    //       <span class="card-enter">进入功能 →</span>
-    //     </a>
-    //   `).join('');
-    //   const el = document.getElementById('funcCount');
-    //   if (el) el.textContent = list.length;
-    // }
+    document.addEventListener('DOMContentLoaded', function () {
+      renderList(window.FUNCS || []);
+    });
   </script>
 </body>
 </html>
