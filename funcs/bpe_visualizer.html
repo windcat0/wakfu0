@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>BPE Token 化过程可视化</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --accent-glow: rgba(199,91,57,0.3);
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.25s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; justify-content: center; padding: 24px 20px;
+    }
+    .container { width: 100%; max-width: 1600px; display: flex; flex-direction: column; gap: 18px; }
+
+    header { display: flex; flex-direction: column; gap: 10px; }
+    .top-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      color: var(--text-light); font-size: 0.9rem; padding: 6px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--panel-bg);
+      transition: var(--transition);
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+    h1 { font-size: 1.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+    h1 .icon { font-size: 1.5rem; }
+    .badge {
+      background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+    .subtitle { color: var(--text-light); font-size: 0.98rem; line-height: 1.6; }
+
+    .controls {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 18px; box-shadow: var(--shadow);
+    }
+    button {
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--panel-bg); color: var(--text); cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .btn-play { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-play:hover { background: #b04d2e; border-color: #b04d2e; }
+    .btn-play.paused { background: var(--green); border-color: var(--green); }
+    .btn-disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-disabled:hover { background: var(--panel-bg); color: var(--text); border-color: var(--border); }
+
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    .control-group label { font-size: 0.85rem; color: var(--text-light); font-weight: 600; }
+    .control-group input[type="range"] { width: 130px; accent-color: var(--accent); cursor: pointer; }
+    .val-tag { font-size: 0.82rem; color: var(--accent); font-weight: 700; min-width: 42px; text-align: right; }
+
+    .info-row { display: flex; gap: 20px; font-size: 0.85rem; color: var(--text-light); }
+    .info-row span { font-weight: 700; color: var(--text); }
+
+    .panel {
+      background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px;
+    }
+    .panel-title {
+      font-size: 0.85rem; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
+    }
+    .panel-title .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .panel-title .dot.input { background: var(--blue); }
+    .panel-title .dot.count { background: var(--gold); }
+    .panel-title .dot.merge { background: var(--accent); }
+    .panel-title .dot.vocab { background: var(--purple); }
+
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .input-area {
+      padding: 16px; background: var(--bg); border-radius: var(--radius-sm);
+      font-family: 'Monaco', 'Menlo', monospace; font-size: 1rem; border: 1px solid var(--border);
+      min-height: 80px;
+    }
+    .input-area textarea {
+      width: 100%; height: 80px; border: none; background: transparent;
+      font-family: inherit; font-size: inherit; resize: none; outline: none;
+      color: var(--text);
+    }
+
+    .preset-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preset-btn {
+      padding: 5px 12px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: var(--panel-bg); color: var(--text); cursor: pointer;
+      transition: var(--transition);
+    }
+    .preset-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .preset-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .freq-table {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.85rem;
+    }
+    th, td {
+      padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    th { background: var(--bg); font-weight: 700; color: var(--text-light); }
+    tr:hover { background: rgba(199,91,57,0.05); }
+    tr.highest { background: var(--accent-soft); }
+    tr.highest td { border-color: var(--accent); }
+    .pair-cell {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 6px; background: white; border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    tr.highest .pair-cell {
+      background: var(--accent); color: white; border-color: var(--accent);
+    }
+    .count-bar {
+      height: 16px; background: var(--bg); border-radius: 8px; overflow: hidden;
+      display: flex; align-items: center;
+    }
+    .count-fill {
+      height: 100%; background: var(--accent); border-radius: 8px;
+      transition: width var(--transition);
+    }
+    tr.highest .count-fill { background: var(--accent); }
+
+    .merge-box {
+      padding: 16px; background: #fcf7f2; border-radius: var(--radius-sm);
+      border: 2px solid rgba(199,91,57,0.2);
+      font-family: monospace; font-size: 1.1rem;
+    }
+    .token-item {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 6px 10px; margin: 4px; border-radius: 8px;
+      background: white; border: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+    .token-item.new {
+      background: var(--accent); color: white; border-color: var(--accent);
+      animation: pulse 0.6s ease;
+    }
+    .token-item.highlight {
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      border-color: var(--accent);
+    }
+    .token-char {
+      font-weight: 700;
+    }
+    .token-space { color: var(--text-light); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .history-timeline {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 150px; overflow-y: auto;
+      padding-right: 10px;
+    }
+    .history-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px; background: var(--bg); border-radius: 8px;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+    .history-item:hover { background: var(--accent-soft); }
+    .history-item.active { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+    .history-step {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--panel-bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--text-light);
+    }
+    .history-item.active .history-step {
+      background: var(--accent); color: white; border-color: var(--accent);
+    }
+    .history-merge {
+      font-family: monospace; font-weight: 600; color: var(--accent);
+    }
+    .history-count {
+      font-size: 0.75rem; color: var(--text-light);
+    }
+
+    .vocab-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 6px;
+      max-height: 200px; overflow-y: auto;
+      padding: 10px; background: var(--bg); border-radius: var(--radius-sm);
+    }
+    .vocab-item {
+      padding: 8px; background: white; border: 1px solid var(--border);
+      border-radius: 8px; font-family: monospace; font-size: 0.85rem;
+      text-align: center; transition: all var(--transition);
+      display: flex; align-items: center; justify-content: center;
+      min-height: 40px;
+    }
+    .vocab-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .vocab-item.new {
+      background: var(--accent-soft); border-color: var(--accent);
+      animation: pulse 0.6s ease;
+    }
+    .vocab-item.char { color: var(--blue); }
+    .vocab-item.pair { color: var(--accent); }
+    .vocab-item.word { color: var(--green); }
+
+    .compare-box {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .compare-row {
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .compare-label {
+      font-size: 0.8rem; font-weight: 600; color: var(--text-light);
+      min-width: 60px; padding-top: 4px;
+    }
+    .compare-content {
+      flex: 1; padding: 10px; background: var(--bg); border-radius: var(--radius-sm);
+      font-family: monospace; font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    .stats-box {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    .stat-card {
+      padding: 12px; background: var(--bg); border-radius: var(--radius-sm);
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.4rem; font-weight: 700; color: var(--accent);
+    }
+    .stat-label {
+      font-size: 0.75rem; color: var(--text-light); margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="top-bar">
+        <a href="../func.html" class="back-link">← 返回功能列表</a>
+        <h1><span class="icon">🔤</span>BPE Token 化过程</h1>
+        <span class="badge">Byte Pair Encoding</span>
+      </div>
+      <p class="subtitle">可视化展示 BPE（字节对编码）算法的完整迭代过程：统计字符对频率 → 合并最高频对 → 更新词汇表。支持分步查看、自动播放和历史回溯。</p>
+    </header>
+
+    <div class="controls">
+      <button class="btn-play" id="btnPlay">▶ 播放</button>
+      <button id="btnPrev">← 上一步</button>
+      <button id="btnNext">下一步 →</button>
+      <button id="btnReset">↺ 重置</button>
+
+      <div class="control-group">
+        <label>目标词汇量</label>
+        <input type="range" id="targetVocabSlider" min="10" max="150" step="5" value="60">
+        <span class="val-tag" id="targetVocabVal">60</span>
+      </div>
+      <div class="control-group">
+        <label>播放速度</label>
+        <input type="range" id="speedSlider" min="200" max="2000" step="100" value="600">
+        <span class="val-tag" id="speedVal">0.6s</span>
+      </div>
+
+      <div class="info-row">
+        <span>步骤: <span id="stepDisplay">0</span></span>
+        <span>| 当前词汇量: <span id="vocabDisplay">0</span></span>
+        <span>| 目标: <span id="targetDisplay">30</span></span>
+        <span>| 字符对: <span id="pairCountDisplay">0</span></span>
+        <span>| 状态: <span id="statusDisplay" style="color:var(--accent)">初始化中</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="dot input"></span>输入文本</div>
+      <div class="preset-buttons">
+        <button class="preset-btn active" data-preset="english">英文示例</button>
+        <button class="preset-btn" data-preset="chinese">中文示例</button>
+        <button class="preset-btn" data-preset="repeat">重复模式</button>
+        <button class="preset-btn" data-preset="code">代码示例</button>
+      </div>
+      <div class="input-area">
+        <textarea id="inputText" placeholder="输入要进行 BPE 处理的文本..."></textarea>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="panel">
+        <div class="panel-title"><span class="dot count"></span>字符对频率统计</div>
+        <div class="freq-table">
+          <table id="freqTable">
+            <thead>
+              <tr><th>字符对</th><th>频率</th><th>占比</th></tr>
+            </thead>
+            <tbody id="freqBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span class="dot merge"></span>当前 Token 序列</div>
+        <div class="merge-box" id="mergeBox"></div>
+        <div class="history-timeline" id="historyTimeline"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span class="dot vocab"></span>词汇表</div>
+        <div class="vocab-grid" id="vocabGrid"></div>
+        <div class="stats-box">
+          <div class="stat-card"><div class="stat-value" id="statChars">0</div><div class="stat-label">单字符</div></div>
+          <div class="stat-card"><div class="stat-value" id="statPairs">0</div><div class="stat-label">双字符</div></div>
+          <div class="stat-card"><div class="stat-value" id="statWords">0</div><div class="stat-label">多字符</div></div>
+          <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">总词表</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span class="dot input"></span>Token 化前后对比</div>
+        <div class="compare-box">
+          <div class="compare-row">
+            <span class="compare-label">原始文本</span>
+            <div class="compare-content" id="originalText"></div>
+          </div>
+          <div class="compare-row">
+            <span class="compare-label">Token 化后</span>
+            <div class="compare-content" id="tokenizedText"></div>
+          </div>
+          <div class="compare-row">
+            <span class="compare-label">压缩率</span>
+            <div class="compare-content">
+              原始长度: <span id="origLen">0</span> chars → Token 长度: <span id="tokenLen">0</span> tokens
+              <br>压缩率: <span id="compression">100</span>%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const presets = {
+      english: "the the the cat cat cat dog dog dog",
+      chinese: "我爱我爱我爱中国中国中国",
+      repeat: "ab ab ab ac ac ab ab ac ab ab ab ac ac ac ab ab ab",
+      code: "def hello_world(): print('Hello World'); return True; def hello_python(): print('Hello Python');"
+    };
+
+    const btnPlay = document.getElementById('btnPlay');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnReset = document.getElementById('btnReset');
+    const targetVocabSlider = document.getElementById('targetVocabSlider');
+    const targetVocabVal = document.getElementById('targetVocabVal');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const stepDisplay = document.getElementById('stepDisplay');
+    const vocabDisplay = document.getElementById('vocabDisplay');
+    const targetDisplay = document.getElementById('targetDisplay');
+    const inputText = document.getElementById('inputText');
+    const freqBody = document.getElementById('freqBody');
+    const mergeBox = document.getElementById('mergeBox');
+    const historyTimeline = document.getElementById('historyTimeline');
+    const vocabGrid = document.getElementById('vocabGrid');
+    const statChars = document.getElementById('statChars');
+    const statPairs = document.getElementById('statPairs');
+    const statWords = document.getElementById('statWords');
+    const statTotal = document.getElementById('statTotal');
+    const originalText = document.getElementById('originalText');
+    const tokenizedText = document.getElementById('tokenizedText');
+    const origLen = document.getElementById('origLen');
+    const tokenLen = document.getElementById('tokenLen');
+    const compression = document.getElementById('compression');
+
+    let text = presets.english;
+    let targetVocabSize = 60;
+    let speed = 600;
+
+    let history = [];
+    let currentStep = 0;
+    let isPlaying = false;
+    let playTimer = null;
+
+    function init() {
+      history = [];
+      currentStep = 0;
+      
+      const tokens = text.split('');
+      const vocab = [...new Set(tokens)].sort();
+      
+      history.push({
+        tokens: [...tokens],
+        vocab: [...vocab],
+        pair: null,
+        count: 0
+      });
+
+      updateUI();
+      renderAll();
+      
+      console.log('=== BPE Init Debug ===');
+      console.log('Text length:', text.length);
+      console.log('Vocab size:', vocab.length);
+      console.log('Vocab:', vocab);
+      console.log('Tokens first 20:', tokens.slice(0, 20));
+      
+      const counts = getPairCounts(tokens);
+      console.log('Pair counts:', counts);
+      const { pair, count } = findMaxPair(counts);
+      console.log('Max pair:', pair, 'count:', count);
+    }
+
+    function getPairCounts(tokens) {
+      const counts = {};
+      for (let i = 0; i < tokens.length - 1; i++) {
+        const pair = tokens[i] + '+' + tokens[i + 1];
+        counts[pair] = (counts[pair] || 0) + 1;
+      }
+      return counts;
+    }
+
+    function findMaxPair(counts) {
+      let maxPair = null;
+      let maxCount = 0;
+      for (const [pair, count] of Object.entries(counts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          maxPair = pair;
+        }
+      }
+      return { pair: maxPair, count: maxCount };
+    }
+
+    function mergePair(tokens, pair) {
+      const [a, b] = pair.split('+');
+      const result = [];
+      let i = 0;
+      while (i < tokens.length) {
+        if (i < tokens.length - 1 && tokens[i] === a && tokens[i + 1] === b) {
+          result.push(a + b);
+          i += 2;
+        } else {
+          result.push(tokens[i]);
+          i++;
+        }
+      }
+      return result;
+    }
+
+    function performStep() {
+      const current = history[currentStep];
+      const counts = getPairCounts(current.tokens);
+      const { pair, count } = findMaxPair(counts);
+
+      if (!pair || current.vocab.length >= targetVocabSize) {
+        stopPlay();
+        return;
+      }
+
+      const newToken = pair.replace('+', '');
+      const newVocab = [...current.vocab, newToken];
+      const newTokens = mergePair(current.tokens, pair);
+
+      history.push({
+        tokens: newTokens,
+        vocab: newVocab,
+        pair: pair,
+        count: count
+      });
+
+      currentStep++;
+      updateUI();
+      renderAll();
+    }
+
+    function goToStep(step) {
+      currentStep = Math.max(0, Math.min(step, history.length - 1));
+      updateUI();
+      renderAll();
+    }
+
+    function updateUI() {
+      stepDisplay.textContent = currentStep;
+      vocabDisplay.textContent = history[currentStep].vocab.length;
+      targetDisplay.textContent = targetVocabSize;
+      speedVal.textContent = (speed / 1000).toFixed(1) + 's';
+      targetVocabVal.textContent = targetVocabSize;
+
+      btnPrev.disabled = currentStep === 0;
+      btnPrev.classList.toggle('btn-disabled', currentStep === 0);
+
+      const current = history[currentStep];
+      const counts = getPairCounts(current.tokens);
+      const { pair, count } = findMaxPair(counts);
+      const hasPair = !!pair;
+      const vocabNotFull = current.vocab.length < targetVocabSize;
+      const canContinue = hasPair && vocabNotFull;
+      btnNext.disabled = !canContinue;
+      btnNext.classList.toggle('btn-disabled', !canContinue);
+
+      const pairCountEl = document.getElementById('pairCountDisplay');
+      if (pairCountEl) {
+        pairCountEl.textContent = Object.keys(counts).length;
+      }
+
+      const statusEl = document.getElementById('statusDisplay');
+      if (statusEl) {
+        if (!hasPair) {
+          statusEl.textContent = '无字符对可合并';
+        } else if (!vocabNotFull) {
+          statusEl.textContent = '已达到目标词汇量';
+        } else {
+          statusEl.textContent = `可合并: "${pair ? pair.replace('+', '') : ''}" (${count}次)`;
+        }
+      }
+
+      if (isPlaying) {
+        btnPlay.textContent = '⏸ 暂停';
+        btnPlay.classList.add('paused');
+      } else {
+        btnPlay.textContent = '▶ 播放';
+        btnPlay.classList.remove('paused');
+      }
+    }
+
+    function renderFreqTable() {
+      const current = history[currentStep];
+      const counts = getPairCounts(current.tokens);
+      const { pair: maxPair } = findMaxPair(counts);
+
+      const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+      
+      const sorted = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15);
+
+      freqBody.innerHTML = sorted.map(([pair, count]) => {
+        const isMax = pair === maxPair;
+        const [a, b] = pair.split('+');
+        const percent = ((count / total) * 100).toFixed(1);
+        
+        return `
+          <tr class="${isMax ? 'highest' : ''}">
+            <td>
+              <div class="pair-cell">
+                <span>${a === ' ' ? '·' : a === '\n' ? '↵' : a}</span>
+                <span style="color:var(--text-light)">+</span>
+                <span>${b === ' ' ? '·' : b === '\n' ? '↵' : b}</span>
+              </div>
+            </td>
+            <td style="font-weight:700">${count}</td>
+            <td>
+              <div class="count-bar" style="width:120px">
+                <div class="count-fill" style="width:${Math.min((count / total) * 100, 100)}%"></div>
+              </div>
+              <span style="font-size:0.75rem;color:var(--text-light)">${percent}%</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderMergeBox() {
+      const current = history[currentStep];
+      const prev = currentStep > 0 ? history[currentStep - 1] : null;
+
+      const mergedPair = prev ? prev.pair : null;
+      const mergedToken = mergedPair ? mergedPair.replace('+', '') : null;
+
+      mergeBox.innerHTML = current.tokens.map((token, i) => {
+        const isNew = mergedToken && token === mergedToken;
+        return `<span class="token-item ${isNew ? 'new' : ''}">${token === ' ' ? '<span class="token-space">·</span>' : token === '\n' ? '<span class="token-space">↵</span>' : token}</span>`;
+      }).join('');
+    }
+
+    function renderHistory() {
+      historyTimeline.innerHTML = history.map((h, i) => {
+        const isActive = i === currentStep;
+        const pair = h.pair ? h.pair.replace('+', '') : '初始';
+        const count = h.pair ? h.count : '-';
+        
+        return `
+          <div class="history-item ${isActive ? 'active' : ''}" onclick="goToStep(${i})">
+            <div class="history-step">${i}</div>
+            <div class="history-merge">${pair === '初始' ? '初始状态' : `合并 "${pair}"`}</div>
+            <div class="history-count">${count}次</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderVocab() {
+      const current = history[currentStep];
+      
+      const chars = current.vocab.filter(v => v.length === 1);
+      const pairs = current.vocab.filter(v => v.length === 2);
+      const words = current.vocab.filter(v => v.length > 2);
+
+      statChars.textContent = chars.length;
+      statPairs.textContent = pairs.length;
+      statWords.textContent = words.length;
+      statTotal.textContent = current.vocab.length;
+
+      vocabGrid.innerHTML = current.vocab.map((v, i) => {
+        let cls = '';
+        if (v.length === 1) cls = 'vocab-item char';
+        else if (v.length === 2) cls = 'vocab-item pair';
+        else cls = 'vocab-item word';
+
+        const isNew = i >= current.vocab.length - 5;
+        if (isNew) cls += ' new';
+
+        const display = v === ' ' ? '·' : v === '\n' ? '↵' : v;
+        return `<div class="${cls}">${display}</div>`;
+      }).join('');
+    }
+
+    function renderCompare() {
+      originalText.textContent = text;
+      origLen.textContent = text.length;
+
+      const current = history[currentStep];
+      tokenizedText.textContent = current.tokens.join(' ');
+      tokenLen.textContent = current.tokens.length;
+
+      const ratio = ((current.tokens.length / text.length) * 100).toFixed(1);
+      compression.textContent = ratio;
+    }
+
+    function renderAll() {
+      renderFreqTable();
+      renderMergeBox();
+      renderHistory();
+      renderVocab();
+      renderCompare();
+    }
+
+    function play() {
+      if (isPlaying) {
+        stopPlay();
+        return;
+      }
+
+      isPlaying = true;
+      updateUI();
+      schedulePlay();
+    }
+
+    function schedulePlay() {
+      if (!isPlaying) return;
+
+      const current = history[currentStep];
+      if (current.vocab.length >= targetVocabSize) {
+        stopPlay();
+        return;
+      }
+
+      performStep();
+      playTimer = setTimeout(schedulePlay, speed);
+    }
+
+    function stopPlay() {
+      isPlaying = false;
+      if (playTimer) {
+        clearTimeout(playTimer);
+        playTimer = null;
+      }
+      updateUI();
+    }
+
+    btnPlay.addEventListener('click', play);
+
+    btnPrev.addEventListener('click', () => {
+      stopPlay();
+      goToStep(currentStep - 1);
+    });
+
+    btnNext.addEventListener('click', () => {
+      stopPlay();
+      performStep();
+    });
+
+    btnReset.addEventListener('click', () => {
+      stopPlay();
+      init();
+    });
+
+    targetVocabSlider.addEventListener('input', () => {
+      targetVocabSize = parseInt(targetVocabSlider.value);
+      updateUI();
+      renderAll();
+    });
+
+    speedSlider.addEventListener('input', () => {
+      speed = parseInt(speedSlider.value);
+      updateUI();
+      if (isPlaying) {
+        if (playTimer) clearTimeout(playTimer);
+        schedulePlay();
+      }
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        text = presets[btn.dataset.preset];
+        inputText.value = text;
+        stopPlay();
+        init();
+      });
+    });
+
+    inputText.addEventListener('input', () => {
+      text = inputText.value;
+      stopPlay();
+      init();
+    });
+
+    window.goToStep = goToStep;
+
+    inputText.value = text;
+    init();
+  </script>
+</body>
+</html>

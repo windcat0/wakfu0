@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Token 化与词嵌入可视化</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; justify-content: center; padding: 24px 20px;
+    }
+    .container { width: 100%; max-width: 1400px; display: flex; flex-direction: column; gap: 18px; }
+
+    header { display: flex; flex-direction: column; gap: 10px; }
+    .top-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      color: var(--text-light); font-size: 0.9rem; padding: 6px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--panel-bg);
+      transition: var(--transition);
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+    h1 { font-size: 1.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+    h1 .icon { font-size: 1.5rem; }
+    .badge {
+      background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+    .subtitle { color: var(--text-light); font-size: 0.98rem; line-height: 1.6; }
+
+    .controls {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 18px; box-shadow: var(--shadow);
+    }
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    .control-group label { font-size: 0.85rem; color: var(--text-light); font-weight: 600; }
+    .control-group input[type="range"] { width: 130px; accent-color: var(--accent); cursor: pointer; }
+    .val-tag { font-size: 0.82rem; color: var(--accent); font-weight: 700; min-width: 42px; text-align: right; }
+    button {
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--panel-bg); color: var(--text); cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .btn-play { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-play:hover { background: #b04d2e; border-color: #b04d2e; }
+    .btn-play.paused { background: var(--green); border-color: var(--green); }
+
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px;
+    }
+    .panel-title {
+      font-size: 0.85rem; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
+    }
+    .panel-title .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .panel-title .dot.bpe { background: var(--accent); }
+    .panel-title .dot.vocab { background: var(--blue); }
+    .panel-title .dot.w2v { background: var(--green); }
+    .panel-title .dot.embed { background: var(--purple); }
+
+    .panel-bpe { grid-column: 1; grid-row: 1; }
+    .panel-vocab { grid-column: 2; grid-row: 1; }
+    .panel-w2v { grid-column: 1; grid-row: 2; }
+    .panel-embed { grid-column: 2; grid-row: 2; }
+
+    @media (max-width: 1000px) {
+      .panel-bpe { grid-column: 1; grid-row: 1; }
+      .panel-vocab { grid-column: 1; grid-row: 2; }
+      .panel-w2v { grid-column: 1; grid-row: 3; }
+      .panel-embed { grid-column: 1; grid-row: 4; }
+    }
+
+    .bpe-input-box {
+      padding: 12px; background: var(--bg); border-radius: var(--radius-sm);
+      font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9rem; border: 1px solid var(--border);
+    }
+    .bpe-iter-box {
+      padding: 12px; background: #fcf7f2; border-radius: var(--radius-sm);
+      font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9rem; min-height: 60px;
+      border: 1px solid rgba(199,91,57,0.2);
+    }
+    .bpe-pair {
+      display: inline-flex; align-items: center; gap: 2px;
+      background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .vocab-list {
+      display: flex; flex-wrap: wrap; gap: 6px; max-height: 150px; overflow-y: auto;
+      padding: 10px; background: var(--bg); border-radius: var(--radius-sm);
+    }
+    .vocab-item {
+      padding: 4px 8px; background: white; border: 1px solid var(--border);
+      border-radius: 6px; font-family: monospace; font-size: 0.85rem;
+      transition: all var(--transition);
+    }
+    .vocab-item.new { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    .w2v-window {
+      padding: 12px; background: var(--bg); border-radius: var(--radius-sm);
+      font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9rem;
+    }
+    .w2v-word {
+      display: inline-block; padding: 4px 8px; margin: 2px; border-radius: 6px;
+      transition: all var(--transition);
+    }
+    .w2v-word.context { background: rgba(75,130,182,0.2); border: 1px solid var(--blue); color: var(--blue); }
+    .w2v-word.target { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; }
+    .w2v-word.normal { background: white; border: 1px solid var(--border); }
+
+    .pair-list {
+      display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto;
+      font-family: monospace; font-size: 0.85rem;
+    }
+    .pair-item {
+      padding: 4px 8px; background: var(--bg); border-radius: 6px;
+      display: flex; gap: 12px;
+    }
+    .pair-context { color: var(--blue); font-weight: 600; }
+    .pair-target { color: var(--accent); font-weight: 600; }
+
+    canvas {
+      display: block; width: 100%; height: 250px; border-radius: var(--radius-sm);
+      background: var(--bg); border: 1px solid var(--border);
+    }
+
+    .info-row { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-light); }
+    .info-row span { font-weight: 700; color: var(--text); }
+
+    .preset-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .preset-btn {
+      padding: 4px 10px; font-size: 0.78rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: var(--panel-bg); color: var(--text); cursor: pointer;
+      transition: var(--transition);
+    }
+    .preset-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    .bpe-step-info {
+      font-size: 0.82rem; color: var(--text-light); padding: 6px 10px;
+      background: rgba(199,91,57,0.08); border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="top-bar">
+        <a href="../func.html" class="back-link">← 返回功能列表</a>
+        <h1><span class="icon">🔤</span>Token 化与词嵌入</h1>
+        <span class="badge">BPE + Word2Vec</span>
+      </div>
+      <p class="subtitle">可视化展示 Token 化过程（BPE 算法迭代合并最高频字符对）和 Word2Vec 词嵌入训练（滑动窗口生成词对、向量更新、语义空间可视化）。</p>
+    </header>
+
+    <div class="controls">
+      <button class="btn-play" id="btnPlay">▶ 开始</button>
+      <button id="btnStep">⏭ 单步</button>
+      <button id="btnReset">↺ 重置</button>
+
+      <div class="control-group">
+        <label>窗口大小</label>
+        <input type="range" id="windowSlider" min="1" max="5" step="1" value="2">
+        <span class="val-tag" id="windowVal">2</span>
+      </div>
+      <div class="control-group">
+        <label>学习率</label>
+        <input type="range" id="lrSlider" min="0.01" max="0.5" step="0.01" value="0.1">
+        <span class="val-tag" id="lrVal">0.10</span>
+      </div>
+      <div class="control-group">
+        <label>向量维度</label>
+        <input type="range" id="dimSlider" min="2" max="16" step="2" value="8">
+        <span class="val-tag" id="dimVal">8</span>
+      </div>
+
+      <div class="info-row">
+        <span>BPE 步骤: <span id="bpeStepDisplay">0</span></span>
+        <span>| 词汇量: <span id="vocabDisplay">0</span></span>
+        <span>| 训练步: <span id="trainStepDisplay">0</span></span>
+      </div>
+    </div>
+
+    <div class="controls" style="justify-content: flex-start;">
+      <div class="control-group" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+        <label>训练文本</label>
+        <div class="preset-buttons">
+          <button class="preset-btn" data-preset="english">英文句子</button>
+          <button class="preset-btn" data-preset="chinese">中文句子</button>
+          <button class="preset-btn" data-preset="repeat">重复模式</button>
+        </div>
+        <textarea id="trainText" rows="2" style="width: 100%; max-width: 600px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.85rem; background: var(--bg); resize: vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="panel panel-bpe">
+        <div class="panel-title"><span class="dot bpe"></span>BPE Token 化过程</div>
+        <div class="bpe-step-info" id="bpeStepInfo">初始状态：文本拆分为单个字符</div>
+        <div class="bpe-input-box" id="bpeInput"></div>
+        <div class="bpe-iter-box" id="bpeIter"></div>
+      </div>
+
+      <div class="panel panel-vocab">
+        <div class="panel-title"><span class="dot vocab"></span>词汇表构建</div>
+        <div class="vocab-list" id="vocabList"></div>
+        <div class="info-row">
+          <span>当前合并对:</span>
+          <span id="mergePair" style="color: var(--accent);">-</span>
+        </div>
+      </div>
+
+      <div class="panel panel-w2v">
+        <div class="panel-title"><span class="dot w2v"></span>Word2Vec 滑动窗口</div>
+        <div class="w2v-window" id="w2vWindow"></div>
+        <div class="pair-list" id="pairList"></div>
+      </div>
+
+      <div class="panel panel-embed">
+        <div class="panel-title"><span class="dot embed"></span>词嵌入空间 (PCA)</div>
+        <canvas id="embedCanvas"></canvas>
+        <div class="info-row">
+          <span>语义相近的词会逐渐聚集</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const presets = {
+      english: "The quick brown fox jumps over the lazy dog. The dog was very lazy and did not move. Fox and dog are friends.",
+      chinese: "我爱自然语言处理，自然语言处理很有趣。深度学习让机器能理解语言，理解语言需要大量数据。",
+      repeat: "ab ab ab ac ac ab ab ac ab ab ab ac ac ac ab ab ab"
+    };
+
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const windowSlider = document.getElementById('windowSlider');
+    const windowVal = document.getElementById('windowVal');
+    const lrSlider = document.getElementById('lrSlider');
+    const lrVal = document.getElementById('lrVal');
+    const dimSlider = document.getElementById('dimSlider');
+    const dimVal = document.getElementById('dimVal');
+    const bpeStepDisplay = document.getElementById('bpeStepDisplay');
+    const vocabDisplay = document.getElementById('vocabDisplay');
+    const trainStepDisplay = document.getElementById('trainStepDisplay');
+    const trainText = document.getElementById('trainText');
+    const bpeStepInfo = document.getElementById('bpeStepInfo');
+    const bpeInput = document.getElementById('bpeInput');
+    const bpeIter = document.getElementById('bpeIter');
+    const vocabList = document.getElementById('vocabList');
+    const mergePair = document.getElementById('mergePair');
+    const w2vWindow = document.getElementById('w2vWindow');
+    const pairList = document.getElementById('pairList');
+    const embedCanvas = document.getElementById('embedCanvas');
+
+    let text = presets.english;
+    let tokens = [];
+    let vocab = [];
+    let vocabIndex = {};
+    let bpeStep = 0;
+    let maxBpeSteps = 20;
+
+    let wordVectors = {};
+    let trainStep = 0;
+    let windowSize = 2;
+    let lr = 0.1;
+    let dim = 8;
+
+    let isRunning = false;
+    let animationTimer = null;
+    let phase = 'bpe';
+
+    function init() {
+      tokens = text.split('');
+      vocab = [...new Set(tokens)].sort();
+      vocabIndex = {};
+      vocab.forEach((w, i) => vocabIndex[w] = i);
+
+      bpeStep = 0;
+      trainStep = 0;
+      phase = 'bpe';
+
+      wordVectors = {};
+      vocab.forEach(w => {
+        wordVectors[w] = new Array(dim).fill(0).map(() => (Math.random() - 0.5) * 0.1);
+      });
+
+      updateUI();
+      renderBPE();
+      renderVocab();
+      renderW2V();
+      drawEmbedSpace();
+    }
+
+    function getPairCounts(arr) {
+      const counts = {};
+      for (let i = 0; i < arr.length - 1; i++) {
+        const pair = arr[i] + '+' + arr[i + 1];
+        counts[pair] = (counts[pair] || 0) + 1;
+      }
+      return counts;
+    }
+
+    function findMaxPair(counts) {
+      let maxPair = null;
+      let maxCount = 0;
+      for (const [pair, count] of Object.entries(counts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          maxPair = pair;
+        }
+      }
+      return { pair: maxPair, count: maxCount };
+    }
+
+    function mergePairInTokens(arr, pair) {
+      const [a, b] = pair.split('+');
+      const result = [];
+      let i = 0;
+      while (i < arr.length) {
+        if (i < arr.length - 1 && arr[i] === a && arr[i + 1] === b) {
+          result.push(a + b);
+          i += 2;
+        } else {
+          result.push(arr[i]);
+          i++;
+        }
+      }
+      return result;
+    }
+
+    function bpeStepOnce() {
+      if (bpeStep >= maxBpeSteps) {
+        phase = 'train';
+        bpeStepInfo.textContent = 'BPE 完成！开始 Word2Vec 训练';
+        return;
+      }
+
+      const counts = getPairCounts(tokens);
+      const { pair, count } = findMaxPair(counts);
+
+      if (!pair || count < 2) {
+        phase = 'train';
+        bpeStepInfo.textContent = '没有更多高频对，开始 Word2Vec 训练';
+        return;
+      }
+
+      const newToken = pair.replace('+', '');
+      vocab.push(newToken);
+      vocabIndex[newToken] = vocab.length - 1;
+
+      tokens = mergePairInTokens(tokens, pair);
+      bpeStep++;
+
+      bpeStepInfo.textContent = `步骤 ${bpeStep}: 合并 "${pair.replace('+', '')}" (出现 ${count} 次)`;
+      mergePair.textContent = `"${newToken}"`;
+
+      updateUI();
+      renderBPE();
+      renderVocab();
+    }
+
+    function renderBPE() {
+      bpeInput.textContent = text;
+      bpeIter.innerHTML = tokens.map((t, i) => {
+        if (t.length > 1) {
+          return `<span class="bpe-pair">${t}</span>`;
+        }
+        return t === ' ' ? '·' : t === '\n' ? '↵' : t;
+      }).join(' ');
+    }
+
+    function renderVocab() {
+      vocabList.innerHTML = vocab.map((w, i) => {
+        const isNew = i >= vocab.length - 5;
+        return `<span class="vocab-item ${isNew ? 'new' : ''}">${w === ' ' ? '·' : w === '\n' ? '↵' : w}</span>`;
+      }).join('');
+      vocabDisplay.textContent = vocab.length;
+    }
+
+    function getWords() {
+      return tokens.filter(t => t.trim() !== '');
+    }
+
+    function trainW2VStep() {
+      const words = getWords();
+      if (words.length < windowSize * 2 + 1) return;
+
+      const centerIdx = Math.floor(Math.random() * (words.length - windowSize * 2)) + windowSize;
+      const centerWord = words[centerIdx];
+
+      const contexts = [];
+      for (let i = -windowSize; i <= windowSize; i++) {
+        if (i !== 0) {
+          const idx = centerIdx + i;
+          if (idx >= 0 && idx < words.length) {
+            contexts.push(words[idx]);
+          }
+        }
+      }
+
+      contexts.forEach(contextWord => {
+        updateWordVector(centerWord, contextWord);
+      });
+
+      trainStep++;
+      updateUI();
+      renderW2V(centerIdx);
+      drawEmbedSpace();
+    }
+
+    function updateWordVector(target, context) {
+      const targetVec = wordVectors[target];
+      const contextVec = wordVectors[context];
+
+      const score = targetVec.reduce((sum, v, i) => sum + v * contextVec[i], 0);
+      const prob = 1 / (1 + Math.exp(-score));
+
+      const targetGrad = new Array(dim).fill(0);
+      const contextGrad = new Array(dim).fill(0);
+
+      for (let i = 0; i < dim; i++) {
+        targetGrad[i] = (prob - 1) * contextVec[i];
+        contextGrad[i] = (prob - 1) * targetVec[i];
+      }
+
+      for (let i = 0; i < dim; i++) {
+        targetVec[i] -= lr * targetGrad[i];
+        contextVec[i] -= lr * contextGrad[i];
+      }
+    }
+
+    function renderW2V(highlightIdx = null) {
+      const words = getWords();
+
+      if (highlightIdx !== null) {
+        w2vWindow.innerHTML = words.map((w, i) => {
+          let cls = 'w2v-word normal';
+          if (i === highlightIdx) cls = 'w2v-word target';
+          else if (Math.abs(i - highlightIdx) <= windowSize) cls = 'w2v-word context';
+          return `<span class="${cls}">${w}</span>`;
+        }).join(' ');
+
+        const centerWord = words[highlightIdx];
+        const pairs = [];
+        for (let i = -windowSize; i <= windowSize; i++) {
+          if (i !== 0) {
+            const idx = highlightIdx + i;
+            if (idx >= 0 && idx < words.length) {
+              pairs.push({ context: words[idx], target: centerWord });
+            }
+          }
+        }
+
+        pairList.innerHTML = pairs.map(p => `
+          <div class="pair-item">
+            <span class="pair-context">[${p.context}]</span>
+            <span class="pair-target">→ ${p.target}</span>
+          </div>
+        `).join('');
+      } else {
+        w2vWindow.innerHTML = words.map(w => `<span class="w2v-word normal">${w}</span>`).join(' ');
+        pairList.innerHTML = '<span style="color: var(--text-light);">点击开始训练查看词对</span>';
+      }
+    }
+
+    function pca(data, dims = 2) {
+      const n = data.length;
+      const d = data[0].length;
+
+      const mean = new Array(d).fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < d; j++) {
+          mean[j] += data[i][j];
+        }
+      }
+      for (let j = 0; j < d; j++) mean[j] /= n;
+
+      const centered = data.map(v => v.map((x, j) => x - mean[j]));
+
+      const cov = new Array(d).fill(null).map(() => new Array(d).fill(0));
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < d; j++) {
+          for (let k = 0; k < d; k++) {
+            cov[j][k] += centered[i][j] * centered[i][k];
+          }
+        }
+      }
+      for (let j = 0; j < d; j++) {
+        for (let k = 0; k < d; k++) {
+          cov[j][k] /= (n - 1);
+        }
+      }
+
+      const eigen = numeric.eig(cov);
+      const indices = eigen.values.map((v, i) => ({ val: v, idx: i }))
+        .sort((a, b) => b.val - a.val)
+        .slice(0, dims)
+        .map(x => x.idx);
+
+      const result = [];
+      for (let i = 0; i < n; i++) {
+        const row = [];
+        for (const idx of indices) {
+          let sum = 0;
+          for (let j = 0; j < d; j++) {
+            sum += centered[i][j] * eigen.vectors[j][idx];
+          }
+          row.push(sum);
+        }
+        result.push(row);
+      }
+
+      return result;
+    }
+
+    function drawEmbedSpace() {
+      const words = vocab.filter(w => w.trim() !== '');
+      const vectors = words.map(w => wordVectors[w]);
+
+      if (vectors.length === 0) return;
+
+      let points = vectors;
+      if (dim > 2) {
+        points = pca(vectors, 2);
+      }
+
+      const xs = points.map(p => p[0]);
+      const ys = points.map(p => p[1]);
+      const xMin = Math.min(...xs) - 0.1;
+      const xMax = Math.max(...xs) + 0.1;
+      const yMin = Math.min(...ys) - 0.1;
+      const yMax = Math.max(...ys) + 0.1;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = embedCanvas.getBoundingClientRect();
+      embedCanvas.width = Math.floor(rect.width * dpr);
+      embedCanvas.height = Math.floor(rect.height * dpr);
+      const ctx = embedCanvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const W = rect.width, H = rect.height;
+      const pad = { l: 40, r: 20, t: 20, b: 30 };
+      const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#fdfdf9';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fafaf7';
+      ctx.fillRect(pad.l, pad.t, pw, ph);
+
+      ctx.strokeStyle = '#e8e4db';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 5; i++) {
+        const x = pad.l + (i / 5) * pw;
+        ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+        const y = pad.t + (i / 5) * ph;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#c5bdaa';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(pad.l, pad.t, pw, ph);
+
+      const X = x => pad.l + ((x - xMin) / (xMax - xMin || 1)) * pw;
+      const Y = y => pad.t + ((yMax - y) / (yMax - yMin || 1)) * ph;
+
+      const colors = ['#c75b39', '#4b82b6', '#4f8c63', '#8b6b9e', '#c8963f', '#76b7b2', '#e15759', '#f28e2b'];
+
+      words.forEach((w, i) => {
+        const x = X(points[i][0]);
+        const y = Y(points[i][1]);
+
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = colors[i % colors.length];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#2d2a24';
+        ctx.font = '11px Inter, system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(w.length > 3 ? w.substring(0, 3) + '..' : w, x, y - 10);
+      });
+    }
+
+    function updateUI() {
+      bpeStepDisplay.textContent = bpeStep;
+      trainStepDisplay.textContent = trainStep;
+      windowVal.textContent = windowSlider.value;
+      lrVal.textContent = parseFloat(lrSlider.value).toFixed(2);
+      dimVal.textContent = dimSlider.value;
+
+      if (isRunning) {
+        btnPlay.textContent = '⏸ 暂停';
+        btnPlay.classList.add('paused');
+      } else {
+        btnPlay.textContent = '▶ 开始';
+        btnPlay.classList.remove('paused');
+      }
+    }
+
+    function step() {
+      if (phase === 'bpe') {
+        bpeStepOnce();
+      } else {
+        trainW2VStep();
+      }
+    }
+
+    function scheduleStep() {
+      if (!isRunning) return;
+      step();
+      animationTimer = setTimeout(scheduleStep, 300);
+    }
+
+    btnPlay.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+      } else {
+        isRunning = true;
+        scheduleStep();
+      }
+      updateUI();
+    });
+
+    btnStep.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+      }
+      step();
+      updateUI();
+    });
+
+    btnReset.addEventListener('click', () => {
+      isRunning = false;
+      if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+      init();
+    });
+
+    windowSlider.addEventListener('input', () => { windowSize = parseInt(windowSlider.value); updateUI(); });
+    lrSlider.addEventListener('input', () => { lr = parseFloat(lrSlider.value); updateUI(); });
+    dimSlider.addEventListener('input', () => {
+      dim = parseInt(dimSlider.value);
+      vocab.forEach(w => {
+        wordVectors[w] = new Array(dim).fill(0).map(() => (Math.random() - 0.5) * 0.1);
+      });
+      updateUI();
+      drawEmbedSpace();
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        text = presets[btn.dataset.preset];
+        trainText.value = text;
+        init();
+      });
+    });
+
+    trainText.addEventListener('input', () => {
+      text = trainText.value;
+      init();
+    });
+
+    window.addEventListener('resize', drawEmbedSpace);
+
+    trainText.value = text;
+    init();
+  </script>
+
+  <script>
+    var numeric = (function() {
+      var numeric = {};
+      numeric.eig = function(A) {
+        var n = A.length;
+        var Q = new Array(n);
+        for (var i = 0; i < n; i++) {
+          Q[i] = new Array(n);
+          for (var j = 0; j < n; j++) Q[i][j] = i === j ? 1 : 0;
+        }
+        var eigvals = new Array(n);
+        for (var i = 0; i < n; i++) eigvals[i] = A[i][i];
+        var off = new Array(n - 1);
+        for (var i = 0; i < n - 1; i++) off[i] = A[i][i + 1];
+        var maxit = 1000;
+        for (var it = 0; it < maxit; it++) {
+          var maxoff = 0;
+          for (var i = 0; i < n - 1; i++) maxoff = Math.max(maxoff, Math.abs(off[i]));
+          if (maxoff < 1e-10) break;
+          for (var p = 0; p < n - 1; p++) {
+            var q = p + 1;
+            var d = (eigvals[q] - eigvals[p]) / 2;
+            var t = d > 0 ? 1 / (d + Math.sqrt(d * d + off[p] * off[p])) : 1 / (d - Math.sqrt(d * d + off[p] * off[p]));
+            var c = 1 / Math.sqrt(1 + t * t);
+            var s = t * c;
+            var tmp = eigvals[p];
+            eigvals[p] = tmp * c * c + eigvals[q] * s * s + 2 * off[p] * s * c;
+            eigvals[q] = tmp * s * s + eigvals[q] * c * c - 2 * off[p] * s * c;
+            var a = off[p];
+            off[p] = (q < n - 1) ? off[q] * s + a * c : a * c;
+            if (q < n - 1) off[q] *= c;
+            for (var i = 0; i < n; i++) {
+              var qi = Q[i][p], qj = Q[i][q];
+              Q[i][p] = qi * c + qj * s;
+              Q[i][q] = qj * c - qi * s;
+            }
+          }
+        }
+        for (var i = 0; i < n - 1; i++) {
+          for (var j = i + 1; j < n; j++) {
+            if (eigvals[j] > eigvals[i]) {
+              var tmp = eigvals[i]; eigvals[i] = eigvals[j]; eigvals[j] = tmp;
+              for (var k = 0; k < n; k++) {
+                tmp = Q[k][i]; Q[k][i] = Q[k][j]; Q[k][j] = tmp;
+              }
+            }
+          }
+        }
+        return { values: eigvals, vectors: Q };
+      };
+      return numeric;
+    })();
+  </script>
+</body>
+</html>
