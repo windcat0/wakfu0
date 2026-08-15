@@ -1286,6 +1286,55 @@
             '看看正确答案吧～', '下次一定对！🌟', '仔细算一算哟～'
         ];
 
+        // -------- 音效 (Web Audio API，无需外部文件) --------
+        let audioCtx = null;
+        let soundEnabled = true;
+        function getAudioCtx() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    audioCtx = null;
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+        // 播放一个单音
+        function playTone(freq, startOffset, duration, type, volume) {
+            const ctx = getAudioCtx();
+            if (!ctx || !soundEnabled) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.value = freq;
+            const t0 = ctx.currentTime + startOffset;
+            gain.gain.setValueAtTime(0, t0);
+            gain.gain.linearRampToValueAtTime(volume, t0 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + duration);
+        }
+        // 答对：上升三音 C5-E5-G5
+        function playCorrectSound() {
+            playTone(523.25, 0, 0.14, 'sine', 0.22);
+            playTone(659.25, 0.11, 0.14, 'sine', 0.22);
+            playTone(783.99, 0.22, 0.26, 'sine', 0.26);
+        }
+        // 答错：下降两音 A4-F4 (柔和三角波)
+        function playWrongSound() {
+            playTone(440.00, 0, 0.18, 'triangle', 0.18);
+            playTone(349.23, 0.15, 0.32, 'triangle', 0.20);
+        }
+        // 按键音
+        function playClickSound() {
+            playTone(880, 0, 0.05, 'sine', 0.10);
+        }
+
         // -------- DOM 引用 --------
         const homePage = document.getElementById('homePage');
         const gamePage = document.getElementById('gamePage');
@@ -1512,6 +1561,7 @@
                 const praise = PRAISE_WORDS[Math.floor(Math.random() * PRAISE_WORDS.length)];
                 feedbackArea.textContent = '✅ ' + praise;
                 feedbackArea.className = 'feedback-area feedback-correct';
+                playCorrectSound();
             } else {
                 wrongTotal++;
                 wrongRecords.push({
@@ -1523,10 +1573,13 @@
                 feedbackArea.innerHTML = '❌ ' + hint + ' &nbsp; 正确答案：<span class="fb-correct-answer">' + q.answer +
                     '</span>';
                 feedbackArea.className = 'feedback-area feedback-wrong';
+                playWrongSound();
             }
 
             updateStatsDisplay();
 
+            // 答对快速跳下一题；答错稍长以看清正确答案
+            const delay = isCorrect ? 700 : 1300;
             setTimeout(() => {
                 currentIndex++;
                 if (currentIndex >= questions.length) {
@@ -1534,7 +1587,7 @@
                 } else {
                     showCurrentQuestion();
                 }
-            }, 1500);
+            }, delay);
         }
 
         // -------- 显示结算页 --------
