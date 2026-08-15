@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="theme-green">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
@@ -1122,10 +1122,10 @@
              ============================================================ -->
         <div class="theme-bar" id="themeBar">
             <span class="theme-bar-label">🎨 主题</span>
-            <span class="theme-dot active" data-theme="default" title="马卡龙粉">
+            <span class="theme-dot" data-theme="default" title="马卡龙粉">
                 <span class="dot-tip">粉</span>
             </span>
-            <span class="theme-dot" data-theme="green" title="护眼浅绿">
+            <span class="theme-dot active" data-theme="green" title="护眼浅绿">
                 <span class="dot-tip">绿</span>
             </span>
             <span class="theme-dot" data-theme="blue" title="星空蓝">
@@ -1357,8 +1357,8 @@
                     display = a + ' ' + symbol + ' ' + b;
                     break;
                 case 'mul':
-                    a = randInt(0, 10);
-                    b = randInt(0, 10);
+                    a = randInt(0, 9);
+                    b = randInt(0, 9);
                     answer = a * b;
                     symbol = '×';
                     display = a + ' ' + symbol + ' ' + b;
@@ -1640,14 +1640,14 @@
 
         // -------- 初始化主题 --------
         function initTheme() {
-            let saved = 'default';
+            let saved = 'green';
             try {
                 const stored = localStorage.getItem('mathTheme');
                 if (stored) saved = stored;
             } catch (_) { /* ignore */ }
             // 检查是否有效
             const valid = ['default', 'green', 'blue', 'orange', 'purple'];
-            if (!valid.includes(saved)) saved = 'default';
+            if (!valid.includes(saved)) saved = 'green';
             setTheme(saved);
         }
 
