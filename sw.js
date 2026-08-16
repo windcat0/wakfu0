@@ -2,13 +2,13 @@
 //  sw.js — Wakfu 攻略站 Service Worker（PWA 离线支持）
 //  策略：
 //    - 页面导航请求：网络优先（保证更新及时），失败回退缓存
-//    - 同源静态资源：缓存优先，未命中时网络并回填
-//    - CDN 资源（mermaid/hljs/katex）：缓存优先，命中后后台更新
+//    - 静态资源（同源）：缓存优先，命中后后台刷新（下次打开拿到新版本）
+//    - CDN 资源（mermaid/hljs/katex）：缓存优先 + 后台刷新
 //  版本号更新时修改 CACHE 名称即可让全部缓存失效。
 // ============================================================
 'use strict';
 
-var CACHE = 'wakfu-static-v1';
+var CACHE = 'wakfu-static-v2';
 
 var CORE = [
   '/',
@@ -76,18 +76,15 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // 静态资源：缓存优先
+  // 静态资源：缓存优先，命中后一律后台刷新（保证下次打开拿到新版本）
   e.respondWith(
     caches.match(req).then(function (hit) {
       if (hit) {
-        // CDN 资源命中后后台刷新（跨域 opaque 也缓存）
-        if (new URL(req.url).origin !== self.location.origin) {
-          fetch(req).then(function (res) {
-            if (res && (res.ok || res.type === 'opaque')) {
-              caches.open(CACHE).then(function (c) { c.put(req, res); });
-            }
-          }).catch(function () { });
-        }
+        fetch(req).then(function (res) {
+          if (res && (res.ok || res.type === 'opaque')) {
+            caches.open(CACHE).then(function (c) { c.put(req, res); });
+          }
+        }).catch(function () { });
         return hit;
       }
       return fetch(req).then(function (res) {

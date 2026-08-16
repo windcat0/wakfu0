@@ -455,11 +455,15 @@
     }
     .mermaid-box svg { max-width: 100%; }
     .mermaid-loading { color: var(--text-light); font-size: 0.82rem; padding: 18px 0; }
+    .mermaid-fail {
+      display: inline-block;
+      color: var(--text-light); font-size: 0.78rem;
+      padding: 4px 12px; cursor: help;
+    }
     .mermaid-err {
-      text-align: left; color: var(--red); background: #fceceb;
-      border: 1px solid #eec7c3; border-radius: var(--radius-sm);
-      padding: 10px 14px; font-size: 0.78rem; font-family: var(--ed-font);
-      white-space: pre-wrap; word-break: break-all;
+      display: inline-block;
+      color: var(--red); font-size: 0.78rem;
+      padding: 4px 12px; cursor: help;
     }
 
     /* ============ 状态栏 ============ */

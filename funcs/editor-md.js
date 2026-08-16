@@ -152,10 +152,29 @@
   var mmdCache = new Map();
   var mmdSeq = 0;
 
+  // 图表出错时的轻提示：顶部短暂浮出，节流避免边打字边刷屏
+  var lastErrToast = 0;
+  function notifyMermaidError(msg) {
+    var now = Date.now();
+    if (now - lastErrToast < 3000) return;
+    lastErrToast = now;
+    if (ED.showMsg) {
+      ED.showMsg('err', '⚠ Mermaid 图表语法有误：' + esc(String(msg).split('\n')[0].slice(0, 100)));
+      clearTimeout(notifyMermaidError._t);
+      notifyMermaidError._t = setTimeout(function () { ED.clearMsg(); }, 3200);
+    }
+  }
+
   function applyMermaid(holder, cached) {
     if (!holder || !holder.isConnected) return;
-    if (cached.svg) holder.innerHTML = cached.svg;
-    else holder.innerHTML = '<div class="mermaid-err">Mermaid 渲染失败：' + esc(cached.err) + '</div>';
+    if (cached.svg) {
+      holder.innerHTML = cached.svg;
+    } else {
+      // 预览区只留一行低调占位（悬停可看完整错误），详细内容走短暂浮出的提示
+      holder.innerHTML = '<span class="mermaid-fail" title="' +
+        esc(String(cached.err).slice(0, 500)) + '">⚠ 图表语法有误，悬停查看详情</span>';
+      notifyMermaidError(cached.err);
+    }
   }
 
   function processMermaidBlocks(blocks, previewEl) {
@@ -179,13 +198,15 @@
         });
       });
     }).catch(function (e) {
+      var hint = (e && e.message) || String(e);
       blocks.forEach(function (b) {
         var holder = previewEl.querySelector('[data-mmd="' + b.id + '"]');
         if (holder) {
-          holder.innerHTML = '<div class="mermaid-err">' + esc(e.message || String(e)) +
-            '<br>提示：Mermaid 通过 CDN 加载，请检查网络后重试（内容已自动保存）。</div>';
+          holder.innerHTML = '<span class="mermaid-err" title="' + esc(hint.slice(0, 500)) +
+            '">⚠ Mermaid 库加载失败（需联网），悬停查看详情</span>';
         }
       });
+      notifyMermaidError('Mermaid 库加载失败（需联网访问 CDN）');
     });
   }
 
