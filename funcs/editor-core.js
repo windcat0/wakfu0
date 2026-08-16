@@ -17,6 +17,7 @@
     view: 'split',
     tabs: [],              // {id, name, mode, view, content, saved, dirty, handle}
     activeTab: 0,
+    tocOn: true,           // 文档大纲开关
     samples: { json: '', md: '' },
     mdRender: null,        // 由 editor-md.js 注入
     renderPreview: null,
@@ -57,6 +58,11 @@
   function nowTime() {
     var d = new Date();
     return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1024 / 1024).toFixed(2) + ' MB';
   }
 
   function showMsg(type, html) {
@@ -243,6 +249,7 @@
       var pvMax = el.preview.scrollHeight - el.preview.clientHeight;
       if (pvMax > 0) el.preview.scrollTop = ratio * pvMax;
     }
+    updateTocActive();
   }
 
   // ================= 搜索 / 替换 =================
@@ -723,10 +730,20 @@
     list.forEach(function (item) {
       if (item.kind !== 'file') return;
       chain = chain.then(function () {
+        // 图片：插入当前 Markdown（当前标签是 md 时），否则按文件打开
+        var imgFile = item.getAsFile && item.getAsFile();
+        if (imgFile && /^image\//.test(imgFile.type) && curTab() && curTab().mode === 'md') {
+          insertImageFile(imgFile);
+          return;
+        }
         if (typeof item.getAsFileSystemHandle === 'function') {
           return item.getAsFileSystemHandle().then(function (h) {
             if (!h || h.kind !== 'file') return;
             return h.getFile().then(function (f) {
+              if (/^image\//.test(f.type) && curTab() && curTab().mode === 'md') {
+                insertImageFile(f);
+                return;
+              }
               return f.text().then(function (text) {
                 newTab(guessMode(f.name, text), text, f.name, h);
               });
@@ -749,12 +766,16 @@
     open: function () {
       if (this._p) return this._p;
       this._p = new Promise(function (resolve) {
+        var done = false;
+        var timer = setTimeout(function () { if (!done) { done = true; resolve(null); } }, 2000);
+        function finish(v) { if (!done) { done = true; clearTimeout(timer); resolve(v); } }
         try {
           var req = indexedDB.open('wakfu-editor', 1);
           req.onupgradeneeded = function () { req.result.createObjectStore('kv'); };
-          req.onsuccess = function () { resolve(req.result); };
-          req.onerror = function () { resolve(null); };
-        } catch (e) { resolve(null); }
+          req.onsuccess = function () { finish(req.result); };
+          req.onerror = function () { finish(null); };
+          req.onblocked = function () { finish(null); };
+        } catch (e) { finish(null); }
       });
       return this._p;
     },
@@ -802,13 +823,24 @@
   var K1 = 'wakfu:editor:v1';
   var K2 = 'wakfu:editor:v2';
 
+  // 存储可用性一次性探测：file:// 或隐私拦截下静默降级，避免反复触发浏览器报错
+  var storageOK = (function () {
+    try {
+      localStorage.setItem('__wakfu_probe', '1');
+      localStorage.removeItem('__wakfu_probe');
+      return true;
+    } catch (e) { return false; }
+  })();
+
   function saveState() {
+    if (!storageOK) return;
     try {
       var t = curTab();
       if (t) t.content = el.editor.value;
       localStorage.setItem(K2, JSON.stringify({
         v: 2,
         active: ED.activeTab,
+        tocOn: ED.tocOn,
         tabs: ED.tabs.map(function (x) {
           return { id: x.id, name: x.name, mode: x.mode, view: x.view, content: x.content, dirty: x.dirty };
         })
@@ -820,8 +852,10 @@
 
   function restoreTabs() {
     var data = null;
-    try { data = JSON.parse(localStorage.getItem(K2) || 'null'); } catch (e) { }
+    if (!storageOK) data = null;
+    else { try { data = JSON.parse(localStorage.getItem(K2) || 'null'); } catch (e) { } }
     if (data && data.v === 2 && Array.isArray(data.tabs) && data.tabs.length) {
+      ED.tocOn = data.tocOn !== false;
       ED.tabs = data.tabs.map(function (t) {
         return {
           id: t.id || (++tabSeq),
@@ -850,7 +884,7 @@
     }
     // v1 迁移：单缓冲 → 标签
     var v1 = null;
-    try { v1 = JSON.parse(localStorage.getItem(K1) || 'null'); } catch (e) { }
+    if (storageOK) { try { v1 = JSON.parse(localStorage.getItem(K1) || 'null'); } catch (e) { } }
     if (v1 && (v1.md || v1.json)) {
       ED.tabs = [];
       if (v1.md && v1.md.trim()) {
@@ -868,6 +902,132 @@
     }
     ED.tabs = [mkTab({ mode: 'md', content: ED.samples.md, name: '示例.md' })];
     ED.activeTab = 0;
+  }
+
+  // ================= 文档大纲（TOC） =================
+  var tocHeadings = []; // {level, text, line}
+  var renderTocSoon = debounce(renderToc, 400);
+
+  function parseHeadings(text) {
+    var out = [];
+    var lines = text.split('\n');
+    var fence = false, m;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (/^\s{0,3}```/.test(line)) { fence = !fence; continue; }
+      if (fence) continue;
+      if ((m = line.match(/^ {0,3}(#{1,6})\s+(.*)$/))) {
+        out.push({
+          level: m[1].length,
+          text: m[2].replace(/[`*~_]+/g, '').trim(),
+          line: i
+        });
+      }
+    }
+    return out;
+  }
+
+  function renderToc() {
+    if (!el.tocBody) return;
+    var t = curTab();
+    var show = ED.tocOn && t && t.mode === 'md';
+    el.tocPanel.hidden = !show;
+    if (el.btnToc) el.btnToc.classList.toggle('on', !!show);
+    if (!show) { tocHeadings = []; return; }
+    tocHeadings = parseHeadings(el.editor.value);
+    if (!tocHeadings.length) {
+      el.tocBody.innerHTML = '<div class="toc-empty">暂无标题<br>用 # 开始一行即可创建标题</div>';
+      return;
+    }
+    el.tocBody.innerHTML = tocHeadings.map(function (h, i) {
+      return '<button class="toc-item" data-i="' + i + '" style="padding-left:' + (10 + (h.level - 1) * 12) + 'px" title="' +
+        esc(h.text) + '">' + esc(h.text || '(空标题)') + '</button>';
+    }).join('');
+  }
+
+  function tocJump(idx) {
+    var h = tocHeadings[idx];
+    if (!h) return;
+    var text = el.editor.value;
+    var pos = 0;
+    for (var i = 0; i < h.line; i++) pos = text.indexOf('\n', pos) + 1;
+    if (ED.view !== 'preview') {
+      el.editor.focus();
+      el.editor.setSelectionRange(pos, pos);
+      scrollToPos(pos);
+    }
+    // 预览区同步定位到对应标题
+    var hd = el.preview.querySelector('#hd-' + idx);
+    if (hd) el.preview.scrollTop = hd.offsetTop - 12;
+    updateTocActive(idx);
+  }
+
+  function updateTocActive(forceIdx) {
+    if (!tocHeadings.length || el.tocPanel.hidden) return;
+    var idx = forceIdx;
+    if (idx === undefined) {
+      var firstLine = Math.round(el.editor.scrollTop / LINE_H) + 1;
+      idx = -1;
+      for (var i = 0; i < tocHeadings.length; i++) {
+        if (tocHeadings[i].line + 1 <= firstLine + 2) idx = i;
+        else break;
+      }
+      if (idx === -1) idx = 0;
+    }
+    var items = el.tocBody.children;
+    for (var k = 0; k < items.length; k++) {
+      items[k].classList.toggle('on', k === idx);
+    }
+    var cur = items[idx];
+    if (cur) {
+      var bodyRect = el.tocBody.getBoundingClientRect();
+      var r = cur.getBoundingClientRect();
+      if (r.top < bodyRect.top || r.bottom > bodyRect.bottom) {
+        cur.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }
+
+  function setToc(on) {
+    ED.tocOn = !!on;
+    renderToc();
+    updateTocActive(0);
+    saveSoon();
+  }
+
+  // ================= 主题（亮 / 暗） =================
+  var THEME_KEY = 'wakfu:editor:theme';
+
+  function applyTheme(dark) {
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    if (el.btnTheme) el.btnTheme.textContent = dark ? '☀️' : '🌙';
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#211e1a' : '#c75b39');
+    if (typeof ED.setHljsTheme === 'function') ED.setHljsTheme(dark);
+    if (typeof ED.applyMermaidTheme === 'function') ED.applyMermaidTheme(dark);
+    renderPreviewSoon();
+    if (storageOK) { try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) { } }
+  }
+
+  // ================= 图片插入（粘贴 / 拖拽） =================
+  function insertAtCursor(text) {
+    var ta = el.editor;
+    var s = ta.selectionStart, e2 = ta.selectionEnd;
+    replaceRange(s, e2, text);
+    ta.setSelectionRange(s + text.length, s + text.length);
+  }
+
+  function insertImageFile(f) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var d = new Date();
+      var ext = (f.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+      var name = '图片-' + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds()) + '.' + ext;
+      insertAtCursor('![' + name + '](' + reader.result + ')');
+      showMsg('ok', '✓ 已插入图片 ' + name + '（Base64 ' + fmtBytes(reader.result.length) + '，保存在文档内）');
+      setTimeout(clearMsg, 2600);
+    };
+    reader.readAsDataURL(f);
   }
 
   // ================= 预览 / 状态刷新 =================
@@ -889,6 +1049,7 @@
     updateStatus();
     if (search.open) refreshMatches(true);
     renderPreviewSoon();
+    renderTocSoon();
     saveSoon();
   }
 
@@ -953,6 +1114,8 @@
     el.editor = $('#editor'); el.hlPre = $('#hlPre'); el.hlCode = $('#hlCode');
     el.gutter = $('#gutter'); el.preview = $('#preview'); el.stage = $('#stage');
     el.tabbar = $('#tabbar'); el.dropOverlay = $('#dropOverlay');
+    el.tocPanel = $('#tocPanel'); el.tocBody = $('#tocBody');
+    el.btnToc = $('#btnToc'); el.btnTheme = $('#btnTheme'); el.btnExport = $('#btnExport');
     el.searchbar = $('#searchbar'); el.findInput = $('#findInput'); el.replaceInput = $('#replaceInput');
     el.matchCount = $('#matchCount'); el.togCase = $('#togCase'); el.togRegex = $('#togRegex');
     el.msgbar = $('#msgbar');
@@ -974,6 +1137,20 @@
     el.editor.addEventListener('scroll', syncScroll);
     ['keyup', 'click', 'select', 'focus'].forEach(function (ev) {
       el.editor.addEventListener(ev, onCaretMoved);
+    });
+
+    // —— 剪贴板粘贴图片 → Markdown 图片 ——
+    el.editor.addEventListener('paste', function (e) {
+      var items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.indexOf('image/') === 0) {
+          e.preventDefault();
+          var f = items[i].getAsFile();
+          if (f) insertImageFile(f);
+          return;
+        }
+      }
     });
 
     el.editor.addEventListener('keydown', function (e) {
@@ -1084,6 +1261,30 @@
     $('#btnMinify').addEventListener('click', function () { jsonAction('minify'); });
     $('#btnValidate').addEventListener('click', function () { jsonAction('validate'); });
 
+    // —— 大纲 / 主题 / 导出 ——
+    if (el.btnToc) el.btnToc.addEventListener('click', function () { setToc(!ED.tocOn); });
+    var tocClose = $('#tocClose');
+    if (tocClose) tocClose.addEventListener('click', function () { setToc(false); });
+    if (el.tocBody) {
+      el.tocBody.addEventListener('click', function (e) {
+        var item = e.target.closest ? e.target.closest('.toc-item') : null;
+        if (item) tocJump(parseInt(item.getAttribute('data-i'), 10));
+      });
+    }
+    if (el.btnTheme) {
+      el.btnTheme.addEventListener('click', function () {
+        applyTheme(document.body.getAttribute('data-theme') !== 'dark');
+      });
+    }
+    if (el.btnExport) {
+      el.btnExport.addEventListener('click', function () {
+        if (typeof ED.exportHtml === 'function') ED.exportHtml();
+      });
+    }
+    var savedTheme = null;
+    if (storageOK) { try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) { } }
+    applyTheme(savedTheme === 'dark');
+
     // —— 文件操作 ——
     $('#btnSample').addEventListener('click', function () {
       var t = curTab();
@@ -1163,6 +1364,7 @@
     });
 
     onContentChanged();
+    renderToc();
     syncScroll();
   };
 })();

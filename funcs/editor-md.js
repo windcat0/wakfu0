@@ -17,10 +17,11 @@
 
   // ================= highlight.js 懒加载 =================
   var HLJS_JS = [
-    'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js',
+    'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js',
     'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js'
   ];
-  var HLJS_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+  var HLJS_CSS_LIGHT = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css';
+  var HLJS_CSS_DARK = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css';
   var hljsPromise = null;
 
   function loadScript(src) {
@@ -33,6 +34,20 @@
     });
   }
 
+  function appendCss(href, id, disabled) {
+    if (document.getElementById(id)) return;
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = href;
+    l.id = id;
+    l.disabled = !!disabled;
+    document.head.appendChild(l);
+  }
+
+  function currentThemeDark() {
+    return document.body.getAttribute('data-theme') === 'dark';
+  }
+
   function ensureHljs() {
     if (window.hljs) return Promise.resolve(window.hljs);
     if (hljsPromise) return hljsPromise;
@@ -40,10 +55,9 @@
       .catch(function () { return loadScript(HLJS_JS[1]); })
       .then(function () {
         if (!window.hljs) throw new Error('hljs missing');
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = HLJS_CSS;
-        document.head.appendChild(link);
+        var dark = currentThemeDark();
+        appendCss(HLJS_CSS_LIGHT, 'hljs-css-light', dark);
+        appendCss(HLJS_CSS_DARK, 'hljs-css-dark', !dark);
         return window.hljs;
       })
       .catch(function () {
@@ -56,6 +70,14 @@
       });
     return hljsPromise;
   }
+
+  // 亮 / 暗主题切换时同步高亮配色
+  ED.setHljsTheme = function (dark) {
+    var a = document.getElementById('hljs-css-light');
+    var b = document.getElementById('hljs-css-dark');
+    if (a) a.disabled = !!dark;
+    if (b) b.disabled = !dark;
+  };
 
   function codeBlockHtml(lang, code) {
     if (window.hljs) {
@@ -75,12 +97,30 @@
     return '<pre><code' + (lang ? ' class="language-' + esc(lang) + '"' : '') + '>' + esc(code) + '</code></pre>';
   }
 
-  // ================= mermaid 懒加载 =================
+  // ================= mermaid 懒加载（支持主题切换） =================
   var MERMAID_ESM = [
     'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs',
     'https://unpkg.com/mermaid@11/dist/mermaid.esm.min.mjs'
   ];
   var mermaidPromise = null;
+  var mermaidMod = null;
+  var mermaidDark = false;
+
+  function mermaidInit(mermaid) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: mermaidDark ? 'dark' : 'default',
+      securityLevel: 'strict',
+      fontFamily: "'Inter', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+      themeVariables: {
+        primaryColor: mermaidDark ? '#3a2f27' : '#f0e3d8',
+        primaryBorderColor: '#c75b39',
+        primaryTextColor: mermaidDark ? '#e8e2d6' : '#2d2a24',
+        lineColor: mermaidDark ? '#e08a63' : '#a8482a',
+        fontSize: '14px'
+      }
+    });
+  }
 
   function ensureMermaid() {
     if (mermaidPromise) return mermaidPromise;
@@ -90,19 +130,8 @@
         try {
           var mod = await import(MERMAID_ESM[i]);
           var mermaid = mod.default;
-          mermaid.initialize({
-            startOnLoad: false,
-            theme: 'default',
-            securityLevel: 'strict',
-            fontFamily: "'Inter', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif",
-            themeVariables: {
-              primaryColor: '#f0e3d8',
-              primaryBorderColor: '#c75b39',
-              primaryTextColor: '#2d2a24',
-              lineColor: '#a8482a',
-              fontSize: '14px'
-            }
-          });
+          mermaidMod = mermaid;
+          mermaidInit(mermaid);
           return mermaid;
         } catch (e) { lastErr = e; }
       }
@@ -110,6 +139,14 @@
     })();
     return mermaidPromise;
   }
+
+  // 主题切换：重新初始化 mermaid 并清缓存重渲染
+  ED.applyMermaidTheme = function (dark) {
+    mermaidDark = !!dark;
+    mmdCache.clear();
+    if (mermaidMod) mermaidInit(mermaidMod);
+    if (ED.mode === 'md' && ED.view !== 'edit') reRenderSoon();
+  };
 
   // 渲染结果缓存：代码内容 → {svg} 或 {err}
   var mmdCache = new Map();
@@ -152,14 +189,69 @@
     });
   }
 
+  // ================= KaTeX 数学公式 =================
+  var KATEX_JS = [
+    'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js',
+    'https://unpkg.com/katex@0.16.11/dist/katex.min.js'
+  ];
+  var KATEX_CSS = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css';
+  var katexPromise = null;
+
+  function ensureKatex() {
+    if (window.katex) return Promise.resolve(window.katex);
+    if (katexPromise) return katexPromise;
+    katexPromise = loadScript(KATEX_JS[0])
+      .catch(function () { return loadScript(KATEX_JS[1]); })
+      .then(function () {
+        if (!window.katex) throw new Error('katex missing');
+        appendCss(KATEX_CSS, 'katex-css', false);
+        return window.katex;
+      })
+      .catch(function () {
+        katexPromise = null;
+        if (ED.showMsg) {
+          ED.showMsg('err', '⚠ 数学公式库加载失败（需联网访问 CDN），公式将以原文显示');
+          setTimeout(function () { ED.clearMsg(); }, 4000);
+        }
+        throw new Error('KaTeX 加载失败');
+      });
+    return katexPromise;
+  }
+
+  var MATH_RE = /\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$|\\\(([\s\S]+?)\\\)|\\\[([\s\S]+?)\\\]/g;
+  var MATH_DETECT = /\$\$|\$[^\s$]|\\\(|\\\[/;
+
   // ================= Markdown → HTML =================
   function safeUrl(u) {
     return /^(https?:|mailto:|#|\/|\.{0,2}\/)/i.test(u) ? esc(u) : '#';
   }
 
   function mdInline(s) {
+    var stash = [];
+    // 1) 保护行内代码（内容需转义）
+    s = s.replace(/`[^`\n]+`/g, function (m) {
+      stash.push('<code>' + esc(m.slice(1, -1)) + '</code>');
+      return '\x00' + (stash.length - 1) + '\x00';
+    });
+    // 2) 数学公式（KaTeX 就绪后渲染，否则保留原文并触发加载）
+    if (MATH_DETECT.test(s)) {
+      if (window.katex) {
+        s = s.replace(MATH_RE, function (all, d1, i1, d2, d3) {
+          var tex = d1 || i1 || d2 || d3;
+          var display = d1 !== undefined || d3 !== undefined;
+          try {
+            stash.push(window.katex.renderToString(tex, { displayMode: display, throwOnError: false }));
+          } catch (e) {
+            stash.push(esc(all));
+          }
+          return '\x00' + (stash.length - 1) + '\x00';
+        });
+      } else {
+        ensureKatex().then(reRenderSoon).catch(function () { });
+      }
+    }
+    // 3) 转义 + 常规行内规则
     s = esc(s);
-    s = s.replace(/`([^`]+)`/g, function (_, c) { return '<code>' + c + '</code>'; });
     s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, u) {
       return '<img src="' + safeUrl(u) + '" alt="' + alt + '">';
     });
@@ -170,14 +262,17 @@
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/\*([^*\s][^*]*)\*/g, '<em>$1</em>');
     s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    // 4) 还原代码 / 公式占位
+    s = s.replace(/\x00(\d+)\x00/g, function (_, i) { return stash[+i]; });
     return s;
   }
 
-  function renderMarkdown(src) {
+  function renderMarkdown(src, nested) {
     var lines = String(src).replace(/\r\n?/g, '\n').split('\n');
     var out = [], para = [], listStack = [];
     var mermaidBlocks = [];
     var mmdId = 0;
+    var hdIdx = 0; // 顶层标题锚点序号（与 TOC 面板对应）
 
     function flushPara() {
       if (para.length) {
@@ -228,7 +323,7 @@
       if (h) {
         flushPara(); closeLists(0);
         var n = h[1].length;
-        out.push('<h' + n + '>' + mdInline(h[2]) + '</h' + n + '>');
+        out.push('<h' + n + (nested ? '' : ' id="hd-' + (hdIdx++) + '"') + '>' + mdInline(h[2]) + '</h' + n + '>');
         continue;
       }
 
@@ -246,7 +341,7 @@
           i++;
         }
         i--;
-        out.push('<blockquote>' + renderMarkdown(quote.join('\n')).html + '</blockquote>');
+        out.push('<blockquote>' + renderMarkdown(quote.join('\n'), true).html + '</blockquote>');
         continue;
       }
 
@@ -316,6 +411,89 @@
   ED._t.renderMarkdown = renderMarkdown;
   ED._t.mmdCacheSize = function () { return mmdCache.size; };
 
+  // ================= 导出独立 HTML =================
+  function collectPvCss() {
+    var out = [];
+    try {
+      for (var i = 0; i < document.styleSheets.length; i++) {
+        var sheet = document.styleSheets[i];
+        if (sheet.href) continue; // 只取页面内联样式（跨域规则不可读）
+        var rules = sheet.cssRules || [];
+        for (var j = 0; j < rules.length; j++) {
+          var r = rules[j];
+          var sel = r.selectorText || '';
+          if (sel.indexOf('.pv') !== -1 || sel.indexOf('.mermaid') !== -1) {
+            out.push(r.cssText);
+          }
+        }
+      }
+    } catch (e) { }
+    return out.join('\n');
+  }
+
+  function fetchText(url) {
+    return fetch(url).then(function (r) { return r.ok ? r.text() : ''; }).catch(function () { return ''; });
+  }
+
+  function waitMermaidDone(pv, timeoutMs) {
+    return new Promise(function (resolve) {
+      var t0 = Date.now();
+      (function poll() {
+        if (!pv.querySelector('.mermaid-loading') || Date.now() - t0 > timeoutMs) return resolve();
+        setTimeout(poll, 150);
+      })();
+    });
+  }
+
+  ED.exportHtml = function () {
+    var pv = document.getElementById('preview');
+    if (!pv) return;
+    if (ED.showMsg) ED.showMsg('ok', '⏳ 正在生成独立 HTML（含公式 / 图表 / 高亮样式）…');
+    // 确保预览为最新内容（编辑模式也会渲染，预览区隐藏但 DOM 可用）
+    ED.renderPreview();
+    waitMermaidDone(pv, 6000).then(function () {
+      var dark = document.body.getAttribute('data-theme') === 'dark';
+      var tab = ED.tabs[ED.activeTab] || {};
+      var tabName = tab.name || 'document.md';
+      var bodyHtml = pv.innerHTML;
+      var title = '导出文档';
+      var mt = bodyHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+      if (mt) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = mt[1];
+        var txt = tmp.textContent.trim();
+        if (txt) title = txt;
+      } else if (tabName) {
+        title = tabName;
+      }
+      var hljsUrl = dark ? HLJS_CSS_DARK : HLJS_CSS_LIGHT;
+      return Promise.all([fetchText(hljsUrl), fetchText(KATEX_CSS)]).then(function (css) {
+        var html = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n' +
+          '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+          '<title>' + esc(title) + '</title>\n<style>\n' +
+          'body{margin:0;padding:28px 18px;background:' + (dark ? '#211e1a' : '#faf8f4') + ';color:' + (dark ? '#e8e2d6' : '#2d2a24') + ';font-family:\'Inter\',system-ui,-apple-system,\'PingFang SC\',\'Microsoft YaHei\',sans-serif;}\n' +
+          'body>.pv{max-width:860px;margin:0 auto;border:none;box-shadow:none;border-radius:0;padding:0;background:transparent;overflow:visible;}\n' +
+          collectPvCss() + '\n' + css[0] + '\n' + css[1] + '\n</style>\n</head>\n<body>\n' +
+          '<div class="pv">' + bodyHtml + '</div>\n</body>\n</html>';
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var a = document.createElement('a');
+        a.download = tabName.replace(/\.[^.]+$/, '') + '.html';
+        a.href = URL.createObjectURL(blob);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+        if (ED.showMsg) {
+          ED.showMsg('ok', '✓ 已导出 ' + a.download + '（独立 HTML，可直接双击打开）');
+          setTimeout(ED.clearMsg, 3000);
+        }
+      });
+    }).catch(function (e) {
+      if (ED.showMsg) {
+        ED.showMsg('err', '导出失败：' + esc(e && e.message || String(e)));
+        setTimeout(ED.clearMsg, 3000);
+      }
+    });
+  };
+
   // ================= 示例内容 =================
   ED.samples = {};
 
@@ -365,6 +543,12 @@
     '    E->>E: 实时渲染',
     '    E-->>U: 显示预览',
     '```',
+    '',
+    '## 数学公式（KaTeX）',
+    '',
+    '行内公式 $E = mc^2$ 与 $a^2 + b^2 = c^2$。',
+    '',
+    '$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$',
     '',
     '## 表格与任务',
     '',

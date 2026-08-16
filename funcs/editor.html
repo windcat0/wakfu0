@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>在线编辑器</title>
   <meta name="func-icon" content="📝">
+  <meta name="theme-color" content="#c75b39">
   <meta name="func-title" content="在线编辑器">
   <meta name="func-badge" content="JSON · Markdown · Mermaid">
-  <meta name="func-desc" content="多标签在线编辑器：JSON 格式化/压缩/校验（错误定位行列）、正则搜索替换、Markdown 编辑/预览/实时预览三模式、Mermaid 图表与代码语法高亮；支持本地文件关联（Ctrl+S 直接保存回本地文件）与自动保存。">
+  <meta name="func-desc" content="多标签在线编辑器：JSON 格式化/校验（错误定位）、正则搜索替换、Markdown 三模式预览、Mermaid 图表、代码高亮、KaTeX 数学公式、文档大纲、图片粘贴、亮暗主题、导出独立 HTML、本地文件关联（Ctrl+S 写回）与自动保存。">
   <meta name="func-tags" content="编辑器,JSON,Markdown,Mermaid,搜索替换,多标签">
   <style>
     :root {
@@ -89,7 +90,7 @@
     .rail {
       width: 54px; flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center;
-      gap: 6px; padding: 10px 0;
+      gap: 5px; padding: 8px 0;
       background: var(--panel-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -104,10 +105,10 @@
 
     .rbtn {
       position: relative;
-      width: 38px; height: 38px;
+      width: 36px; height: 36px;
       border: 1px solid var(--border); border-radius: 10px;
       background: var(--panel-bg);
-      font-size: 1.02rem; line-height: 1;
+      font-size: 0.95rem; line-height: 1;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: var(--transition);
       color: var(--text-light);
@@ -202,6 +203,86 @@
       pointer-events: none;
     }
     .drop-overlay.show { display: flex; }
+
+    /* ============ 文档大纲（TOC） ============ */
+    .toc {
+      width: 208px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .toc[hidden] { display: none; }
+    .toc-head {
+      padding: 9px 12px; font-size: 0.8rem; font-weight: 700;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .toc-close { cursor: pointer; padding: 0 4px; border-radius: 5px; font-size: 0.72rem; }
+    .toc-close:hover { background: var(--red); color: #fff; }
+    .toc-body { flex: 1; overflow-y: auto; padding: 6px 0; scrollbar-width: thin; }
+    .toc-item {
+      display: block;
+      padding: 4px 10px;
+      font-size: 0.78rem; line-height: 1.45;
+      color: var(--text-light);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: var(--transition);
+      background: none; border-top: none; border-right: none; border-bottom: none;
+      width: 100%; text-align: left; font-family: inherit;
+    }
+    .toc-item:hover { color: var(--accent-dark); background: var(--accent-soft); }
+    .toc-item.on { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+    .toc-empty { padding: 18px 12px; color: var(--text-light); font-size: 0.76rem; text-align: center; }
+
+    /* ============ 暗色主题 ============ */
+    body[data-theme="dark"] {
+      --bg: #211e1a;
+      --panel-bg: #2a2620;
+      --text: #e8e2d6;
+      --text-light: #a89e8f;
+      --accent: #d96a45;
+      --accent-dark: #e08a63;
+      --accent-soft: #3a2f27;
+      --blue: #7fa8cc;
+      --gold: #d9b36a;
+      --green: #8fbf9a;
+      --red: #d97b71;
+      --purple: #a98bc0;
+      --border: #3a342c;
+      --mono-bg: #26221d;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+    body[data-theme="dark"] .topbar { background: rgba(33, 30, 26, 0.92); }
+    body[data-theme="dark"] .ed-gutter { background: #1e1b17; }
+    body[data-theme="dark"] .ed-gutter-inner { color: #6e6557; }
+    body[data-theme="dark"] .md-code-bg { background: #35302a; }
+    body[data-theme="dark"] .m-all { background: #6b5a2e; }
+    body[data-theme="dark"] .m-cur { background: #b97a2a; }
+    body[data-theme="dark"] .msgbar.err { background: #3d2725; border-color: #5c3a36; }
+    body[data-theme="dark"] .msgbar.ok { background: #26372c; border-color: #3a5544; }
+    body[data-theme="dark"] .pv { background: var(--panel-bg); }
+    body[data-theme="dark"] .pv pre { background: #211e1a; }
+    body[data-theme="dark"] .pv pre code { color: #d8d2c6; }
+    body[data-theme="dark"] .drop-overlay { background: rgba(33, 30, 26, 0.9); }
+    body[data-theme="dark"] .back-link { background: var(--panel-bg); }
+
+    /* 矮窗口：功能栏允许纵向滚动（提示气泡改为不依赖溢出） */
+    @media (max-height: 660px) {
+      .rail { overflow-y: auto; scrollbar-width: thin; }
+      .rbtn { flex-shrink: 0; }
+      .rbtn::after {
+        right: auto; left: 50%; top: auto; bottom: calc(100% + 7px);
+        transform: translateX(-50%);
+      }
+    }
 
     /* ============ 搜索替换栏 ============ */
     .searchbar {
@@ -452,6 +533,10 @@
 
       <!-- 编辑 / 预览 -->
       <div class="stage view-split" id="stage">
+        <div class="toc" id="tocPanel" hidden>
+          <div class="toc-head"><span>📑 文档大纲</span><span class="toc-close" id="tocClose" title="收起大纲">✕</span></div>
+          <div class="toc-body" id="tocBody"></div>
+        </div>
         <div class="ed-wrap">
           <div class="ed-gutter"><div class="ed-gutter-inner" id="gutter">1</div></div>
           <div class="ed-scroll">
@@ -496,12 +581,15 @@
       <div class="rail-sep"></div>
       <div class="rail-group">
         <button class="rbtn" id="btnSearch" data-tip="查找替换（Ctrl+F）" aria-label="查找替换">🔍</button>
+        <button class="rbtn md-only" id="btnToc" data-tip="文档大纲" aria-label="文档大纲">📑</button>
+        <button class="rbtn md-only" id="btnExport" data-tip="导出为独立 HTML 文件" aria-label="导出 HTML">📤</button>
         <button class="rbtn" id="btnSample" data-tip="载入示例" aria-label="载入示例">📄</button>
         <button class="rbtn" id="btnOpen" data-tip="打开本地文件（Ctrl+O），也可拖拽到页面" aria-label="打开本地文件">📂</button>
         <button class="rbtn primary" id="btnSave" data-tip="保存：已关联文件直接写回（Ctrl+S）" aria-label="保存">💾</button>
         <button class="rbtn" id="btnDownload" data-tip="另存副本（不影响关联文件）" aria-label="另存副本">⤓</button>
         <button class="rbtn" id="btnCopy" data-tip="复制全部内容" aria-label="复制">⧉</button>
         <button class="rbtn" id="btnClear" data-tip="清空当前标签内容" aria-label="清空">🗑️</button>
+        <button class="rbtn" id="btnTheme" data-tip="切换亮 / 暗主题" aria-label="切换主题">🌙</button>
       </div>
       <input type="file" id="fileInput" accept="text/*,.md,.markdown,.json,.mmd,.mermaid,.txt,.log,.yml,.yaml,.csv,.xml,.html,.ini,.conf" multiple hidden>
     </aside>
@@ -511,5 +599,21 @@
 
   <script src="editor-core.js"></script>
   <script src="editor-md.js"></script>
+  <script>
+    // PWA 仅在 http(s) 下启用；file:// 直接打开时跳过（避免 CORS / 存储报错）
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      (function () {
+        var m = document.createElement('link');
+        m.rel = 'manifest';
+        m.href = '/manifest.webmanifest';
+        document.head.appendChild(m);
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').catch(function () { });
+          });
+        }
+      })();
+    }
+  </script>
 </body>
 </html>

@@ -937,6 +937,227 @@
     }
   });
 
+  // ================= 文件哈希 =================
+  DT.register({
+    id: 'file-hash', cat: 'misc', icon: '#️⃣', name: '文件哈希计算', short: '文件哈希',
+    desc: '拖入或选择本地文件，计算 MD5 / SHA-1 / SHA-256 / SHA-512，用于校验文件完整性；全部本地计算，文件不上传。',
+    kw: 'hash 哈希 文件 md5 sha 完整性 校验',
+    render: function (root) {
+      root.innerHTML = '<div class="card">' +
+        '<div class="dropzone" data-dz><span class="dz-icon">#️⃣</span>点击选择文件，或拖拽到此处<br><span style="font-size:0.78rem">建议小于 100 MB</span></div>' +
+        '<input type="file" hidden data-file>' +
+        '<div data-meta style="margin-top:12px"></div>' +
+        '<div data-rows></div>' +
+        '</div>';
+
+      var dz = DT.$('[data-dz]', root), fileInput = DT.$('[data-file]', root);
+      var meta = DT.$('[data-meta]', root), rows = DT.$('[data-rows]', root);
+
+      function handleFile(f) {
+        if (!f) return;
+        meta.innerHTML =
+          '<div class="kv-row"><span class="k">文件</span><span class="v">' + DT.esc(f.name) + '</span></div>' +
+          '<div class="kv-row"><span class="k">大小</span><span class="v">' + DT.fmtBytes(f.size) +
+          (f.lastModified ? '（修改于 ' + DT.fmtLocal(new Date(f.lastModified)) + '）' : '') + '</span></div>';
+        rows.innerHTML = '<p class="hint">计算中…</p>';
+
+        var reader = new FileReader();
+        reader.onerror = function () {
+          rows.innerHTML = '<div class="io-err">读取文件失败</div>';
+        };
+        reader.onload = function () {
+          var buf = reader.result;
+          var results = [];
+          try {
+            results.push(['MD5', DT.md5hexU8(new Uint8Array(buf))]);
+          } catch (e) {
+            rows.innerHTML = '<div class="io-err">MD5 计算失败：' + DT.esc(e.message) + '</div>';
+            return;
+          }
+          if (!DT.hasSubtle()) {
+            finish(results, '（当前环境不支持 Web Crypto，SHA 系列不可用）');
+            return;
+          }
+          var algos = ['SHA-1', 'SHA-256', 'SHA-512'];
+          Promise.all(algos.map(function (a) {
+            return crypto.subtle.digest(a, buf).then(function (d) {
+              results.push([a, DT.u82hex(new Uint8Array(d))]);
+            });
+          })).then(function () { finish(results, ''); },
+            function () { finish(results, '（部分 SHA 计算失败）'); });
+        };
+        reader.readAsArrayBuffer(f);
+      }
+
+      function finish(results, note) {
+        rows.innerHTML = results.map(function (r) {
+          return '<div class="kv-row"><span class="k" style="min-width:70px">' + r[0] + '</span>' +
+            '<span class="v">' + r[1] + '</span>' +
+            '<button class="btn sm ghost h-copy" data-h="' + r[1] + '">复制</button></div>';
+        }).join('') + (note ? '<p class="hint">' + note + '</p>' : '');
+        DT.$$('.h-copy', rows).forEach(function (b) {
+          b.addEventListener('click', function () { DT.copy(this.getAttribute('data-h'), this); });
+        });
+      }
+
+      dz.addEventListener('click', function () { fileInput.click(); });
+      fileInput.addEventListener('change', function () { handleFile(this.files[0]); });
+      dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('drag'); });
+      dz.addEventListener('dragleave', function () { dz.classList.remove('drag'); });
+      dz.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dz.classList.remove('drag');
+        handleFile(e.dataTransfer.files[0]);
+      });
+    }
+  });
+
+  // ================= JSON → 代码类型生成 =================
+  function codegenPascal(s) {
+    var out = String(s).replace(/[^a-zA-Z0-9]+(.)?/g, function (_, c) { return c ? c.toUpperCase() : ''; });
+    if (!out) return '';
+    return out.charAt(0).toUpperCase() + out.slice(1);
+  }
+
+  function uniqueNames(used, base) {
+    var name = base || 'Field', i = 2;
+    while (used[name]) { name = base + i; i++; }
+    used[name] = true;
+    return name;
+  }
+
+  function jsonToTS(obj) {
+    var interfaces = [];
+    var used = {};
+    function typeOf(v, name) {
+      if (v === null) return 'null';
+      if (Array.isArray(v)) {
+        if (!v.length) return 'unknown[]';
+        var types = [];
+        v.forEach(function (x) {
+          var t = typeOf(x, name);
+          if (types.indexOf(t) === -1) types.push(t);
+        });
+        return types.length === 1 ? types[0] + '[]' : '(' + types.join(' | ') + ')[]';
+      }
+      if (typeof v === 'object') {
+        var iname = uniqueNames(used, codegenPascal(name) || 'Nested');
+        interfaces.push({ name: iname, obj: v });
+        return iname;
+      }
+      return typeof v;
+    }
+    function keyName(k) {
+      return /^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k);
+    }
+    var rootIsArray = Array.isArray(obj);
+    var rootData = rootIsArray ? (obj.length ? obj[0] : null) : obj;
+    var rootType = rootIsArray
+      ? (rootData === null ? 'unknown[]' : typeOf(rootData, 'RootItem'))
+      : typeOf(obj, 'Root');
+
+    var out = [];
+    var i = 0;
+    while (i < interfaces.length) {
+      var it = interfaces[i];
+      var keys = Object.keys(it.obj);
+      var body = keys.length
+        ? '\n' + keys.map(function (k) {
+          return '  ' + keyName(k) + (it.obj[k] === null ? '?' : '') + ': ' + typeOf(it.obj[k], k) + ';';
+        }).join('\n')
+        : ' {}';
+      out.push('interface ' + it.name + ' {' + body + '\n}');
+      i++;
+    }
+    var html = out.join('\n\n');
+    var header = '// TypeScript 类型定义（由 JSON 自动生成）\n';
+    if (rootIsArray) {
+      if (rootData === null) return header + html + (html ? '\n\n' : '') + 'type Root = unknown[];';
+      return header + html + '\n\ntype Root = RootItem[];';
+    }
+    return header + html;
+  }
+
+  function jsonToGo(obj) {
+    var structs = [];
+    var used = {};
+    function goType(v, name) {
+      if (v === null) return 'interface{}';
+      if (Array.isArray(v)) {
+        if (!v.length) return '[]interface{}';
+        var types = [];
+        v.forEach(function (x) {
+          var t = goType(x, name);
+          if (types.indexOf(t) === -1) types.push(t);
+        });
+        if (types.length !== 1) return '[]interface{}';
+        return '[]' + types[0];
+      }
+      if (typeof v === 'object') {
+        var sname = uniqueNames(used, codegenPascal(name) || 'Nested');
+        structs.push({ name: sname, obj: v });
+        return sname;
+      }
+      if (typeof v === 'boolean') return 'bool';
+      if (typeof v === 'number') {
+        return Number.isInteger(v) && Math.abs(v) <= 2147483647 ? 'int' : 'float64';
+      }
+      return 'string';
+    }
+    function build(s) {
+      var keys = Object.keys(s.obj);
+      var body = keys.length
+        ? '\n' + keys.map(function (k) {
+          var fname = codegenPascal(k) || 'Field';
+          return '\t' + fname + ' ' + goType(s.obj[k], k) + ' `json:"' + k + '"`';
+        }).join('\n')
+        : ' {}';
+      return 'type ' + s.name + ' struct {' + body + '\n}';
+    }
+    var rootIsArray = Array.isArray(obj);
+    var rootData = rootIsArray ? (obj.length ? obj[0] : null) : obj;
+
+    var out = [];
+    var i = 0;
+    if (!rootIsArray) {
+      out.push(build({ name: uniqueNames(used, 'Root'), obj: obj }));
+    } else if (rootData !== null && typeof rootData === 'object' && !Array.isArray(rootData)) {
+      out.push(build({ name: uniqueNames(used, 'RootItem'), obj: rootData }));
+      out.push('type Root []RootItem');
+    } else {
+      out.push('type Root ' + goType(rootData === null ? [] : obj, 'Root'));
+    }
+    while (i < structs.length) { out.push(build(structs[i])); i++; }
+    return '// Go 结构体定义（由 JSON 自动生成）\n' + out.join('\n\n');
+  }
+
+  DT._t.jsonToTS = jsonToTS;
+  DT._t.jsonToGo = jsonToGo;
+
+  DT.ioTool({
+    id: 'json-codegen', cat: 'data', icon: '🏗️', name: 'JSON → TypeScript / Go 类型', short: 'JSON 转类型',
+    desc: '把 JSON 转成 TypeScript interface 或 Go struct 定义，自动处理嵌套对象、数组与字段标签（json tag）。',
+    kw: 'typescript go struct interface 类型生成 codegen',
+    ph: '粘贴 JSON 对象或数组…',
+    rows: 6, orows: 10,
+    controls: function (row) {
+      return {
+        lang: DT.ctrlSelect(row, '目标语言', [
+          { v: 'ts', t: 'TypeScript' }, { v: 'go', t: 'Go' }
+        ], 'ts')
+      };
+    },
+    actions: [
+      {
+        label: '生成 →', fn: function (t, ctrls) {
+          var r;
+          try { r = JSON.parse(t); } catch (e) { throw new Error('JSON 解析失败：' + e.message); }
+          return ctrls.lang() === 'go' ? jsonToGo(r) : jsonToTS(r);
+        }
+      }
+    ]
+  });
+
   // ---------- 启动（仅浏览器环境） ----------
   if (typeof document !== 'undefined' && typeof DT.boot === 'function') {
     if (document.readyState === 'loading') {

@@ -25,7 +25,7 @@ function T(name, fn) {
 }
 
 console.log('== 工具注册 ==');
-T('34 个工具已注册', () => assert.strictEqual(DT.tools.length, 34));
+T('36 个工具已注册', () => assert.strictEqual(DT.tools.length, 36));
 T('分类完整', () => {
   const cats = new Set(DT.tools.map(t => t.cat));
   ['encode', 'crypto', 'data', 'text', 'convert', 'gen', 'web', 'misc'].forEach(c => assert.ok(cats.has(c), c));
@@ -246,16 +246,16 @@ T('cron 下次运行（*/15 对齐）', () => {
 });
 
 console.log('== ioTool 工具数量核对 ==');
-T('各类别工具数：encode 6 / crypto 5 / data 4 / text 5 / convert 3 / gen 4 / web 4 / misc 3', () => {
+T('各类别工具数：encode 6 / crypto 5 / data 5 / text 5 / convert 3 / gen 4 / web 4 / misc 4', () => {
   const n = c => DT.tools.filter(t => t.cat === c).length;
   assert.strictEqual(n('encode'), 6);
   assert.strictEqual(n('crypto'), 5);
-  assert.strictEqual(n('data'), 4);
+  assert.strictEqual(n('data'), 5);
   assert.strictEqual(n('text'), 5);
   assert.strictEqual(n('convert'), 3);
   assert.strictEqual(n('gen'), 4);
   assert.strictEqual(n('web'), 4);
-  assert.strictEqual(n('misc'), 3);
+  assert.strictEqual(n('misc'), 4);
 });
 
 // async 测试收尾

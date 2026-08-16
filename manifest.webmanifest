@@ -1,0 +1,24 @@
+{
+  "name": "Wakfu 攻略站 · 功能工具集",
+  "short_name": "Wakfu",
+  "description": "Wakfu 攻略与数学可视化、开发者工具集、在线编辑器（全部本地计算）",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ef",
+  "theme_color": "#c75b39",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/logo.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

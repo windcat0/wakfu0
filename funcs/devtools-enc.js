@@ -322,6 +322,7 @@
   })();
 
   DT.md5hex = function (str) { return DT.u82hex(md5bytes(DT.str2u8(str))); };
+  DT.md5hexU8 = function (u8) { return DT.u82hex(md5bytes(u8)); };
   DT._t.md5hex = DT.md5hex;
 
   DT.ioTool({

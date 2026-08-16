@@ -82,7 +82,7 @@ window.FUNCS = [
     icon: "📝",
     title: "在线编辑器",
     badge: "JSON · Markdown · Mermaid",
-    desc: "多标签在线编辑器：JSON 格式化/压缩/校验（错误定位行列）、正则搜索替换、Markdown 编辑/预览/实时预览三模式、Mermaid 图表与代码语法高亮；支持本地文件关联（Ctrl+S 直接保存回本地文件）与自动保存。",
+    desc: "多标签在线编辑器：JSON 格式化/校验（错误定位）、正则搜索替换、Markdown 三模式预览、Mermaid 图表、代码高亮、KaTeX 数学公式、文档大纲、图片粘贴、亮暗主题、导出独立 HTML、本地文件关联（Ctrl+S 写回）与自动保存。",
     tags: ["编辑器","JSON","Markdown","Mermaid","搜索替换","多标签"]
   }
 ];
