@@ -6,10 +6,10 @@
     <!-- 功能元数据：供 scripts/gen_manifest.js 扫描生成 funcs/manifest.js -->
     <meta name="func-icon" content="🧸" />
     <meta name="func-title" content="数学小勇士" />
-    <meta name="func-badge" content="加减乘练习" />
-    <meta name="func-desc" content="面向小朋友的加减乘法练习乐园，支持模式选择、题量设置、9 键数字键盘、音效反馈与错题回顾，答对答错即时提示。" />
-    <meta name="func-tags" content="加法,减法,乘法,练习" />
-    <title>🧸 数学小勇士 · 加减乘乐园</title>
+    <meta name="func-badge" content="加减乘除练习" />
+    <meta name="func-desc" content="面向小朋友的加减乘除法练习乐园，支持模式选择、题量设置、9 键数字键盘、音效反馈与错题回顾，答对答错即时提示。" />
+    <meta name="func-tags" content="加法,减法,乘法,除法,练习" />
+    <title>🧸 数学小勇士 · 加减乘除乐园</title>
     <style>
         /* ============================================================
              CSS 变量 & 主题定义
@@ -280,9 +280,9 @@
             align-items: center;
             justify-content: flex-end;
             gap: 10px;
-            padding: 4px 0 12px 0;
-            border-bottom: 2px solid var(--theme-border);
-            margin-bottom: 12px;
+            padding: 12px 0 4px 0;
+            border-top: 2px solid var(--theme-border);
+            margin-top: 12px;
             flex-wrap: wrap;
             transition: border-color 0.3s ease;
         }
@@ -497,6 +497,34 @@
             margin-bottom: 6px;
             flex-wrap: wrap;
             gap: 6px 12px;
+        }
+        .btn-back-home {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2.5px solid var(--theme-border);
+            background: var(--theme-input-bg);
+            color: var(--theme-secondary);
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: inherit;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px var(--theme-shadow);
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .btn-back-home:hover {
+            background: var(--theme-kb-btn-hover);
+            border-color: var(--theme-primary-light);
+            transform: translateY(-2px);
+        }
+        .btn-back-home:active {
+            transform: scale(0.92);
         }
         .game-progress-text {
             font-size: 1.1rem;
@@ -991,6 +1019,11 @@
                 padding: 4px 12px;
                 gap: 8px;
             }
+            .btn-back-home {
+                width: 38px;
+                height: 38px;
+                font-size: 1.2rem;
+            }
             .game-progress-text {
                 font-size: 0.85rem;
                 padding: 4px 12px;
@@ -1004,8 +1037,8 @@
                 padding: 14px 10px;
             }
             .theme-bar {
-                padding: 2px 0 8px 0;
-                margin-bottom: 8px;
+                padding: 8px 0 2px 0;
+                margin-top: 8px;
                 gap: 6px;
             }
             .theme-dot {
@@ -1063,6 +1096,12 @@
                 font-size: 1.2rem;
                 padding: 10px 10px;
                 min-width: 60px;
+            }
+            .btn-back-home {
+                width: 32px;
+                height: 32px;
+                font-size: 1.0rem;
+                border-width: 2px;
             }
             .answer-area .btn-submit {
                 font-size: 1.0rem;
@@ -1124,34 +1163,12 @@
 
     <div class="game-container" id="app">
         <!-- ============================================================
-             主题切换栏 (所有页面共享)
-             ============================================================ -->
-        <div class="theme-bar" id="themeBar">
-            <span class="theme-bar-label">🎨 主题</span>
-            <span class="theme-dot" data-theme="default" title="马卡龙粉">
-                <span class="dot-tip">粉</span>
-            </span>
-            <span class="theme-dot active" data-theme="green" title="护眼浅绿">
-                <span class="dot-tip">绿</span>
-            </span>
-            <span class="theme-dot" data-theme="blue" title="星空蓝">
-                <span class="dot-tip">蓝</span>
-            </span>
-            <span class="theme-dot" data-theme="orange" title="暖阳橙">
-                <span class="dot-tip">橙</span>
-            </span>
-            <span class="theme-dot" data-theme="purple" title="梦幻紫">
-                <span class="dot-tip">紫</span>
-            </span>
-        </div>
-
-        <!-- ============================================================
              首页
              ============================================================ -->
         <div class="page active" id="homePage">
             <div class="main-title">
                 🧸 数学小勇士
-                <small>🌟 加减乘乐园</small>
+                <small>🌟 加减乘除乐园</small>
             </div>
 
             <div class="settings-card">
@@ -1162,6 +1179,7 @@
                         <button class="opt-btn" data-mode="add">➕ 加法</button>
                         <button class="opt-btn" data-mode="sub">➖ 减法</button>
                         <button class="opt-btn" data-mode="mul">✖️ 乘法</button>
+                        <button class="opt-btn" data-mode="div">➗ 除法</button>
                         <button class="opt-btn selected" data-mode="mixed">🌀 混合</button>
                     </div>
                 </div>
@@ -1188,6 +1206,7 @@
         <div class="page" id="gamePage">
             <!-- 头部信息 -->
             <div class="game-header">
+                <button class="btn-back-home" id="btnBackHome" title="返回首页" aria-label="返回首页">←</button>
                 <span class="game-progress-text" id="progressText">第 1 / 30 题</span>
                 <div class="game-stats">
                     <span>✅ <span class="stat-correct" id="correctCount">0</span></span>
@@ -1275,6 +1294,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- ============================================================
+             主题切换栏 (所有页面共享，固定在最底部)
+             ============================================================ -->
+        <div class="theme-bar" id="themeBar">
+            <span class="theme-bar-label">🎨 主题</span>
+            <span class="theme-dot" data-theme="default" title="马卡龙粉">
+                <span class="dot-tip">粉</span>
+            </span>
+            <span class="theme-dot active" data-theme="green" title="护眼浅绿">
+                <span class="dot-tip">绿</span>
+            </span>
+            <span class="theme-dot" data-theme="blue" title="星空蓝">
+                <span class="dot-tip">蓝</span>
+            </span>
+            <span class="theme-dot" data-theme="orange" title="暖阳橙">
+                <span class="dot-tip">橙</span>
+            </span>
+            <span class="theme-dot" data-theme="purple" title="梦幻紫">
+                <span class="dot-tip">紫</span>
+            </span>
+        </div>
     </div>
 
     <script>
@@ -1353,6 +1394,7 @@
         const questionText = document.getElementById('questionText');
         const answerInput = document.getElementById('answerInput');
         const btnSubmit = document.getElementById('btnSubmit');
+        const btnBackHome = document.getElementById('btnBackHome');
         const feedbackArea = document.getElementById('feedbackArea');
         const progressText = document.getElementById('progressText');
         const progressFill = document.getElementById('progressFill');
@@ -1392,8 +1434,8 @@
             let a, b, answer, symbol, display;
             let actualMode = mode;
             if (mode === 'mixed') {
-                const ops = ['add', 'sub', 'mul'];
-                actualMode = ops[Math.floor(Math.random() * 3)];
+                const ops = ['add', 'sub', 'mul', 'div'];
+                actualMode = ops[Math.floor(Math.random() * ops.length)];
             }
 
             switch (actualMode) {
@@ -1416,6 +1458,14 @@
                     b = randInt(0, 9);
                     answer = a * b;
                     symbol = '×';
+                    display = a + ' ' + symbol + ' ' + b;
+                    break;
+                case 'div':
+                    // 先定商和除数，再反推被除数，保证整除无余数
+                    b = randInt(1, 9);
+                    answer = randInt(1, 9);
+                    a = b * answer;
+                    symbol = '÷';
                     display = a + ' ' + symbol + ' ' + b;
                     break;
                 default:
@@ -1735,6 +1785,9 @@
 
         // -------- 提交按钮 --------
         btnSubmit.addEventListener('click', handleSubmit);
+
+        // -------- 游戏中返回首页 --------
+        btnBackHome.addEventListener('click', goHome);
 
         // -------- 回车提交 --------
         answerInput.addEventListener('keydown', function(e) {
