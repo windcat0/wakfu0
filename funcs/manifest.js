@@ -76,5 +76,13 @@ window.FUNCS = [
     badge: "34 个工具 · 纯本地计算",
     desc: "内置 34 个常用开发工具：Base64/URL/Hex/Base32 编解码、MD5/SHA/HMAC/AES、JWT 解码、JSON/YAML/CSV、文本处理、进制/时间戳/颜色转换、UUID/密码/短ID/二维码生成、正则/URL/UA 解析、Diff/Cron/Markdown 等，全部在浏览器本地完成，数据不上传。",
     tags: ["Base64","JSON","加密","时间戳","二维码"]
+  },
+  {
+    href: "funcs/editor.html",
+    icon: "📝",
+    title: "在线编辑器",
+    badge: "JSON · Markdown · Mermaid",
+    desc: "多标签在线编辑器：JSON 格式化/压缩/校验（错误定位行列）、正则搜索替换、Markdown 编辑/预览/实时预览三模式、Mermaid 图表与代码语法高亮；支持本地文件关联（Ctrl+S 直接保存回本地文件）与自动保存。",
+    tags: ["编辑器","JSON","Markdown","Mermaid","搜索替换","多标签"]
   }
 ];

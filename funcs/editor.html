@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>在线编辑器</title>
+  <meta name="func-icon" content="📝">
+  <meta name="func-title" content="在线编辑器">
+  <meta name="func-badge" content="JSON · Markdown · Mermaid">
+  <meta name="func-desc" content="多标签在线编辑器：JSON 格式化/压缩/校验（错误定位行列）、正则搜索替换、Markdown 编辑/预览/实时预览三模式、Mermaid 图表与代码语法高亮；支持本地文件关联（Ctrl+S 直接保存回本地文件）与自动保存。">
+  <meta name="func-tags" content="编辑器,JSON,Markdown,Mermaid,搜索替换,多标签">
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --panel-bg: #ffffff;
+      --text: #2d2a24;
+      --text-light: #6b6358;
+      --accent: #c75b39;
+      --accent-dark: #a8482a;
+      --accent-soft: #f0e3d8;
+      --blue: #4b82b6;
+      --gold: #c8963f;
+      --green: #4f8c63;
+      --red: #c0554d;
+      --purple: #8b6b9e;
+      --border: #e3dbd0;
+      --mono-bg: #faf8f4;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s ease;
+      /* 编辑器统一字体度量（行号/高亮层/输入层必须完全一致） */
+      --ed-font: 13px/21px 'SF Mono', 'Cascadia Code', Consolas, Menlo, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(246, 243, 239, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      text-decoration: none; color: var(--text-light);
+      font-size: 0.86rem; padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--panel-bg);
+      transition: var(--transition); white-space: nowrap;
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    .tb-title { font-size: 1.1rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+    .tb-sub { color: var(--text-light); font-size: 0.76rem; border-left: 1px solid var(--border); padding-left: 10px; }
+
+    .workbench {
+      flex: 1;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 10px 14px 8px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    /* ============ 右侧图标功能栏 ============ */
+    .main-col {
+      flex: 1; min-width: 0; min-height: 0;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .rail {
+      width: 54px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 10px 0;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: visible;
+      z-index: 5;
+    }
+
+    .rail-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+    .rail-sep { width: 26px; height: 1px; background: var(--border); margin: 4px 0; }
+
+    .rbtn {
+      position: relative;
+      width: 38px; height: 38px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--panel-bg);
+      font-size: 1.02rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition);
+      color: var(--text-light);
+      font-family: 'SF Mono', Consolas, Menlo, monospace;
+      padding: 0;
+    }
+    .rbtn:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
+    .rbtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .rbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .rbtn.primary:hover { background: var(--accent-dark); }
+
+    /* 悬停提示（仅图标，悬停显示文字） */
+    .rbtn::after {
+      content: attr(data-tip);
+      position: absolute; right: calc(100% + 9px); top: 50%;
+      transform: translateY(-50%);
+      background: #2d2a24; color: #fff;
+      padding: 5px 11px; border-radius: 7px;
+      font-size: 0.74rem; font-weight: 500; white-space: nowrap;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease 0.1s;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+      font-family: 'Inter', system-ui, 'PingFang SC', sans-serif;
+      z-index: 30;
+    }
+    .rbtn:hover::after { opacity: 1; }
+
+    /* 模式相关分组可见性 */
+    .rail[data-mode="md"] .json-only { display: none; }
+    .rail[data-mode="json"] .md-only { display: none; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 13px; border: 1px solid var(--border);
+      border-radius: 9px; background: var(--panel-bg);
+      color: var(--text); font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition); white-space: nowrap; font-family: inherit;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .tb-divider { width: 1px; height: 22px; background: var(--border); }
+
+    /* ============ 错误/提示条 ============ */
+    .msgbar {
+      display: none;
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      font-size: 0.8rem; line-height: 1.5; word-break: break-all;
+    }
+    .msgbar.show { display: block; }
+    .msgbar.err { background: #fceceb; border: 1px solid #eec7c3; color: var(--red); }
+    .msgbar.ok { background: #e9f3ec; border: 1px solid #cbe3d3; color: var(--green); }
+    .msgbar .link-btn { background: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; padding: 0 2px; }
+
+    /* ============ 标签页栏 ============ */
+    .tabbar { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: thin; padding: 1px 2px; min-height: 34px; }
+
+    .tab {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 8px 6px 11px;
+      border: 1px solid var(--border); border-radius: 9px;
+      background: var(--panel-bg);
+      font-size: 0.8rem; cursor: pointer; white-space: nowrap;
+      transition: var(--transition); user-select: none;
+      flex-shrink: 0; color: var(--text-light);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .tab:hover { border-color: var(--accent); color: var(--accent-dark); }
+    .tab.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); font-weight: 600; }
+    .tab .t-ico { font-size: 0.85rem; }
+    .tab .t-name { max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+    .tab .t-name[contenteditable="true"] {
+      outline: 1px dashed var(--accent); border-radius: 4px;
+      padding: 0 3px; background: #fff; cursor: text;
+    }
+    .tab .t-dirty { color: var(--gold); font-size: 0.68rem; }
+    .tab .t-close { padding: 1px 4px; border-radius: 5px; font-size: 0.7rem; color: var(--text-light); line-height: 1.2; }
+    .tab .t-close:hover { background: var(--red); color: #fff; }
+    .tab.tab-new { border-style: dashed; font-weight: 700; padding: 6px 12px; }
+    .tab.tab-new:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* 文件拖入遮罩 */
+    .drop-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(246, 243, 239, 0.88);
+      backdrop-filter: blur(3px);
+      border: 3px dashed var(--accent);
+      font-size: 1.05rem; font-weight: 600; color: var(--accent-dark);
+      pointer-events: none;
+    }
+    .drop-overlay.show { display: flex; }
+
+    /* ============ 搜索替换栏 ============ */
+    .searchbar {
+      display: none;
+      gap: 8px; align-items: center; flex-wrap: wrap;
+      background: var(--panel-bg);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 8px 12px;
+    }
+    .searchbar.show { display: flex; }
+
+    .searchbar input[type="text"] {
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.82rem; font-family: var(--ed-font); color: var(--text);
+      outline: none; transition: var(--transition); min-width: 150px;
+    }
+    .searchbar input:focus { border-color: var(--accent); }
+    .searchbar input.bad { border-color: var(--red); }
+
+    .s-count { font-size: 0.76rem; color: var(--text-light); min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
+    .s-count .cur { color: var(--accent); font-weight: 700; }
+
+    .tog {
+      padding: 5px 9px; border: 1px solid var(--border); border-radius: 7px;
+      background: var(--panel-bg); font-size: 0.76rem; font-weight: 700;
+      color: var(--text-light); cursor: pointer; transition: var(--transition); font-family: inherit;
+    }
+    .tog.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    /* ============ 编辑区 ============ */
+    .stage { flex: 1; display: flex; gap: 12px; min-height: 0; overflow: hidden; }
+
+    .ed-wrap {
+      flex: 1; min-width: 0; min-height: 0;
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--mono-bg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ed-gutter {
+      width: 50px; flex-shrink: 0; overflow: hidden;
+      background: #efe9df; border-right: 1px solid var(--border);
+      position: relative; user-select: none;
+    }
+    .ed-gutter-inner {
+      position: absolute; top: 0; left: 0; right: 4px;
+      padding: 12px 4px 12px 0;
+      font: var(--ed-font);
+      text-align: right; color: #aaa092; white-space: pre;
+      will-change: transform;
+    }
+    .ed-gutter-inner .cur-line-no { color: var(--accent); font-weight: 700; }
+
+    .ed-scroll { position: relative; flex: 1; min-width: 0; }
+
+    .ed-hl, .ed-input {
+      font: var(--ed-font);
+      padding: 12px 14px;
+      white-space: pre;
+      word-wrap: normal;
+      overflow: auto;
+      tab-size: 2;
+      border: none; outline: none;
+    }
+
+    .ed-hl {
+      position: absolute; inset: 0;
+      margin: 0; color: var(--text);
+      pointer-events: none; overflow: hidden;
+      z-index: 1;
+    }
+    .ed-hl code { font: inherit; }
+
+    .ed-input {
+      position: absolute; inset: 0;
+      margin: 0; resize: none;
+      background: transparent; color: transparent;
+      caret-color: var(--accent);
+      z-index: 2;
+      -webkit-text-fill-color: transparent;
+    }
+    .ed-input::selection { background: rgba(199, 91, 57, 0.22); }
+    .ed-input::placeholder { color: #b7ada0; -webkit-text-fill-color: #b7ada0; }
+
+    /* —— 语法高亮配色（暖色系） —— */
+    .tok-key { color: var(--accent-dark); font-weight: 600; }
+    .tok-str { color: var(--green); }
+    .tok-num { color: var(--gold); }
+    .tok-bool { color: var(--purple); font-weight: 600; }
+    .tok-null { color: var(--purple); font-style: italic; }
+    .tok-punct { color: #8a8175; }
+
+    .md-h { color: var(--accent-dark); font-weight: 700; }
+    .md-h.md-h1 { font-weight: 800; }
+    .md-li { color: var(--accent); font-weight: 700; }
+    .md-quote { color: var(--gold); font-weight: 700; }
+    .md-code { color: var(--green); }
+    .md-code-bg { color: var(--green); background: #eee7db; border-radius: 3px; }
+    .md-fence { color: var(--purple); font-weight: 600; }
+    .md-b { color: #24435e; font-weight: 700; }
+    .md-i { color: #24435e; font-style: italic; }
+    .md-del { color: #9a9186; text-decoration: line-through; }
+    .md-link { color: var(--blue); text-decoration: underline; }
+    .md-hr { color: var(--gold); }
+
+    /* —— 搜索命中 —— */
+    .m-all { background: #ffe9a8; border-radius: 2px; }
+    .m-cur { background: #f0952f; color: #fff !important; border-radius: 2px; }
+
+    /* ============ 预览区 ============ */
+    .pv {
+      flex: 1; min-width: 0; min-height: 0;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: auto;
+      padding: 20px 24px;
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    /* 阶段显示状态 */
+    .stage.view-edit .pv { display: none; }
+    .stage.view-preview .ed-wrap { display: none; }
+    .stage.view-edit .pv, .stage.view-preview .ed-wrap { display: none; }
+
+    .pv h1, .pv h2, .pv h3, .pv h4 { margin: 16px 0 8px; line-height: 1.4; }
+    .pv h1 { font-size: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 6px; }
+    .pv h2 { font-size: 1.28rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    .pv h3 { font-size: 1.1rem; }
+    .pv p { margin: 8px 0; }
+    .pv code {
+      background: var(--accent-soft); color: var(--accent-dark);
+      padding: 1px 6px; border-radius: 5px;
+      font-family: 'SF Mono', 'Cascadia Code', Consolas, Menlo, monospace; font-size: 0.84em;
+    }
+    .pv pre {
+      background: #faf8f4; border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px 15px; overflow: auto; margin: 10px 0;
+    }
+    .pv pre code { background: none; color: var(--text); padding: 0; font-size: 0.82rem; line-height: 1.65; }
+    .pv blockquote {
+      border-left: 4px solid var(--gold); background: var(--mono-bg);
+      padding: 8px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      color: var(--text-light); margin: 10px 0;
+    }
+    .pv ul, .pv ol { padding-left: 24px; margin: 8px 0; }
+    .pv li { margin: 3px 0; }
+    .pv input[type="checkbox"] { accent-color: var(--accent); margin-right: 4px; }
+    .pv table { border-collapse: collapse; margin: 10px 0; display: block; overflow-x: auto; }
+    .pv th, .pv td { border: 1px solid var(--border); padding: 6px 12px; font-size: 0.86rem; }
+    .pv th { background: var(--mono-bg); }
+    .pv img { max-width: 100%; border-radius: var(--radius-sm); }
+    .pv a { color: var(--blue); }
+    .pv hr { border: none; border-top: 2px solid var(--border); margin: 16px 0; }
+
+    /* mermaid 容器 */
+    .mermaid-box {
+      text-align: center; margin: 14px 0; padding: 10px;
+      border: 1px dashed var(--border); border-radius: var(--radius-sm);
+      overflow-x: auto; background: #fff;
+    }
+    .mermaid-box svg { max-width: 100%; }
+    .mermaid-loading { color: var(--text-light); font-size: 0.82rem; padding: 18px 0; }
+    .mermaid-err {
+      text-align: left; color: var(--red); background: #fceceb;
+      border: 1px solid #eec7c3; border-radius: var(--radius-sm);
+      padding: 10px 14px; font-size: 0.78rem; font-family: var(--ed-font);
+      white-space: pre-wrap; word-break: break-all;
+    }
+
+    /* ============ 状态栏 ============ */
+    .statusbar {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      color: var(--text-light); font-size: 0.74rem;
+      padding: 2px 6px; font-variant-numeric: tabular-nums;
+    }
+    .statusbar .grow { flex: 1; }
+    .statusbar b { color: var(--text); font-weight: 600; }
+
+    @media (max-width: 860px) {
+      /* 移动端恢复自然文档流（页面滚动），分栏改为上下堆叠 */
+      body { height: auto; min-height: 100vh; overflow: auto; }
+      .workbench { flex-direction: column; }
+      .stage { flex-direction: column; min-height: 0; overflow: visible; }
+      .ed-wrap { min-height: 300px; }
+      .stage.view-split .pv { min-height: 300px; }
+      .pv { max-height: 60vh; }
+      .tb-sub { display: none; }
+      .searchbar input[type="text"] { min-width: 110px; }
+
+      /* 图标栏转为底部横向滚动条，提示改为向上弹出 */
+      .rail {
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 6px;
+        padding: 7px 9px;
+        overflow-x: auto;
+      }
+      .rail-group { flex-direction: row; }
+      .rail-sep { width: 1px; height: 26px; margin: 0 3px; align-self: center; }
+      .rbtn { flex-shrink: 0; }
+      .rbtn::after {
+        right: auto; left: 50%; top: auto; bottom: calc(100% + 8px);
+        transform: translateX(-50%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="../func.html" class="back-link">← 功能列表</a>
+    <span class="tb-title"><span>📝</span>在线编辑器</span>
+    <span class="tb-sub">JSON 格式化 · 搜索替换 · Markdown 三模式 · Mermaid · 代码高亮</span>
+  </header>
+
+  <div class="workbench">
+    <div class="main-col">
+      <!-- 标签页 -->
+      <div class="tabbar" id="tabbar"></div>
+
+      <!-- 搜索替换 -->
+      <div class="searchbar" id="searchbar">
+        <input type="text" id="findInput" placeholder="查找…（Enter 下一处）">
+        <button class="tog" id="togCase" title="区分大小写">Aa</button>
+        <button class="tog" id="togRegex" title="正则表达式模式">.*</button>
+        <span class="s-count" id="matchCount">–</span>
+        <button class="btn" id="btnPrev" title="Shift+Enter">↑</button>
+        <button class="btn" id="btnNext">↓</button>
+        <div class="tb-divider"></div>
+        <input type="text" id="replaceInput" placeholder="替换为…（$1 组引用）">
+        <button class="btn" id="btnReplace">替换</button>
+        <button class="btn primary" id="btnReplaceAll">全部替换</button>
+        <button class="btn" id="btnCloseSearch" title="Esc">✕</button>
+      </div>
+
+      <!-- 提示条 -->
+      <div class="msgbar" id="msgbar"></div>
+
+      <!-- 编辑 / 预览 -->
+      <div class="stage view-split" id="stage">
+        <div class="ed-wrap">
+          <div class="ed-gutter"><div class="ed-gutter-inner" id="gutter">1</div></div>
+          <div class="ed-scroll">
+            <pre class="ed-hl" id="hlPre" aria-hidden="true"><code id="hlCode"></code></pre>
+            <textarea class="ed-input" id="editor" wrap="off" spellcheck="false"
+              placeholder="在此输入内容…（JSON 或 Markdown，Ctrl+F 查找替换，Ctrl+S 保存，内容自动保存）"></textarea>
+          </div>
+        </div>
+        <div class="pv" id="preview"></div>
+      </div>
+
+      <!-- 状态栏 -->
+      <div class="statusbar" id="statusbar">
+        <span>行 <b id="stLn">1</b>，列 <b id="stCol">1</b></span>
+        <span><b id="stChars">0</b> 字符</span>
+        <span><b id="stBytes">0</b> 字节</span>
+        <span><b id="stLines">1</b> 行</span>
+        <span class="grow"></span>
+        <span id="stSave"></span>
+        <span>Tab 缩进 · Ctrl+F 查找 · Ctrl+S 保存 · Ctrl+O 打开 · 双击标签名重命名</span>
+      </div>
+    </div>
+
+    <!-- 右侧图标功能栏（悬停显示文字说明） -->
+    <aside class="rail" id="rail">
+      <div class="rail-group" id="modeSeg">
+        <button class="rbtn" data-mode="json" data-tip="JSON 模式" aria-label="JSON 模式">🧾</button>
+        <button class="rbtn" data-mode="md" data-tip="Markdown 模式" aria-label="Markdown 模式">📝</button>
+      </div>
+      <div class="rail-sep md-only"></div>
+      <div class="rail-group md-only" id="viewSeg">
+        <button class="rbtn" data-view="edit" data-tip="仅编辑" aria-label="仅编辑">✏️</button>
+        <button class="rbtn" data-view="split" data-tip="实时预览（左右分栏）" aria-label="实时预览">⇄</button>
+        <button class="rbtn" data-view="preview" data-tip="仅预览渲染结果" aria-label="仅预览">👁</button>
+      </div>
+      <div class="rail-sep json-only"></div>
+      <div class="rail-group json-only">
+        <button class="rbtn" id="btnFormat" data-tip="格式化 JSON（缩进 2 空格）" aria-label="格式化 JSON">{ }</button>
+        <button class="rbtn" id="btnMinify" data-tip="压缩为单行" aria-label="压缩 JSON">🗜️</button>
+        <button class="rbtn" id="btnValidate" data-tip="校验 + 错误定位" aria-label="校验 JSON">✓</button>
+      </div>
+      <div class="rail-sep"></div>
+      <div class="rail-group">
+        <button class="rbtn" id="btnSearch" data-tip="查找替换（Ctrl+F）" aria-label="查找替换">🔍</button>
+        <button class="rbtn" id="btnSample" data-tip="载入示例" aria-label="载入示例">📄</button>
+        <button class="rbtn" id="btnOpen" data-tip="打开本地文件（Ctrl+O），也可拖拽到页面" aria-label="打开本地文件">📂</button>
+        <button class="rbtn primary" id="btnSave" data-tip="保存：已关联文件直接写回（Ctrl+S）" aria-label="保存">💾</button>
+        <button class="rbtn" id="btnDownload" data-tip="另存副本（不影响关联文件）" aria-label="另存副本">⤓</button>
+        <button class="rbtn" id="btnCopy" data-tip="复制全部内容" aria-label="复制">⧉</button>
+        <button class="rbtn" id="btnClear" data-tip="清空当前标签内容" aria-label="清空">🗑️</button>
+      </div>
+      <input type="file" id="fileInput" accept="text/*,.md,.markdown,.json,.mmd,.mermaid,.txt,.log,.yml,.yaml,.csv,.xml,.html,.ini,.conf" multiple hidden>
+    </aside>
+  </div>
+
+  <div class="drop-overlay" id="dropOverlay">📂 松开鼠标，在新的标签页中打开文件</div>
+
+  <script src="editor-core.js"></script>
+  <script src="editor-md.js"></script>
+</body>
+</html>
