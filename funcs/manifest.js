@@ -65,8 +65,16 @@ window.FUNCS = [
     href: "funcs/math.html",
     icon: "🧸",
     title: "数学小勇士",
-    badge: "加减乘练习",
-    desc: "面向小朋友的加减乘法练习乐园，支持模式选择、题量设置、9 键数字键盘、音效反馈与错题回顾，答对答错即时提示。",
-    tags: ["加法","减法","乘法","练习"]
+    badge: "加减乘除练习",
+    desc: "面向小朋友的加减乘除法练习乐园，支持模式选择、题量设置、9 键数字键盘、音效反馈与错题回顾，答对答错即时提示。",
+    tags: ["加法","减法","乘法","除法","练习"]
+  },
+  {
+    href: "funcs/devtools.html",
+    icon: "🧰",
+    title: "开发者工具集",
+    badge: "34 个工具 · 纯本地计算",
+    desc: "内置 34 个常用开发工具：Base64/URL/Hex/Base32 编解码、MD5/SHA/HMAC/AES、JWT 解码、JSON/YAML/CSV、文本处理、进制/时间戳/颜色转换、UUID/密码/短ID/二维码生成、正则/URL/UA 解析、Diff/Cron/Markdown 等，全部在浏览器本地完成，数据不上传。",
+    tags: ["Base64","JSON","加密","时间戳","二维码"]
   }
 ];
